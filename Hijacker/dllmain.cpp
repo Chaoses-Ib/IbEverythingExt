@@ -50,6 +50,11 @@ bool is_modifier_in_blacklist(std::wstring_view modifier) {
 std::wstring* edit_process_content(const std::wstring& content) {
     using namespace std::literals;
 
+    // ignore empty and single-char contents
+    if (content.size() <= 1) {
+        return new std::wstring(content);
+    }
+
     std::wistringstream in{ content };  // (content.data(), content.size()) is not what we want
     std::wostringstream out;
 
