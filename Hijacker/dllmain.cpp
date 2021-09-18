@@ -373,7 +373,28 @@ BOOL WINAPI SetWindowTextW_detour(
     return SetWindowTextW_real(hWnd, lpString);
 }
 
-#include <IbDllHijackLib/Dlls/version.h>
+BOOL CALLBACK enum_window_proc(
+    _In_ HWND hwnd,
+    _In_ LPARAM lParam)
+{
+    using namespace std::literals;
+
+    if (GetWindowThreadProcessId(hwnd, nullptr) == static_cast<DWORD>(lParam)) {
+        // hwnd may be a window other than EVERYTHING, such as "#32770 (Dialog)" (Everything Options).
+        wchar_t buf[std::size(L"EVERYTHING")];
+        if (int len = GetClassNameW(hwnd, buf, std::size(buf))) {
+            if (std::wstring_view(buf, len) == L"EVERYTHING"sv) {
+                if (HWND toolbar = FindWindowExW(hwnd, 0, L"EVERYTHING_TOOLBAR", nullptr))
+                    if (HWND edit = FindWindowExW(toolbar, 0, L"Edit", nullptr))
+                        edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(edit, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+            }
+        }
+    }
+
+    return true;
+}
+
+#include <IbDllHijackLib/Dlls/srvcli.h>
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -385,6 +406,12 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
         IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
+
+        // may be loaded after creating windows? it seems that only netutil.dll does
+        //EnumWindows(enum_window_proc,GetCurrentThreadId());
+
+        if constexpr (ib::debug_runtime)
+            DebugOStream() << L"DLL_PROCESS_ATTACH\n";
         break;
     case DLL_THREAD_ATTACH:
         break;
@@ -393,6 +420,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_DETACH:
         IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
         IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
+
+        if constexpr (ib::debug_runtime)
+            DebugOStream() << L"DLL_PROCESS_DETACH\n";
         break;
     }
     return TRUE;
