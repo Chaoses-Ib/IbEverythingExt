@@ -3,6 +3,7 @@
 #include "helper.hpp"
 #include "pinyin.hpp"
 
+constexpr wchar_t prop_edit_content[] = L"IbEverythingExt.Content";
 constexpr wchar_t prop_edit_processed_content[] = L"IbEverythingExt.ProcessedContent";
 constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
 
@@ -46,10 +47,10 @@ bool is_modifier_in_blacklist(std::wstring_view modifier) {
 }
 
 // #TODO: may be buggy, need tests
-std::wstring* edit_process_content(std::wstring_view content) {
+std::wstring* edit_process_content(const std::wstring& content) {
     using namespace std::literals;
 
-    std::wistringstream in{ std::wstring(content) };  // (content.data(), content.size()) is not what we want
+    std::wistringstream in{ content };  // (content.data(), content.size()) is not what we want
     std::wostringstream out;
 
     bool disabled = false;
@@ -276,45 +277,58 @@ LRESULT CALLBACK edit_window_proc(
     switch (uMsg) {
     case WM_GETTEXTLENGTH:
         {
+            if constexpr (ib::debug_runtime)
+                DebugOStream() << L"WM_GETTEXTLENGTH\n";
+
             // retrieve the content
             LRESULT result = CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
+            wchar_t* buf = new wchar_t[result + 1 + std::size(" - Everything") - 1];  // for both the content and the title
+            LRESULT content_len = CallWindowProcW(edit_window_proc_prev, hwnd, WM_GETTEXT, result + 1, (LPARAM)buf);
 
-            wchar_t* content = new wchar_t[result + 1 + std::size(" - Everything") - 1];
-            LRESULT content_len = CallWindowProcW(edit_window_proc_prev, hwnd, WM_GETTEXT, result + 1, (LPARAM)content);
+            // save the content
+            auto content = (std::wstring*)GetPropW(hwnd, prop_edit_content);
+            auto processed_content = (std::wstring*)GetPropW(hwnd, prop_edit_processed_content);
+            if (content && *content == std::wstring_view(buf, content_len)) {
+                delete[] buf;
+                return processed_content->size();
+            }
+            delete content;
+            delete processed_content;
+            content = new std::wstring(buf, content_len);
+            SetPropW(hwnd, prop_edit_content, content);
 
-
-            // process
-            std::wstring* processed_text = edit_process_content({ content, (size_t)content_len });
-            SetPropW(hwnd, prop_edit_processed_content, processed_text);
+            // process the content
+            processed_content = edit_process_content(*content);
+            SetPropW(hwnd, prop_edit_processed_content, processed_content);
 
             if constexpr (ib::debug_runtime)
-                DebugOStream() << content << L" -> " << *processed_text << std::endl;
+                DebugOStream() << *content << L" -> " << *processed_content << std::endl;
 
 
             // make the title
             if (content_len)
-                std::copy_n(L" - Everything", std::size(L" - Everything"), content + content_len);
+                std::copy_n(L" - Everything", std::size(L" - Everything"), buf + content_len);
             else
-                std::copy_n(L"Everything", std::size(L"Everything"), content);
-
+                std::copy_n(L"Everything", std::size(L"Everything"), buf);
 
             // save the title
             HWND main = GetAncestor(hwnd, GA_ROOT);
-            if (auto title = (wchar_t*)GetPropW(main, prop_main_title)) {
-                delete[] title;
-            }
-            SetPropW(main, prop_main_title, content);
+            delete[] (wchar_t*)GetPropW(main, prop_main_title);
+            SetPropW(main, prop_main_title, buf);
 
-            return processed_text->size();
+            return processed_content->size();
         }
         break;
     case WM_GETTEXT:
         {
-            auto content = (std::wstring*)GetPropW(hwnd, prop_edit_processed_content);
-            LRESULT n = min(content->size() + 1, wParam);
-            std::copy_n(content->c_str(), n, (wchar_t*)lParam);
-            delete content;
-            return n - 1;
+            if constexpr (ib::debug_runtime)
+                DebugOStream() << L"WM_GETTEXT\n";
+
+            if (auto processed_content = (std::wstring*)GetPropW(hwnd, prop_edit_processed_content)) {
+                LRESULT n = min(processed_content->size() + 1, wParam);
+                std::copy_n(processed_content->c_str(), n, (wchar_t*)lParam);
+                return n - 1;
+            }
         }
         break;
     }
