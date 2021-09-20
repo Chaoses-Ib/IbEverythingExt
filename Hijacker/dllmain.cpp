@@ -124,7 +124,12 @@ std::wstring* edit_process_content(const std::wstring& content) {
         int letter_count = 0;
         while (keyword_in.get(c)) {
             if (escape) {
-                out << c;
+                // only \! is escaped
+                if (c == L'!')
+                    out << c;
+                else
+                    out << L'\\' << c;
+
                 escape = false;
             } else {
                 if (L'a' <= c && c <= L'z') {  // only process lowercase letters
@@ -198,6 +203,8 @@ std::wstring* edit_process_content(const std::wstring& content) {
             out << pinyin_regexs[last_letter - 'a'] << L']';
             if (letter_count > 1)
                 out << L'{' << letter_count << L'}';
+        } else if (escape) {  //R"(abc\)"
+            out << L'\\';
         }
 
         if (modifiers.endwith || (wildcards && !modifiers.nowildcards && !modifiers.nowholefilename)) {
