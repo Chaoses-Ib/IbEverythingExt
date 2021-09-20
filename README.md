@@ -7,7 +7,7 @@
 ## 安装
 1. 从 [Releases](../../releases) 下载压缩包。
 1. 解压压缩包，将 srvcli.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
-1. 运行 Everything。（如果不生效，请确认你使用的是 x64 版本的 Everything，并安装了 [VC++ 2019 运行时 x64](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
+1. 重启 Everything。（如果不生效，请确认你使用的是 x64 版本的 Everything。）
 
 ## 语法说明
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
