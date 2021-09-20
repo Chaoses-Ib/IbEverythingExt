@@ -79,7 +79,7 @@ void query_and_merge_into_pinyin_regexs() {
         uint32_t i = 0;
         while (i < filename.size()) {
             wchar_t c = filename[i++];
-            if (c <= 0x3007)
+            if (c < 0x3007)
                 continue;
             else if (0xD800 <= c && c <= 0xDBFF) {
                 if (i < filename.size()) {
