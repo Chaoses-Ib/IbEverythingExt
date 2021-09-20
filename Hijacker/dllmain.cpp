@@ -69,7 +69,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
         bool nowildcards = false;
     } modifiers;
 
-    auto process_keyword = [&out, &disabled, &modifiers](const std::wstring& keyword) {
+    auto process_keyword = [&out, &disabled, &modifiers](const std::wstring_view& keyword) {
         if (disabled || keyword.empty()) {
             disabled = false;
             if (modifiers.startwith)
@@ -80,33 +80,30 @@ std::wstring* edit_process_content(const std::wstring& content) {
             return;
         }
 
-        std::wstringstream keyword_in(keyword);
-        wchar_t c;
-
         // check whether wildcards exist
         bool wildcards = false;
         if (!modifiers.nowildcards) {
             bool escape = false;
-            bool skip_escape_reset = false;
-            while (!wildcards && keyword_in.get(c)) {
+            uint32_t i = 0;
+            while (!wildcards && i < keyword.size()) {
+                wchar_t c = keyword[i++];
+
+                if (escape) {
+                    escape = false;
+                    continue;
+                }
+
                 switch (c) {
                 case L'\\':
                     escape = true;
-                    skip_escape_reset = true;
                     break;
                 case L'*':
                 case L'?':
-                    if (!escape)
-                        wildcards = true;
+                    wildcards = true;
+                    break;
                 }
-                if (skip_escape_reset)
-                    skip_escape_reset = false;
-                else
-                    escape = false;
             }
         }
-        keyword_in.clear();
-        keyword_in.seekg(0);
 
         out << L"case:regex:";
 
@@ -121,99 +118,135 @@ std::wstring* edit_process_content(const std::wstring& content) {
             out << L'^';
         }
 
-        
-        wchar_t last_letter = L'\0';
-        int letter_count = 0;
+        // pinyin output functions
+        auto output_pinyin_common = [&out, &modifiers](wchar_t cur, std::wstring_view regex) {
+            out << L'[';
+            if (!modifiers.py)
+                out << cur << static_cast<wchar_t>(cur - L'a' + L'A');
+            out << regex << L']';
+        };
+        auto output_pinyin = [&output_pinyin_common](wchar_t cur) {
+            output_pinyin_common(cur, pinyin_regexs[cur - L'a']);
+        };
+        auto output_pinyin_next = [&output_pinyin_common](wchar_t cur, wchar_t next) {
+            output_pinyin_common(cur, pinyin_pair_regexs[cur - L'a'][next - L'a'].first);
+        };
+        auto output_pinyin_last = [&output_pinyin_common](wchar_t last, wchar_t cur) {
+            output_pinyin_common(cur, pinyin_pair_regexs[last - L'a'][cur - L'a'].second);
+        };
+        auto output_pinyin_last_next = [&out, &modifiers](wchar_t last, wchar_t cur, wchar_t next) {
+            out << L'[';
+            if (!modifiers.py)
+                out << cur << static_cast<wchar_t>(cur - L'a' + L'A');
 
-        auto output_pinyin = [&out, &letter_count, &last_letter, &modifiers] {
-            if (letter_count >= 1) {
-                out << L'[';
-                if (!modifiers.py)
-                    out << last_letter << static_cast<wchar_t>(last_letter - L'a' + L'A');
-                out << pinyin_regexs[last_letter - L'a'] << L']';
+            std::wstring& first = pinyin_pair_regexs[cur - L'a'][next - L'a'].first;
+            std::wstring& second = pinyin_pair_regexs[last - L'a'][cur - L'a'].second;
 
-                if (letter_count > 1)
-                    out << L'{' << letter_count << L'}';
+            // intersect
+            uint32_t i = 0;
+            while (i < first.size()) {
+                wchar_t c = first[i++];
 
-                return true;
+                Utf16Pair cur;
+                if (0xD800 <= c && c <= 0xDBFF) {
+                    if (i < first.size())
+                        cur = { c, first[i++] };
+                    else
+                        break;
+                } else {
+                    cur = { c };
+                }
+
+                if (cur.in(second)) {
+                    out << cur.l;
+                    if (cur.h)
+                        out << cur.h;
+                }
             }
-            return false;
+
+            out << L']';
         };
 
+        wchar_t last = L'\0';
         bool escape = false;
-        while (keyword_in.get(c)) {
+        uint32_t i = 0;
+        while (i < keyword.size()) {
+            wchar_t c = keyword[i++];
+
             if (escape) {
-                // only \! is escaped
-                if (c == L'!')
-                    out << c;
-                else
-                    out << L'\\' << c;
-
                 escape = false;
+
+                // only \! is escaped
+                if (c == L'!') {
+                    out << c;
+                    continue;
+                }
+                out << L'\\';
+            }
+            if (L'a' <= c && c <= L'z') {  // only process lowercase letters
+                wchar_t next = L'\0';
+                if (i < keyword.size()) {
+                    next = keyword[i];
+                    if (!(L'a' <= next && next <= L'z'))
+                        next = L'\0';
+                }
+
+                if (next) {
+                    if (last)
+                        output_pinyin_last_next(last, c, next);
+                    else
+                        output_pinyin_next(c, next);
+                } else {
+                    if (last)
+                        output_pinyin_last(last, c);
+                    else
+                        output_pinyin(c);
+                }
+                last = c;
             } else {
-                if (L'a' <= c && c <= L'z') {  // only process lowercase letters
-                    // merge the same letters
-                    if (last_letter == c) {
-                        letter_count += 1;
-                    }
-                    else {
-                        output_pinyin();
-                        last_letter = c;
-                        letter_count = 1;
-                    }
-                }
-                else {
-                    if (output_pinyin()) {
-                        last_letter = L'\0';
-                        letter_count = 0;
-                    }
+                switch (c) {
+                case L'\\':
+                    escape = true;
+                    out << c;
+                    break;
 
-                    switch (c) {
-                    case L'\\':
-                        escape = true;
-                        out << c;
-                        break;
+                // escape regex chars
+                case L'.':
+                case L'[':
+                case L']':
+                case L'^':
+                case L'$':
+                case L'+':
+                case L'{':
+                case L'}':
+                case L'(':
+                case L')':
+                    out << L'\\' << c;
+                    break;
 
-                    // escape regex chars
-                    case L'.':
-                    case L'[':
-                    case L']':
-                    case L'^':
-                    case L'$':
-                    case L'+':
-                    case L'{':
-                    case L'}':
-                    case L'(':
-                    case L')':
+                // wildcards to regex
+                case L'*':
+                    if (!modifiers.nowildcards)
+                        out << L".*";
+                    else
                         out << L'\\' << c;
-                        break;
+                    break;
+                case L'?':
+                    if (!modifiers.nowildcards)
+                        out << L".";
+                    else
+                        out << L'\\' << c;
+                    break;
 
-                    // wildcards to regex
-                    case L'*':
-                        if (!modifiers.nowildcards)
-                            out << L".*";
-                        else
-                            out << L'\\' << c;
-                        break;
-                    case L'?':
-                        if (!modifiers.nowildcards)
-                            out << L".";
-                        else
-                            out << L'\\' << c;
-                        break;
-
-                    default:
-                        out << c;
-                    }
+                default:
+                    out << c;
                 }
+
+                last = L'\0';
             }
         }
-        // stream EOF
-        if (output_pinyin())
-            ;
-        else if (escape) {  //R"(abc\)"
+        if (escape)  //R"(abc\)"
             out << L'\\';
-        }
 
         if (modifiers.endwith || (wildcards && !modifiers.nowildcards && !modifiers.nowholefilename)) {
             out << L'$';

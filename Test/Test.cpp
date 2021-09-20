@@ -19,6 +19,9 @@ std::wstring pinyin_range_gb2312 = L"[一-龠]";
 
 #include "dynamic_charset.h.user"  // private data
 //#define DYNAMIC_CHARSET_Y L"源页议游育娱乐汽语言元一么于音友有影"
+//#define DYNAMIC_CHARSET_YY_1 L"娱语"
+//#define DYNAMIC_CHARSET_YY_2 L"乐言"
+
 
 BOOST_FIXTURE_TEST_SUITE(SingleCharQueryPerformance, Everythings::Everything)
     void test_query(Everythings::Everything& ev, std::wstring_view query) {
@@ -155,6 +158,18 @@ BOOST_FIXTURE_TEST_SUITE(MultiCharsQueryPerformance, Everythings::Everything)
 
 
     BOOST_AUTO_TEST_SUITE(Pinyin)
+
+        BOOST_AUTO_TEST_CASE(Best) {
+            test_query(*this, L"case:regex:[yY" DYNAMIC_CHARSET_YY_1 L"][yY" DYNAMIC_CHARSET_YY_2 L"]");
+        }
+
+        BOOST_AUTO_TEST_CASE(DynamicPair) {
+            test_query(*this, L"regex:[y" DYNAMIC_CHARSET_YY_1 L"][y" DYNAMIC_CHARSET_YY_2 L"]");
+        }
+
+        BOOST_AUTO_TEST_CASE(Dynamic) {
+            test_query(*this, L"regex:[y" DYNAMIC_CHARSET_Y L"]{2}");
+        }
 
         BOOST_AUTO_TEST_CASE(Quantifier) {
             test_query(*this, L"regex:[y" + pinyin_regex + L"]{2}");
