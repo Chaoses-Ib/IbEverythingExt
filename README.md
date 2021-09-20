@@ -10,7 +10,10 @@
 1. 运行 Everything。（如果不生效，请确认你使用的是 x64 版本的 Everything，并安装了 [VC++ 2019 运行时 x64](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
 
 ## 语法说明
-* 小写字母匹配拼音或字母，大写字母只匹配字母。
+* 默认小写字母匹配拼音或字母，大写字母只匹配字母。
+* 修饰符
+    * py: 小写字母只匹配拼音
+    * nopy: 禁用拼音搜索（对所有关键字生效）
 
 ![](docs/syntax.png)
 

@@ -51,9 +51,10 @@ bool is_modifier_in_blacklist(std::wstring_view modifier) {
 std::wstring* edit_process_content(const std::wstring& content) {
     using namespace std::literals;
 
-    // ignore empty and single-char contents
-    if (content.size() <= 1) {
+    if (content.size() <= 1) {  // ignore empty and single-char contents
         return new std::wstring(content);
+    } else if (content.starts_with(L"nopy:"sv)) {
+        return new std::wstring(content, L"nopy:"sv.size());
     }
 
     std::wistringstream in{ content };  // (content.data(), content.size()) is not what we want
@@ -61,6 +62,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
 
     bool disabled = false;
     struct {
+        bool py = false;
         bool endwith = false;
         bool startwith = false;
         bool nowholefilename = false;
@@ -119,9 +121,26 @@ std::wstring* edit_process_content(const std::wstring& content) {
             out << L'^';
         }
 
-        bool escape = false;
+        
         wchar_t last_letter = L'\0';
         int letter_count = 0;
+
+        auto output_pinyin = [&out, &letter_count, &last_letter, &modifiers] {
+            if (letter_count >= 1) {
+                out << L'[';
+                if (!modifiers.py)
+                    out << last_letter << static_cast<wchar_t>(last_letter - L'a' + L'A');
+                out << pinyin_regexs[last_letter - L'a'] << L']';
+
+                if (letter_count > 1)
+                    out << L'{' << letter_count << L'}';
+
+                return true;
+            }
+            return false;
+        };
+
+        bool escape = false;
         while (keyword_in.get(c)) {
             if (escape) {
                 // only \! is escaped
@@ -138,22 +157,13 @@ std::wstring* edit_process_content(const std::wstring& content) {
                         letter_count += 1;
                     }
                     else {
-                        if (letter_count >= 1) {
-                            out << pinyin_regexs[last_letter - 'a'] << L']';
-                            if (letter_count > 1)
-                                out << L'{' << letter_count << L'}';
-                        }
-
+                        output_pinyin();
                         last_letter = c;
                         letter_count = 1;
                     }
                 }
                 else {
-                    if (letter_count >= 1) {
-                        out << pinyin_regexs[last_letter - 'a'] << L']';
-                        if (letter_count > 1)
-                            out << L'{' << letter_count << L'}';
-
+                    if (output_pinyin()) {
                         last_letter = L'\0';
                         letter_count = 0;
                     }
@@ -199,11 +209,9 @@ std::wstring* edit_process_content(const std::wstring& content) {
             }
         }
         // stream EOF
-        if (letter_count >= 1) {
-            out << pinyin_regexs[last_letter - 'a'] << L']';
-            if (letter_count > 1)
-                out << L'{' << letter_count << L'}';
-        } else if (escape) {  //R"(abc\)"
+        if (output_pinyin())
+            ;
+        else if (escape) {  //R"(abc\)"
             out << L'\\';
         }
 
@@ -249,12 +257,14 @@ std::wstring* edit_process_content(const std::wstring& content) {
                     disabled = true;
                     out << modifier;
                 }
-                else if (modifier == L"endwith:"sv || modifier == L"startwith:"sv) {
-                    if (modifier == L"endwith:"sv)
+                else if (modifier == L"py:"sv || modifier == L"endwith:"sv || modifier == L"startwith:"sv) {
+                    if (modifier == L"py:"sv)
+                        modifiers.py = true;
+                    else if (modifier == L"endwith:"sv)
                         modifiers.endwith = true;
-                    if (modifier == L"startwith:"sv)
+                    else if (modifier == L"startwith:"sv)
                         modifiers.startwith = true;
-                    // remove (these two will be implemented with regex)
+                    // remove (these modifiers will be implemented with regex)
                 }
                 else {
                     if (modifier == L"nowholefilename:"sv)

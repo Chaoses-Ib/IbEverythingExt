@@ -4,34 +4,7 @@
 #include <IbEverythingLib/Everything.hpp>
 #include "helper.hpp"
 
-std::wstring pinyin_regexs[26] = {
-L"[aA",
-L"[bB",
-L"[cC",
-L"[dD",
-L"[eE",
-L"[fF",
-L"[gG",
-L"[hH",
-L"[iI",
-L"[jJ",
-L"[kK",
-L"[lL",
-L"[mM",
-L"[nN",
-L"[oO",
-L"[pP",
-L"[qQ",
-L"[rR",
-L"[sS",
-L"[tT",
-L"[uU",
-L"[vV",
-L"[wW",
-L"[xX",
-L"[yY",
-L"[zZ"
-};
+std::wstring pinyin_regexs[26]{};
 
 bool PinyinRange::has(char32_t c) const {
     return begin <= c && c <= end;
@@ -121,8 +94,7 @@ void query_and_merge_into_pinyin_regexs() {
     mutex.unlock();
 
     if constexpr (ib::debug_runtime) {
-        for (std::wstring& regex : pinyin_regexs) {
-            DebugOStream() << regex << L"\n";
-        }
+        for (uint32_t i = 0; i < std::size(pinyin_regexs); i++)
+            DebugOStream() << static_cast<wchar_t>(L'a' + i) << L": " << pinyin_regexs[i] << L"\n";
     }
 }
