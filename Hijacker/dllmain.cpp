@@ -203,6 +203,9 @@ std::wstring* edit_process_content(const std::wstring& content) {
                         output_pinyin(c);
                 }
                 last = c;
+            } else if (L'A' <= c && c <= L'Z') {
+                last = static_cast<wchar_t>(c - 'A' + 'a');
+                out << L"[" << last << c << L"]";  // because of "case:"
             } else {
                 switch (c) {
                 case L'\\':
