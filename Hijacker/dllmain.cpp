@@ -70,7 +70,11 @@ std::wstring* edit_process_content(const std::wstring& content) {
     auto process_keyword = [&out, &disabled, &modifiers](const std::wstring& keyword) {
         if (disabled || keyword.empty()) {
             disabled = false;
-            out << keyword;
+            if (modifiers.startwith)
+                out << L"startwith:";
+            if (modifiers.endwith)
+                out << L"endwith:";
+            out << keyword << L' ';
             return;
         }
 
@@ -234,7 +238,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 in.read(modifier.data(), size);
                 last_colon_next = colon_next;
 
-                if (is_modifier_in_blacklist(modifier)) {
+                if (disabled || is_modifier_in_blacklist(modifier)) {
                     disabled = true;
                     out << modifier;
                 }
