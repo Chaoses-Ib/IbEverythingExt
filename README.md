@@ -15,9 +15,10 @@
 ![](docs/syntax.png)
 
 ## 构建
-* Hijacker
+* Hijacker 和 Test
     1. 将以下库放入 `C:\L\C++\packages`（其它位置需要修改 .vcxproj 文件）：
         * [IbDllHijackLib](https://github.com/Chaoses-Ib/IbDllHijackLib/tree/master/DllHijackLib/IbDllHijackLib)
+        * [IbEverythingLib](https://github.com/Chaoses-Ib/IbEverythingLib/tree/master/Cpp/IbEverythingLib)
         * [IbWinCppLib](https://github.com/Chaoses-Ib/IbWinCppLib/tree/master/WinCppLib/IbWinCppLib)
     1. [vcpkg](https://github.com/microsoft/vcpkg)
         ```
@@ -25,9 +26,10 @@
         vcpkg install detours
         ```
         （x86 版本的 VCPKG_DEFAULT_TRIPLET 应为  x86-windows-static-md）
+    1. Test 还需要：
+        ```
+        vcpkg install boost-test
+        ```
 * data
     1. 从 [mozillazg/pinyin-data](https://github.com/mozillazg/pinyin-data) 获取 `pinyin.txt`，放入 data 目录。
-    1. 运行 `generate.py`，得到 `output.txt`。
-
-## 相关
-* [IbEverythingLib](https://github.com/Chaoses-Ib/IbEverythingLib)
+    1. 运行 `generate_ord_pinyin.py`，得到 `output_ord_pinyin.txt`。

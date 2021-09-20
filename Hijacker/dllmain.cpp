@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include <string_view>
+#include <thread>
 #include "helper.hpp"
 #include "pinyin.hpp"
 
@@ -101,7 +102,15 @@ std::wstring* edit_process_content(const std::wstring& content) {
         keyword_in.clear();
         keyword_in.seekg(0);
 
-        out << L"regex:";
+        out << L"case:regex:";
+
+        /*
+        // keyword must be quoted if you use branch in the group of your regex
+        bool quoted = keyword[0] == L'"';
+        if (!quoted)
+            out << L'"';
+        */
+
         if (modifiers.startwith || (wildcards && !modifiers.nowildcards && !modifiers.nowholefilename)) {
             out << L'^';
         }
@@ -121,7 +130,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                     }
                     else {
                         if (letter_count >= 1) {
-                            out << pinyin_regexs[last_letter - 'a'];
+                            out << pinyin_regexs[last_letter - 'a'] << L']';
                             if (letter_count > 1)
                                 out << L'{' << letter_count << L'}';
                         }
@@ -132,7 +141,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 }
                 else {
                     if (letter_count >= 1) {
-                        out << pinyin_regexs[last_letter - 'a'];
+                        out << pinyin_regexs[last_letter - 'a'] << L']';
                         if (letter_count > 1)
                             out << L'{' << letter_count << L'}';
 
@@ -182,7 +191,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
         }
         // stream EOF
         if (letter_count >= 1) {
-            out << pinyin_regexs[last_letter - 'a'];
+            out << pinyin_regexs[last_letter - 'a'] << L']';
             if (letter_count > 1)
                 out << L'{' << letter_count << L'}';
         }
@@ -190,6 +199,12 @@ std::wstring* edit_process_content(const std::wstring& content) {
         if (modifiers.endwith || (wildcards && !modifiers.nowildcards && !modifiers.nowholefilename)) {
             out << L'$';
         }
+
+        /*
+        if (!quoted)
+            out << L'"';
+        */
+
         out << L' ';
     };
 
@@ -360,8 +375,20 @@ HWND WINAPI CreateWindowExW_detour(
     HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
     if ((uintptr_t)lpClassName > 0xFFFF) {
-        if (lpClassName == L"Edit"sv) {
+        if (lpClassName == L"EVERYTHING"sv) {
+            if constexpr (ib::debug_runtime)
+                DebugOStream() << L"EVERYTHING\n";
+
+            std::thread t(query_and_merge_into_pinyin_regexs);
+            t.detach();
+        } else if (lpClassName == L"Edit"sv) {
             edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+        } else if (lpClassName == L"EVERYTHING_TASKBAR_NOTIFICATION"sv) {
+            if constexpr (ib::debug_runtime)
+                DebugOStream() << L"EVERYTHING_TASKBAR_NOTIFICATION\n";
+
+            std::thread t(query_and_merge_into_pinyin_regexs);
+            t.detach();
         }
     }
     return wnd;
