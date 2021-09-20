@@ -9,13 +9,14 @@
 1. 解压压缩包，将 srvcli.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
 1. 重启 Everything。（如果不生效，请确认你使用的是 x64 版本的 Everything。）
 
-## 语法说明
+## 搜索说明
+* 拼音搜索支持包括辅助平面在内的 Unicode 汉字。
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
 * 修饰符
     * py: 小写字母只匹配拼音
     * nopy: 禁用拼音搜索（对所有关键字生效）
 
-![](docs/syntax.png)
+![](docs/search.png)
 
 ## 构建
 * Hijacker 和 Test
