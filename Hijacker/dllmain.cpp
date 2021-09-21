@@ -439,7 +439,12 @@ HWND WINAPI CreateWindowExW_detour(
             std::thread t(query_and_merge_into_pinyin_regexs);
             t.detach();
         } else if (lpClassName == L"Edit"sv) {
-            edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+            wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
+            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
+                    edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+                }
+            }
         } else if (lpClassName == L"EVERYTHING_TASKBAR_NOTIFICATION"sv) {
             if constexpr (ib::debug_runtime)
                 DebugOStream() << L"EVERYTHING_TASKBAR_NOTIFICATION\n";
