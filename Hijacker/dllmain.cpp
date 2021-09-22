@@ -1,12 +1,16 @@
 ﻿#include "pch.h"
+#include <unordered_map>
 #include <string_view>
 #include <thread>
 #include "helper.hpp"
 #include "pinyin.hpp"
+#include "search_history.hpp"
 
 constexpr wchar_t prop_edit_content[] = L"IbEverythingExt.Content";
 constexpr wchar_t prop_edit_processed_content[] = L"IbEverythingExt.ProcessedContent";
 constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
+
+std::unordered_map<std::wstring, std::wstring> content_map{};
 
 bool is_modifier_in_blacklist(std::wstring_view modifier) {
     using namespace std::literals;
@@ -408,6 +412,18 @@ LRESULT CALLBACK edit_window_proc(
             }
         }
         break;
+    case WM_KILLFOCUS:
+        {
+            if constexpr (ib::debug_runtime)
+                DebugOStream() << L"WM_KILLFOCUS\n";
+
+            // save the content to map
+            if (auto content = (std::wstring*)GetPropW(hwnd, prop_edit_content)) {
+                auto processed_content = (std::wstring*)GetPropW(hwnd, prop_edit_processed_content);
+                content_map[*processed_content] = *content;
+            }
+        }
+        break;
     }
     return CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
 }
@@ -474,8 +490,15 @@ BOOL WINAPI SetWindowTextW_detour(
                 return true;
             }
         } else if (sv == L"Edit"sv) {
-            // prevent modifying edit
-            return true;
+            auto processed_content = (std::wstring*)GetPropW(hWnd, prop_edit_processed_content);
+            if (processed_content && *processed_content == lpString) {
+                // prevent modifying edit
+                return true;
+            }
+
+            auto iter = content_map.find<std::wstring>(lpString);
+            if (iter != content_map.end())
+                return SetWindowTextW_real(hWnd, iter->second.c_str());
         }
     }
     return SetWindowTextW_real(hWnd, lpString);
@@ -512,25 +535,29 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
+        if constexpr (ib::debug_runtime)
+            DebugOStream() << L"DLL_PROCESS_ATTACH\n";
+
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
         IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
 
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc,GetCurrentThreadId());
 
-        if constexpr (ib::debug_runtime)
-            DebugOStream() << L"DLL_PROCESS_ATTACH\n";
+        search_history_init();
         break;
     case DLL_THREAD_ATTACH:
         break;
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
-        IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
-        IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
-
         if constexpr (ib::debug_runtime)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
+
+        search_history_destroy();
+
+        IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
+        IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
         break;
     }
     return TRUE;
