@@ -358,7 +358,7 @@ LRESULT CALLBACK edit_window_proc(
     switch (uMsg) {
     case WM_GETTEXTLENGTH:
         {
-            if constexpr (ib::debug_runtime)
+            if constexpr (debug)
                 DebugOStream() << L"WM_GETTEXTLENGTH\n";
 
             // retrieve the content
@@ -382,7 +382,7 @@ LRESULT CALLBACK edit_window_proc(
             processed_content = edit_process_content(*content);
             SetPropW(hwnd, prop_edit_processed_content, processed_content);
 
-            if constexpr (ib::debug_runtime)
+            if constexpr (debug)
                 DebugOStream() << *content << L" -> " << *processed_content << std::endl;
 
 
@@ -402,7 +402,7 @@ LRESULT CALLBACK edit_window_proc(
         break;
     case WM_GETTEXT:
         {
-            if constexpr (ib::debug_runtime)
+            if constexpr (debug)
                 DebugOStream() << L"WM_GETTEXT\n";
 
             if (auto processed_content = (std::wstring*)GetPropW(hwnd, prop_edit_processed_content)) {
@@ -414,7 +414,7 @@ LRESULT CALLBACK edit_window_proc(
         break;
     case WM_KILLFOCUS:
         {
-            if constexpr (ib::debug_runtime)
+            if constexpr (debug)
                 DebugOStream() << L"WM_KILLFOCUS\n";
 
             // save the content to map
@@ -449,7 +449,7 @@ HWND WINAPI CreateWindowExW_detour(
 
     if ((uintptr_t)lpClassName > 0xFFFF) {
         if (lpClassName == L"EVERYTHING"sv) {
-            if constexpr (ib::debug_runtime)
+            if constexpr (debug)
                 DebugOStream() << L"EVERYTHING\n";
 
             std::thread t(query_and_merge_into_pinyin_regexs);
@@ -462,7 +462,7 @@ HWND WINAPI CreateWindowExW_detour(
                 }
             }
         } else if (lpClassName == L"EVERYTHING_TASKBAR_NOTIFICATION"sv) {
-            if constexpr (ib::debug_runtime)
+            if constexpr (debug)
                 DebugOStream() << L"EVERYTHING_TASKBAR_NOTIFICATION\n";
 
             std::thread t(query_and_merge_into_pinyin_regexs);
@@ -535,7 +535,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        if constexpr (ib::debug_runtime)
+        if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_ATTACH\n";
 
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
@@ -551,7 +551,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
-        if constexpr (ib::debug_runtime)
+        if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
 
         search_history_destroy();

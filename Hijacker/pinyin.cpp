@@ -198,7 +198,7 @@ void query_and_merge_into_pinyin_regexs() {
 
     mutex.unlock();
 
-    if constexpr (ib::debug_runtime) {
+    if constexpr (::debug) {
         for (uint32_t i = 0; i < std::size(pinyin_regexs); i++)
             DebugOStream() << static_cast<wchar_t>(L'a' + i) << L": " << pinyin_regexs[i] << L"\n";
         /*
