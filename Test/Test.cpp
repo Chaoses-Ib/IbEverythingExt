@@ -55,8 +55,17 @@ BOOST_FIXTURE_TEST_SUITE(SingleCharQueryPerformance, Everythings::Everything)
 
 
     BOOST_AUTO_TEST_SUITE(Pinyin)
+        
+        // very fast
+        BOOST_AUTO_TEST_CASE(LetterBranch) {
+            test_query(*this, L"regex:y|[" DYNAMIC_CHARSET_Y L"]");
+        }
 
-        BOOST_AUTO_TEST_CASE(Best) {
+        BOOST_AUTO_TEST_CASE(LetterBranchCase) {
+            test_query(*this, L"case:regex:y|Y|[" DYNAMIC_CHARSET_Y L"]");
+        }
+
+        BOOST_AUTO_TEST_CASE(Base_v02) {
             test_query(*this, L"case:regex:[yY" DYNAMIC_CHARSET_Y L"]");
         }
 
@@ -86,7 +95,7 @@ BOOST_FIXTURE_TEST_SUITE(SingleCharQueryPerformance, Everythings::Everything)
             test_query(*this, L"case:regex:[yY" + pinyin_regex + L"]");
         }
 
-        BOOST_AUTO_TEST_CASE(Base) {
+        BOOST_AUTO_TEST_CASE(Base_v01) {
             test_query(*this, L"regex:[y" + pinyin_regex + L"]");
         }
 
@@ -182,7 +191,23 @@ BOOST_FIXTURE_TEST_SUITE(MultiCharsQueryPerformance, Everythings::Everything)
 
     BOOST_AUTO_TEST_SUITE(Pinyin)
 
-        BOOST_AUTO_TEST_CASE(Best) {
+        // slower than Base_v02
+        BOOST_AUTO_TEST_CASE(LetterBranch) {
+            // regex:"(y|[英])(y|[语])"
+            test_query(*this, L"regex:\"(y|[" DYNAMIC_CHARSET_YY_1 L"])(y|[" DYNAMIC_CHARSET_YY_2 L"])\"");
+        }
+
+        BOOST_AUTO_TEST_CASE(LetterBranch_1) {
+            // regex:"(?:y|[英])(?:y|[语])"
+            test_query(*this, L"regex:\"(?:y|[" DYNAMIC_CHARSET_YY_1 L"])(?:y|[" DYNAMIC_CHARSET_YY_2 L"])\"");
+        }
+
+        BOOST_AUTO_TEST_CASE(LetterBranch_2) {
+            // regex:"(?>y|[英])(?>y|[语])"
+            test_query(*this, L"regex:\"(?>y|[" DYNAMIC_CHARSET_YY_1 L"])(?>y|[" DYNAMIC_CHARSET_YY_2 L"])\"");
+        }
+
+        BOOST_AUTO_TEST_CASE(Base_v02) {
             test_query(*this, L"case:regex:[yY" DYNAMIC_CHARSET_YY_1 L"][yY" DYNAMIC_CHARSET_YY_2 L"]");
         }
 
@@ -192,6 +217,10 @@ BOOST_FIXTURE_TEST_SUITE(MultiCharsQueryPerformance, Everythings::Everything)
 
         BOOST_AUTO_TEST_CASE(Dynamic) {
             test_query(*this, L"regex:[y" DYNAMIC_CHARSET_Y L"]{2}");
+        }
+
+        BOOST_AUTO_TEST_CASE(Base_v01) {
+            test_query(*this, L"regex:[y" + pinyin_regex + L"]{2}");
         }
 
         BOOST_AUTO_TEST_CASE(Quantifier) {
