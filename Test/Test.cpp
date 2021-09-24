@@ -55,6 +55,10 @@ BOOST_FIXTURE_TEST_SUITE(SingleCharQueryPerformance, Everythings::Everything)
 
 
     BOOST_AUTO_TEST_SUITE(Pinyin)
+
+        BOOST_AUTO_TEST_CASE(Base_v03) {
+            test_query(*this, L"regex:[y" DYNAMIC_CHARSET_Y L"]");
+        }
         
         // very fast
         BOOST_AUTO_TEST_CASE(LetterBranch) {
@@ -190,6 +194,10 @@ BOOST_FIXTURE_TEST_SUITE(MultiCharsQueryPerformance, Everythings::Everything)
 
 
     BOOST_AUTO_TEST_SUITE(Pinyin)
+
+        BOOST_AUTO_TEST_CASE(Base_v03) {
+            test_query(*this, L"regex:[y" DYNAMIC_CHARSET_YY_1 L"][y" DYNAMIC_CHARSET_YY_2 L"]");
+        }
 
         // slower than Base_v02
         BOOST_AUTO_TEST_CASE(LetterBranch) {

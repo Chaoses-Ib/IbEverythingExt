@@ -109,7 +109,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
             }
         }
 
-        out << L"case:regex:";
+        out << L"regex:";
 
         /*
         // keyword must be quoted if you use branch in the group of your regex
@@ -126,7 +126,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
         auto output_pinyin_common = [&out, &modifiers](wchar_t cur, std::wstring_view regex) {
             out << L'[';
             if (!modifiers.py)
-                out << cur << static_cast<wchar_t>(cur - L'a' + L'A');
+                out << cur;
             out << regex << L']';
         };
         auto output_pinyin = [&output_pinyin_common](wchar_t cur) {
@@ -141,7 +141,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
         auto output_pinyin_last_next = [&out, &modifiers](wchar_t last, wchar_t cur, wchar_t next) {
             out << L'[';
             if (!modifiers.py)
-                out << cur << static_cast<wchar_t>(cur - L'a' + L'A');
+                out << cur;
 
             std::wstring& first = pinyin_pair_regexs[cur - L'a'][next - L'a'].first;
             std::wstring& second = pinyin_pair_regexs[last - L'a'][cur - L'a'].second;
@@ -209,7 +209,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 last = c;
             } else if (L'A' <= c && c <= L'Z') {
                 last = static_cast<wchar_t>(c - 'A' + 'a');
-                out << L"[" << last << c << L"]";  // because of "case:"
+                out << c;
             } else {
                 switch (c) {
                 case L'\\':
