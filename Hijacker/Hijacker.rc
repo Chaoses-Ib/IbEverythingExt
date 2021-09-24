@@ -72,7 +72,7 @@ BEGIN
             VALUE "FileVersion", "0.2.0.1"
             VALUE "InternalName", "Hijacker.dll"
             VALUE "LegalCopyright", "Copyright (C) 2021 ªÏ„ÁIb"
-            VALUE "OriginalFilename", "srvcli.dll"
+            VALUE "OriginalFilename", "WindowsCodecs.dll"
             VALUE "ProductName", "IbEverythingExt"
             VALUE "ProductVersion", "0.2.0.1"
         END

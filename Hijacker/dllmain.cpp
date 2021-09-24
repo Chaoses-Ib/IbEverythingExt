@@ -525,7 +525,7 @@ BOOL CALLBACK enum_window_proc(
     return true;
 }
 
-#include <IbDllHijackLib/Dlls/srvcli.h>
+#include <IbDllHijackLib/Dlls/WindowsCodecs.h>
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
