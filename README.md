@@ -16,7 +16,13 @@
     * py: 小写字母只匹配拼音
     * nopy: 禁用拼音搜索（对所有关键字生效）
 
-![](docs/search.png)
+<img src="docs/search.png" height="500">
+
+## 第三方程序支持
+* [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
+  <img src="docs/EverythingToolbar.png" height="400">
+* [uTools](https://u.tools) 本地搜索  
+  <img src="docs/uTools.png" height="400">
 
 ## 构建
 * Hijacker 和 Test
