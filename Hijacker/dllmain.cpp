@@ -348,6 +348,9 @@ std::wstring* edit_process_content(const std::wstring& content) {
     in.read(keyword.data(), size);
     process_keyword(keyword);
 
+    if constexpr (debug)
+        DebugOStream() << content << L" -> " << out.str() << std::endl;
+
     return new std::wstring(out.str());
 }
 
@@ -384,10 +387,6 @@ LRESULT CALLBACK edit_window_proc(
             // process the content
             processed_content = edit_process_content(*content);
             SetPropW(hwnd, prop_edit_processed_content, processed_content);
-
-            if constexpr (debug)
-                DebugOStream() << *content << L" -> " << *processed_content << std::endl;
-
 
             // make the title
             if (content_len)
@@ -488,14 +487,13 @@ LRESULT CALLBACK ipc_window_proc(
 
             bool known = false;
 
-            static HWND last_window = nullptr;
+            static DWORD last_pid = 0;  // window will be different every time when using the official SDK
             static bool last_known = false;
-            HWND window = (HWND)wParam;
-            if (window == last_window)
+            DWORD pid;
+            GetWindowThreadProcessId((HWND)wParam, &pid);
+            if (pid == last_pid)
                 known = last_known;
             else {
-                DWORD pid;
-                GetWindowThreadProcessId((HWND)wParam, &pid);
                 HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
 
                 wchar_t path_buf[MAX_PATH];
@@ -512,7 +510,7 @@ LRESULT CALLBACK ipc_window_proc(
 
                 CloseHandle(process);
 
-                last_window = window;
+                last_pid = pid;
                 last_known = known;
             }
             if (!known)
