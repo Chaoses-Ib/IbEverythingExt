@@ -16,6 +16,7 @@ std::unordered_map<std::wstring, std::wstring> content_map{};
 bool is_modifier_in_blacklist(std::wstring_view modifier) {
     using namespace std::literals;
 
+    // must be sorted
     static constexpr std::wstring_view blacklist[]{
         L"attrib:"sv,
         L"attributes:"sv,
@@ -43,6 +44,7 @@ bool is_modifier_in_blacklist(std::wstring_view modifier) {
         L"parents:"sv,
         L"rc:"sv,
         L"recentchange:"sv,
+        L"regex:"sv,
         L"runcount:"sv,
         L"size:"sv,
         L"track:"sv,
@@ -541,7 +543,7 @@ LRESULT CALLBACK ipc_window_proc(
             case EVERYTHING_IPC_COPYDATA_QUERY2W:
                 {
                     EVERYTHING_IPC_QUERY2<wchar_t> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::MatchCase || query->search_flags & Search::Regex)
+                    if (query->search_flags & Search::Regex)
                         break;
 
                     std::wstring_view search{ query->search_string, (copydata->cbData - query->query_size()) / sizeof(wchar_t) - 1 };
@@ -551,7 +553,7 @@ LRESULT CALLBACK ipc_window_proc(
             case EVERYTHING_IPC_COPYDATA_QUERY2A:
                 {
                     EVERYTHING_IPC_QUERY2<char> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::MatchCase || query->search_flags & Search::Regex)
+                    if (query->search_flags & Search::Regex)
                         break;
 
                     size_t search_len = copydata->cbData - query->query_size() - sizeof(char);
@@ -564,7 +566,7 @@ LRESULT CALLBACK ipc_window_proc(
             case EVERYTHING_IPC_COPYDATAQUERYW:
                 {
                     EVERYTHING_IPC_QUERY<wchar_t> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::MatchCase || query->search_flags & Search::Regex)
+                    if (query->search_flags & Search::Regex)
                         break;
 
                     std::wstring_view search{ query->search_string, (copydata->cbData - query->query_size()) / sizeof(wchar_t) - 1 };
@@ -574,7 +576,7 @@ LRESULT CALLBACK ipc_window_proc(
             case EVERYTHING_IPC_COPYDATAQUERYA:
                 {
                     EVERYTHING_IPC_QUERY<char> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::MatchCase || query->search_flags & Search::Regex)
+                    if (query->search_flags & Search::Regex)
                         break;
 
                     size_t search_len = copydata->cbData - query->query_size() - sizeof(char);
