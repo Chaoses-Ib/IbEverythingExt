@@ -2,6 +2,13 @@
 #include <IbWinCppLib/WinCppLib.hpp>
 #include <detours/detours.h>
 
+constexpr bool debug =
+#ifdef IB_DEBUG
+    1;
+#else
+    0;
+#endif
+
 inline ib::DebugOStream<> DebugOStream() {
     return ib::DebugOStream(L"IbEverythingExt: ");
 }

@@ -5,9 +5,11 @@
 ![](docs/preview.png)
 
 ## 安装
+1. 支持 Everything x64 安装版和便携版，不支持 Lite。  
+  v1.5 Alpha 需要进行[一定配置](../../issues/5)。
 1. 从 [Releases](../../releases) 下载压缩包。
-1. 解压压缩包，将 srvcli.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
-1. 重启 Everything。（如果不生效，请确认你使用的是 x64 版本的 Everything，并安装了 [VC++ 2019 运行时 x64](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
+1. 解压压缩包，将 WindowsCodecs.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
+1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
 
 ## 搜索说明
 * 拼音搜索支持包括辅助平面在内的 Unicode 汉字。
@@ -16,7 +18,13 @@
     * py: 小写字母只匹配拼音
     * nopy: 禁用拼音搜索（对所有关键字生效）
 
-![](docs/search.png)
+<img src="docs/search.png" max-height="500">
+
+## 第三方程序支持
+* [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
+  <img src="docs/EverythingToolbar.png" max-height="400">
+* [uTools](https://u.tools) 本地搜索  
+  <img src="docs/uTools.png" max-height="400">
 
 ## 构建
 * Hijacker 和 Test
