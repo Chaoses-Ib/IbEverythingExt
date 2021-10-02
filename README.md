@@ -5,7 +5,8 @@
 ![](docs/preview.png)
 
 ## 安装
-1. 支持 Everything x64 安装版和便携版，不支持 Lite。
+1. 支持 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版和便携版，不支持精简版（Lite）。  
+  [v1.5 Alpha](http://www.voidtools.com/forum/viewtopic.php?f=12&t=9787) 目前相比 v1.4 有大约 30% 的性能提升，但没有中文语言且可能存在一些 bug，请根据自己的需要进行选择。
 1. 从 [Releases](../../releases) 下载压缩包。
 1. 解压压缩包，将 WindowsCodecs.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
 1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）

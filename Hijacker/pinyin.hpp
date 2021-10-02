@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <utility>
+#include "ipc.hpp"  // require ipc_init
 
 extern std::wstring pinyin_regexs[26];
 extern std::pair<std::wstring, std::wstring> pinyin_pair_regexs[26][26];
@@ -27,6 +28,4 @@ struct Utf16Pair {
     bool in(std::wstring_view sv) const;
 };
 
-void pinyin_init(std::wstring_view instance_name);
-void pinyin_destroy();
 void pinyin_query_and_merge();
