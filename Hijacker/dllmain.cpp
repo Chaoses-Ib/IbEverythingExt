@@ -275,19 +275,12 @@ std::wstring* edit_process_content(const std::wstring& content) {
     };
 
     wchar_t c;
-    bool escape = false;
-    bool skip_escape_reset = false;
     bool in_quotes = false;
     std::wistringstream::pos_type last_colon_next{};
     while (in.get(c)) {
         switch (c) {
-        case L'\\':
-            escape = true;
-            skip_escape_reset = true;
-            break;
         case L'"':
-            if (!escape)
-                in_quotes = !in_quotes;
+            in_quotes = !in_quotes;
             break;
         case L':':
             if (!in_quotes) {
@@ -339,10 +332,6 @@ std::wstring* edit_process_content(const std::wstring& content) {
             }
             break;
         }
-        if (skip_escape_reset)
-            skip_escape_reset = false;
-        else
-            escape = false;
     }
     // stream EOF
     in.clear();
