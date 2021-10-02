@@ -81,7 +81,17 @@ std::wstring* edit_process_content(const std::wstring& content) {
     } modifiers;
 
     auto process_keyword = [&out, &disabled, &modifiers](const std::wstring_view& keyword) {
-        if (disabled || keyword.empty()) {
+        if (keyword.empty())
+            disabled = true;
+        else if (keyword[0] == L'"') {
+            if (keyword.size() >= 4 && keyword[2] == L':')  // '"C:"'
+                disabled = true;
+        } else {
+            if (keyword.size() >= 2 && keyword[1] == L':')  // 'C:'
+                disabled = true;
+        }
+
+        if (disabled) {
             disabled = false;
             if (modifiers.startwith)
                 out << L"startwith:";
