@@ -107,7 +107,12 @@ BOOL WINAPI MoveFileExW_detour(
                         search = content_u8;
                     }
                 }
-                out << search << '"' << ',';
+                for (char c : search) {
+                    if (c == '"')
+                        out << '"';
+                    out << c;
+                }
+                out << '"' << ',';
                 i++;  // ','
 
                 // parse Search Count and do sums
