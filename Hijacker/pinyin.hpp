@@ -27,4 +27,6 @@ struct Utf16Pair {
     bool in(std::wstring_view sv) const;
 };
 
-void query_and_merge_into_pinyin_regexs();
+void pinyin_init(std::wstring_view instance_name);
+void pinyin_destroy();
+void pinyin_query_and_merge();

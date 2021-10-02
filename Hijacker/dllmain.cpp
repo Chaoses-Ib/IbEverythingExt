@@ -11,6 +11,10 @@ constexpr wchar_t prop_edit_content[] = L"IbEverythingExt.Content";
 constexpr wchar_t prop_edit_processed_content[] = L"IbEverythingExt.ProcessedContent";
 constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
 
+std::wstring instance_name{};
+std::wstring class_everything = L"EVERYTHING";
+std::wstring title_suffix = L" - Everything";
+
 std::unordered_map<std::wstring, std::wstring> content_map{};
 
 bool is_modifier_in_blacklist(std::wstring_view modifier) {
@@ -369,7 +373,7 @@ LRESULT CALLBACK edit_window_proc(
 
             // retrieve the content
             LRESULT result = CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
-            wchar_t* buf = new wchar_t[result + 1 + std::size(" - Everything") - 1];  // for both the content and the title
+            wchar_t* buf = new wchar_t[result + 1 + title_suffix.size()];  // for both the content and the title
             LRESULT content_len = CallWindowProcW(edit_window_proc_prev, hwnd, WM_GETTEXT, result + 1, (LPARAM)buf);
 
             // save the content
@@ -390,9 +394,9 @@ LRESULT CALLBACK edit_window_proc(
 
             // make the title
             if (content_len)
-                std::copy_n(L" - Everything", std::size(L" - Everything"), buf + content_len);
+                std::copy_n(title_suffix.c_str(), title_suffix.size() + 1, buf + content_len);
             else
-                std::copy_n(L"Everything", std::size(L"Everything"), buf);
+                std::copy_n(title_suffix.c_str() + std::size(L" - ") - 1, title_suffix.size() + 1 - (std::size(L" - ") - 1), buf);
 
             // save the title
             HWND main = GetAncestor(hwnd, GA_ROOT);
@@ -614,26 +618,44 @@ HWND WINAPI CreateWindowExW_detour(
     HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
     if ((uintptr_t)lpClassName > 0xFFFF) {
-        if (lpClassName == L"EVERYTHING"sv) {
-            if constexpr (debug)
-                DebugOStream() << L"EVERYTHING\n";
+        std::wstring_view class_name(lpClassName);
 
-            std::thread t(query_and_merge_into_pinyin_regexs);
+        // named instances
+        if (class_name.ends_with(L')') && instance_name.empty()) {
+            size_t n = class_name.find(L"_("sv);
+            if (n != class_name.npos) {
+                size_t begin = n + std::size(L"_("sv);
+                instance_name = class_name.substr(begin, class_name.size() - 1 - begin);
+
+                class_everything += class_name.substr(n);
+
+                title_suffix += L" ("sv;
+                title_suffix += instance_name;
+                title_suffix += L')';
+            }
+        }
+
+        if (class_name == class_everything) {
+            if constexpr (debug)
+                DebugOStream() << class_name << L'\n';
+
+            std::thread t(pinyin_query_and_merge);
             t.detach();
-        } else if (lpClassName == L"Edit"sv) {
+        } else if (class_name == L"Edit"sv) {
             wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
             if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
                 if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
                     edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
                 }
             }
-        } else if (lpClassName == L"EVERYTHING_TASKBAR_NOTIFICATION"sv) {
+        } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
             if constexpr (debug)
-                DebugOStream() << L"EVERYTHING_TASKBAR_NOTIFICATION\n";
+                DebugOStream() << class_name << L'\n';
 
             ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
 
-            std::thread t(query_and_merge_into_pinyin_regexs);
+            pinyin_init(instance_name);
+            std::thread t(pinyin_query_and_merge);
             t.detach();
         }
     }
@@ -647,11 +669,11 @@ BOOL WINAPI SetWindowTextW_detour(
 {
     using namespace std::literals;
 
-    wchar_t buf[std::size(L"EVERYTHING")];
+    wchar_t buf[256];
     if (int len = GetClassNameW(hWnd, buf, std::size(buf))) {
         std::wstring_view sv(buf, len);
 
-        if (sv == L"EVERYTHING"sv) {
+        if (sv == class_everything) {
             // set the title
             if (auto title = (const wchar_t*)GetPropW(hWnd, prop_main_title)) {
                 SetWindowTextW_real(hWnd, title);
@@ -672,6 +694,7 @@ BOOL WINAPI SetWindowTextW_detour(
     return SetWindowTextW_real(hWnd, lpString);
 }
 
+/*
 BOOL CALLBACK enum_window_proc(
     _In_ HWND hwnd,
     _In_ LPARAM lParam)
@@ -692,6 +715,7 @@ BOOL CALLBACK enum_window_proc(
 
     return true;
 }
+*/
 
 #include <IbDllHijackLib/Dlls/WindowsCodecs.h>
 
@@ -722,6 +746,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
 
+        pinyin_destroy();
         search_history_destroy();
 
         IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);

@@ -5,8 +5,7 @@
 ![](docs/preview.png)
 
 ## 安装
-1. 支持 Everything x64 安装版和便携版，不支持 Lite。  
-  v1.5 Alpha 需要进行[一定配置](../../issues/5)。
+1. 支持 Everything x64 安装版和便携版，不支持 Lite。
 1. 从 [Releases](../../releases) 下载压缩包。
 1. 解压压缩包，将 WindowsCodecs.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
 1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
@@ -21,6 +20,8 @@
 <img src="docs/search.png" max-height="500">
 
 ## 第三方程序支持
+（Everything Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](../../issues/5)。）
+
 * [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
   <img src="docs/EverythingToolbar.png" max-height="400">
 * [uTools](https://u.tools) 本地搜索  
