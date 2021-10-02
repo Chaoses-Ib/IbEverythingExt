@@ -288,6 +288,8 @@ std::wstring* edit_process_content(const std::wstring& content) {
 
                 auto colon_next = in.tellg();
                 size_t size = colon_next - last_colon_next;
+                if (size <= 2)  // "C:"
+                    break;
                 std::wstring modifier(size, L'\0');
                 in.seekg(last_colon_next);
                 in.read(modifier.data(), size);
@@ -296,8 +298,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 if (disabled || is_modifier_in_blacklist(modifier)) {
                     disabled = true;
                     out << modifier;
-                }
-                else if (modifier == L"py:"sv || modifier == L"endwith:"sv || modifier == L"startwith:"sv) {
+                } else if (modifier == L"py:"sv || modifier == L"endwith:"sv || modifier == L"startwith:"sv) {
                     if (modifier == L"py:"sv)
                         modifiers.py = true;
                     else if (modifier == L"endwith:"sv)
@@ -305,8 +306,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                     else if (modifier == L"startwith:"sv)
                         modifiers.startwith = true;
                     // remove (these modifiers will be implemented with regex)
-                }
-                else {
+                } else {
                     if (modifier == L"nowholefilename:"sv)
                         modifiers.nowholefilename = true;
                     else if (modifier == L"nowildcards:"sv)
