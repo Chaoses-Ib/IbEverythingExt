@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string_view>
 #include <thread>
+#include <Commctrl.h>
 #include "helper.hpp"
 #include "ipc.hpp"
 #include "pinyin.hpp"
@@ -433,6 +434,188 @@ LRESULT CALLBACK edit_window_proc(
     return CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
 }
 
+WNDPROC header_window_proc_prev;
+LRESULT CALLBACK header_window_proc(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg) {
+    case HDM_GETITEMCOUNT:
+    {
+        LRESULT result = CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam, lParam);
+        if (result != -1)
+            result--;
+        return result;
+    }
+
+    case HDM_GETITEM:
+    {
+        LRESULT result = CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam + 1, lParam);
+        if (result) {
+            HDITEMW* item = ib::Addr(lParam);
+            if (item->mask & HDI_ORDER)
+                item->iOrder--;
+        }
+        return result;
+    }
+
+    case HDM_SETITEM:
+    {
+        HDITEMW* item = ib::Addr(lParam);
+        if (item->mask & HDI_ORDER)
+            item->iOrder++;
+
+        LRESULT result = CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam + 1, lParam);
+
+        if (item->mask & HDI_ORDER)
+            item->iOrder--;
+        return result;
+    }
+
+    case HDM_INSERTITEM:
+    {
+        HDITEMW* item = ib::Addr(lParam);
+        if (item->mask & HDI_ORDER)
+            item->iOrder++;
+
+        LRESULT result = CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam + 1, lParam);
+
+        if (item->mask & HDI_ORDER)
+            item->iOrder--;
+        if (result != -1)
+            result--;
+        return result;
+    }
+
+    case HDM_HITTEST:
+    {
+        LRESULT result = CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam, lParam);
+        if (result != -1) {
+            if (result != 0) {
+                result--;
+                ((HDHITTESTINFO*)lParam)->iItem--;
+            } else {
+                result = -1;
+                ((HDHITTESTINFO*)lParam)->iItem = -1;
+            }
+        }
+        return result;
+    }
+
+    case HDM_ORDERTOINDEX:  // when fails?
+        return CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam + 1, lParam) - 1;
+
+    case HDM_GETFOCUSEDITEM:  // -1 when fails?
+    {
+        LRESULT result = CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam, lParam);
+        if (result != 0)
+            result--;
+        return result;
+    }
+
+    case HDM_SETFOCUSEDITEM:
+        lParam++;
+        break;
+
+    case HDM_GETORDERARRAY:
+    {
+        auto p = std::make_unique<int[]>(wParam + 1);
+        if (!CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam + 1, (LPARAM)p.get()))
+            return false;
+
+        int j = 0;
+        for (int i = 0; i < wParam + 1; i++)
+            if (p[i] != 0)
+                ((int*)lParam)[j++] = p[i] - 1;
+
+        return true;
+    }
+
+    case HDM_SETORDERARRAY:
+    {
+        auto p = std::make_unique<int[]>(wParam + 1);
+        p[0] = 0;
+        for (int i = 0; i < wParam; i++)
+            p[i + 1] = ((int*)lParam)[i] + 1;
+        return CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam + 1, (LPARAM)p.get());
+    }
+
+    case HDM_CLEARFILTER:
+        if (wParam == -1)
+            break;
+        [[fallthrough]];
+    case HDM_CREATEDRAGIMAGE:
+    case HDM_DELETEITEM:
+    case HDM_EDITFILTER:
+    case HDM_GETITEMDROPDOWNRECT:
+    case HDM_GETITEMRECT:
+        wParam++;
+        break;
+
+    case HDM_GETBITMAPMARGIN:
+    case HDM_GETIMAGELIST:
+    case HDM_GETOVERFLOWRECT:
+    case HDM_GETUNICODEFORMAT:
+    case HDM_LAYOUT:
+    case HDM_SETBITMAPMARGIN:
+    case HDM_SETFILTERCHANGETIMEOUT:  // return value?
+    case HDM_SETHOTDIVIDER:  // divider index?
+    case HDM_SETIMAGELIST:
+    case HDM_SETUNICODEFORMAT:
+        break;
+    }
+    return CallWindowProcW(header_window_proc_prev, hwnd, uMsg, wParam, lParam);
+}
+
+/*
+WNDPROC list_window_proc_prev;
+LRESULT CALLBACK list_window_proc(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg) {
+    case WM_MBUTTONDOWN:
+        {
+            if constexpr (debug)
+                DebugOStream() << L"WM_MBUTTONDOWN\n";
+
+            wchar_t text[] = L"序号";
+            LVCOLUMNW column{
+                .mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+                .fmt = LVCFMT_LEFT,
+                .cx = 30,
+                .pszText = text,
+                .cchTextMax = std::size(text) - 1,
+                .iSubItem = 0
+            };
+            return CallWindowProcW(list_window_proc_prev, hwnd, LVM_INSERTCOLUMNW, 0, (LPARAM)&column);
+        }
+        break;
+    }
+    return CallWindowProcW(list_window_proc_prev, hwnd, uMsg, wParam, lParam);
+}
+*/
+
+/*
+HWND last_header_hwnd = nullptr;
+
+auto SendMessageW_real = SendMessageW;
+LRESULT WINAPI SendMessageW_detour(
+    _In_ HWND hWnd,
+    _In_ UINT Msg,
+    _Pre_maybenull_ _Post_valid_ WPARAM wParam,
+    _Pre_maybenull_ _Post_valid_ LPARAM lParam)
+{
+    if (hWnd == last_header_hwnd)
+        return header_window_proc(hWnd, Msg, wParam, lParam);
+    return SendMessageW_real(hWnd, Msg, wParam, lParam);
+}
+*/
+
 auto CreateWindowExW_real = CreateWindowExW;
 HWND WINAPI CreateWindowExW_detour(
     _In_ DWORD dwExStyle,
@@ -481,6 +664,27 @@ HWND WINAPI CreateWindowExW_detour(
             if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
                 if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
                     edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+                }
+            }
+        } else if (class_name == L"SysHeader32"sv) {
+            wchar_t buf[256];
+            if (int len = GetClassNameW(GetParent(hWndParent), buf, std::size(buf))) {
+                if (std::wstring_view(buf, len) == class_everything) {
+                    wchar_t text[] = L"序号";
+                    HDITEMW item{
+                        .mask = HDI_LPARAM | HDI_WIDTH | HDI_TEXT,
+                        .cxy = 30,
+                        .pszText = text,
+                        .cchTextMax = std::size(text) - 1,
+                        .lParam = -1
+                    };
+                    Header_InsertItem(wnd, 0, &item);
+
+                    //header_window_proc_prev = (WNDPROC)GetWindowLongPtrW(wnd, GWLP_WNDPROC);
+                    header_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)header_window_proc);
+                    //list_window_proc_prev = (WNDPROC)SetWindowLongPtrW(hWndParent, GWLP_WNDPROC, (LONG_PTR)list_window_proc);
+
+                    //last_header_hwnd = wnd;
                 }
             }
         } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
@@ -567,6 +771,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
         IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
+        //IbDetourAttach(&SendMessageW_real, SendMessageW_detour);
 
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc,GetCurrentThreadId());
@@ -584,6 +789,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         ipc_destroy();
         search_history_destroy();
 
+        //IbDetourDetach(&SendMessageW_real, SendMessageW_detour);
         IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
         IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
         break;
