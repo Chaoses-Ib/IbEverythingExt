@@ -171,15 +171,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="config.hpp" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="helper.hpp" />
     <ClInclude Include="ipc.hpp" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pinyin.hpp" />
+    <ClInclude Include="quick_select.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="search_history.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ipc.cpp" />
     <ClCompile Include="pch.cpp">
@@ -190,6 +193,7 @@
     </ClCompile>
     <ClCompile Include="pinyin.cpp" />
     <ClCompile Include="pinyin_data.cpp" />
+    <ClCompile Include="quick_select.cpp" />
     <ClCompile Include="search_history.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@
 #include "pinyin.hpp"
 #include <mutex>
 #include "helper.hpp"
+#include "ipc.hpp"
 
 std::wstring pinyin_regexs[26]{};
 std::pair<std::wstring, std::wstring> pinyin_pair_regexs[26][26]{};
