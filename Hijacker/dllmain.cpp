@@ -5,11 +5,12 @@
 #include "helper.hpp"
 #include "ipc.hpp"
 #include "pinyin.hpp"
+#include "quick_select.hpp"
 #include "search_history.hpp"
 
+constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
 constexpr wchar_t prop_edit_content[] = L"IbEverythingExt.Content";
 constexpr wchar_t prop_edit_processed_content[] = L"IbEverythingExt.ProcessedContent";
-constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
 
 std::wstring instance_name{};
 std::wstring class_everything = L"EVERYTHING";
@@ -357,8 +358,8 @@ std::wstring* edit_process_content(const std::wstring& content) {
     return new std::wstring(out.str());
 }
 
-WNDPROC edit_window_proc_prev;
-LRESULT CALLBACK edit_window_proc(
+WNDPROC edit_window_proc_0;
+LRESULT CALLBACK edit_window_proc_1(
     _In_ HWND   hwnd,
     _In_ UINT   uMsg,
     _In_ WPARAM wParam,
@@ -371,9 +372,9 @@ LRESULT CALLBACK edit_window_proc(
                 DebugOStream() << L"WM_GETTEXTLENGTH\n";
 
             // retrieve the content
-            LRESULT result = CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
+            LRESULT result = CallWindowProcW(edit_window_proc_0, hwnd, uMsg, wParam, lParam);
             wchar_t* buf = new wchar_t[result + 1 + title_suffix.size()];  // for both the content and the title
-            LRESULT content_len = CallWindowProcW(edit_window_proc_prev, hwnd, WM_GETTEXT, result + 1, (LPARAM)buf);
+            LRESULT content_len = CallWindowProcW(edit_window_proc_0, hwnd, WM_GETTEXT, result + 1, (LPARAM)buf);
 
             // save the content
             auto content = (std::wstring*)GetPropW(hwnd, prop_edit_content);
@@ -430,72 +431,55 @@ LRESULT CALLBACK edit_window_proc(
         }
         break;
     }
-    return CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
+    return CallWindowProcW(edit_window_proc_0, hwnd, uMsg, wParam, lParam);
 }
 
-auto CreateWindowExW_real = CreateWindowExW;
-HWND WINAPI CreateWindowExW_detour(
-    _In_ DWORD dwExStyle,
-    _In_opt_ LPCWSTR lpClassName,
-    _In_opt_ LPCWSTR lpWindowName,
-    _In_ DWORD dwStyle,
-    _In_ int X,
-    _In_ int Y,
-    _In_ int nWidth,
-    _In_ int nHeight,
-    _In_opt_ HWND hWndParent,
-    _In_opt_ HMENU hMenu,
-    _In_opt_ HINSTANCE hInstance,
-    _In_opt_ LPVOID lpParam)
+/*
+WNDPROC edit_window_proc_2;
+LRESULT CALLBACK edit_window_proc_3(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
 {
-    using namespace std::literals;
-
-    HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-
-    if ((uintptr_t)lpClassName > 0xFFFF) {
-        std::wstring_view class_name(lpClassName);
-
-        // named instances
-        if (class_name.ends_with(L')') && instance_name.empty()) {
-            size_t n = class_name.find(L"_("sv);
-            if (n != class_name.npos) {
-                size_t begin = n + std::size(L"_("sv);
-                instance_name = class_name.substr(begin, class_name.size() - 1 - begin);
-
-                class_everything += class_name.substr(n);
-
-                title_suffix += L" ("sv;
-                title_suffix += instance_name;
-                title_suffix += L')';
-            }
-        }
-
-        if (class_name == class_everything) {
-            if constexpr (debug)
-                DebugOStream() << class_name << L'\n';
-
-            std::thread t(pinyin_query_and_merge);
-            t.detach();
-        } else if (class_name == L"Edit"sv) {
-            wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
-            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
-                if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
-                    edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
-                }
-            }
-        } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
-            if constexpr (debug)
-                DebugOStream() << class_name << L'\n';
-
-            ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
-
-            ipc_init(instance_name);
-            std::thread t(pinyin_query_and_merge);
-            t.detach();
-        }
+    switch (uMsg) {
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        if constexpr (debug)
+            DebugOStream() << (uMsg == WM_KEYDOWN ? L"WM_KEYDOWN: " : L"WM_SYSKEYDOWN: ") << wParam << L'\n';
+        break;
     }
-    return wnd;
+    return CallWindowProcW(edit_window_proc_2, hwnd, uMsg, wParam, lParam);
 }
+*/
+
+/*
+WNDPROC list_window_proc_0;
+LRESULT CALLBACK list_window_proc_1(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg) {
+    }
+    return CallWindowProcW(list_window_proc_0, hwnd, uMsg, wParam, lParam);
+}
+*/
+
+/*
+WNDPROC list_window_proc_2;
+LRESULT CALLBACK list_window_proc_3(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg) {
+    }
+    return CallWindowProcW(list_window_proc_2, hwnd, uMsg, wParam, lParam);
+}
+*/
 
 auto SetWindowTextW_real = SetWindowTextW;
 BOOL WINAPI SetWindowTextW_detour(
@@ -530,6 +514,124 @@ BOOL WINAPI SetWindowTextW_detour(
 }
 
 /*
+auto SetWindowLongPtrW_real = SetWindowLongPtrW;
+LONG_PTR WINAPI SetWindowLongPtrW_detour(
+    _In_ HWND hWnd,
+    _In_ int nIndex,
+    _In_ LONG_PTR dwNewLong)
+{
+    using namespace std::literals;
+
+    if (nIndex == GWLP_WNDPROC) {
+        wchar_t buf[256];
+        if (int len = GetClassNameW(hWnd, buf, std::size(buf))) {
+            std::wstring_view class_name(buf, len);
+            if (class_name == L"Edit"sv) {
+                if (int len = GetClassNameW(GetParent(hWnd), buf, std::size(buf));
+                    std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv)
+                {
+                    edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW_real(hWnd, nIndex, (LONG_PTR)edit_window_proc_3);
+                    edit_window_proc_2 = (WNDPROC)dwNewLong;
+                    return (LONG_PTR)edit_window_proc_1;
+                }
+            } else if (class_name == L"SysListView32"sv) {
+                if (int len = GetClassNameW(GetParent(hWnd), buf, std::size(buf));
+                    std::wstring_view(buf, len) == class_everything)
+                {
+                    list_window_proc_0 = (WNDPROC)SetWindowLongPtrW_real(hWnd, nIndex, (LONG_PTR)list_window_proc_3);
+                    list_window_proc_2 = (WNDPROC)dwNewLong;
+                    return (LONG_PTR)list_window_proc_1;
+                }
+            }
+        }
+    }
+    return SetWindowLongPtrW_real(hWnd, nIndex, dwNewLong);
+}
+*/
+
+auto CreateWindowExW_real = CreateWindowExW;
+HWND WINAPI CreateWindowExW_detour(
+    _In_ DWORD dwExStyle,
+    _In_opt_ LPCWSTR lpClassName,
+    _In_opt_ LPCWSTR lpWindowName,
+    _In_ DWORD dwStyle,
+    _In_ int X,
+    _In_ int Y,
+    _In_ int nWidth,
+    _In_ int nHeight,
+    _In_opt_ HWND hWndParent,
+    _In_opt_ HMENU hMenu,
+    _In_opt_ HINSTANCE hInstance,
+    _In_opt_ LPVOID lpParam)
+{
+    using namespace std::literals;
+
+    // EVERYTHING
+    // EVERYTHING_TOOLBAR
+    // Edit
+    // SysListView32
+    // msctls_statusbar32
+    // ComboBox
+    // EVERYTHING_PREVIEW
+
+    HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+    if ((uintptr_t)lpClassName > 0xFFFF) {
+        std::wstring_view class_name(lpClassName);
+        if constexpr (debug)
+            DebugOStream() << class_name << L", parent: " << hWndParent << L'\n';
+
+        // named instances
+        if (class_name.ends_with(L')') && instance_name.empty()) {
+            size_t n = class_name.find(L"_("sv);
+            if (n != class_name.npos) {
+                size_t begin = n + std::size(L"_("sv);
+                instance_name = class_name.substr(begin, class_name.size() - 1 - begin);
+
+                class_everything += class_name.substr(n);
+
+                title_suffix += L" ("sv;
+                title_suffix += instance_name;
+                title_suffix += L')';
+            }
+        }
+
+        if (class_name == class_everything) {
+            std::thread t(pinyin_query_and_merge);
+            t.detach();
+        } else if (class_name == L"Edit"sv) {
+            wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
+            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
+                    edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc_1);
+                }
+            }
+        } else if (class_name == L"SysListView32"sv) {
+            wchar_t buf[256];
+            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                if (std::wstring_view(buf, len) == class_everything) {
+                    // bind list to editor
+                    HWND toolbar = FindWindowExW(hWndParent, nullptr, L"EVERYTHING_TOOLBAR", nullptr);
+                    SetPropW(FindWindowExW(toolbar, nullptr, L"Edit", nullptr), prop_edit_list, wnd);
+
+                    // create quick list
+                    // X == Y == nWidth == nHeight == 0
+                    HWND quick_list = quick_list_create(hWndParent, hInstance);
+                    SetPropW(wnd, prop_list_quick_list, quick_list);
+                }
+            }
+        } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
+            ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
+
+            ipc_init(instance_name);
+            std::thread t(pinyin_query_and_merge);
+            t.detach();
+        }
+    }
+    return wnd;
+}
+
+/*
 BOOL CALLBACK enum_window_proc(
     _In_ HWND hwnd,
     _In_ LPARAM lParam)
@@ -543,7 +645,7 @@ BOOL CALLBACK enum_window_proc(
             if (std::wstring_view(buf, len) == L"EVERYTHING"sv) {
                 if (HWND toolbar = FindWindowExW(hwnd, 0, L"EVERYTHING_TOOLBAR", nullptr))
                     if (HWND edit = FindWindowExW(toolbar, 0, L"Edit", nullptr))
-                        edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(edit, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+                        edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW(edit, GWLP_WNDPROC, (LONG_PTR)edit_window_proc_1);
             }
         }
     }
@@ -566,11 +668,13 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             DebugOStream() << L"DLL_PROCESS_ATTACH\n";
 
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
+        //IbDetourAttach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
         IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
 
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc,GetCurrentThreadId());
 
+        quick_select_init();
         search_history_init();
         break;
     case DLL_THREAD_ATTACH:
@@ -582,9 +686,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
 
         ipc_destroy();
+        quick_select_destroy();
         search_history_destroy();
-
+        
         IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
+        //IbDetourDetach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
         IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
         break;
     }

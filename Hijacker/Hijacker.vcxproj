@@ -176,6 +176,7 @@
     <ClInclude Include="ipc.hpp" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pinyin.hpp" />
+    <ClInclude Include="quick_select.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="search_history.hpp" />
   </ItemGroup>
@@ -190,6 +191,7 @@
     </ClCompile>
     <ClCompile Include="pinyin.cpp" />
     <ClCompile Include="pinyin_data.cpp" />
+    <ClCompile Include="quick_select.cpp" />
     <ClCompile Include="search_history.cpp" />
   </ItemGroup>
   <ItemGroup>
