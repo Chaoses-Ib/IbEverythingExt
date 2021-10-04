@@ -624,6 +624,7 @@ HWND WINAPI CreateWindowExW_detour(
             ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
 
             ipc_init(instance_name);
+            quick_select_init();
             std::thread t(pinyin_query_and_merge);
             t.detach();
         }
@@ -674,7 +675,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc,GetCurrentThreadId());
 
-        quick_select_init();
         search_history_init();
         break;
     case DLL_THREAD_ATTACH:
