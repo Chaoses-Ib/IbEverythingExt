@@ -33,6 +33,17 @@
 * [uTools](https://u.tools) 本地搜索  
   <img src="docs/uTools.png" height="400">
 
+## 配置
+```yaml
+# 拼音搜索
+pinyin_search: true
+# 快速选择
+quick_select: true
+```
+（`true` 为开启，`false` 为关闭）
+
+命名为 `IbEverythingExt.yaml`，保存在 WindowsCodecs.dll 旁（UTF-8 编码）。
+
 ## 构建
 * Hijacker 和 Test
     1. 将以下库放入 `C:\L\C++\packages`（其它位置需要修改 .vcxproj 文件）：
@@ -42,7 +53,7 @@
     1. [vcpkg](https://github.com/microsoft/vcpkg)
         ```
         set VCPKG_DEFAULT_TRIPLET=x64-windows-static-md
-        vcpkg install detours
+        vcpkg install detours yaml-cpp
         ```
         （x86 版本的 VCPKG_DEFAULT_TRIPLET 应为  x86-windows-static-md）
     1. Test 还需要：

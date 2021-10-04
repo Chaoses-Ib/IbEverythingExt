@@ -3,6 +3,7 @@
 #include <string_view>
 #include <thread>
 #include "helper.hpp"
+#include "config.hpp"
 #include "ipc.hpp"
 #include "pinyin.hpp"
 #include "quick_select.hpp"
@@ -597,36 +598,46 @@ HWND WINAPI CreateWindowExW_detour(
         }
 
         if (class_name == class_everything) {
-            std::thread t(pinyin_query_and_merge);
-            t.detach();
+            if (config.pinyin_search) {
+                std::thread t(pinyin_query_and_merge);
+                t.detach();
+            }
         } else if (class_name == L"Edit"sv) {
-            wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
-            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
-                if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
-                    edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc_1);
+            if (config.pinyin_search) {
+                wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
+                if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                    if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
+                        edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc_1);
+                    }
                 }
             }
         } else if (class_name == L"SysListView32"sv) {
-            wchar_t buf[256];
-            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
-                if (std::wstring_view(buf, len) == class_everything) {
-                    // bind list to editor
-                    HWND toolbar = FindWindowExW(hWndParent, nullptr, L"EVERYTHING_TOOLBAR", nullptr);
-                    SetPropW(FindWindowExW(toolbar, nullptr, L"Edit", nullptr), prop_edit_list, wnd);
+            if (config.quick_select) {
+                wchar_t buf[256];
+                if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                    if (std::wstring_view(buf, len) == class_everything) {
+                        // bind list to editor
+                        HWND toolbar = FindWindowExW(hWndParent, nullptr, L"EVERYTHING_TOOLBAR", nullptr);
+                        SetPropW(FindWindowExW(toolbar, nullptr, L"Edit", nullptr), prop_edit_list, wnd);
 
-                    // create quick list
-                    // X == Y == nWidth == nHeight == 0
-                    HWND quick_list = quick_list_create(hWndParent, hInstance);
-                    SetPropW(wnd, prop_list_quick_list, quick_list);
+                        // create quick list
+                        // X == Y == nWidth == nHeight == 0
+                        HWND quick_list = quick_list_create(hWndParent, hInstance);
+                        SetPropW(wnd, prop_list_quick_list, quick_list);
+                    }
                 }
             }
         } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
-            ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
-
             ipc_init(instance_name);
-            quick_select_init();
-            std::thread t(pinyin_query_and_merge);
-            t.detach();
+
+            if (config.pinyin_search) {
+                ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
+
+                std::thread t(pinyin_query_and_merge);
+                t.detach();
+            }
+            if (config.quick_select)
+                quick_select_init();
         }
     }
     return wnd;
@@ -670,12 +681,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
         //IbDetourAttach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
-        IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
 
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc,GetCurrentThreadId());
 
-        search_history_init();
+        config_init();
+        if (config.pinyin_search) {
+            IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
+            search_history_init();
+        }
         break;
     case DLL_THREAD_ATTACH:
         break;
@@ -685,11 +699,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
 
+        if (config.quick_select)
+            quick_select_destroy();
+        if (config.pinyin_search) {
+            search_history_destroy();
+            IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
+        }
         ipc_destroy();
-        quick_select_destroy();
-        search_history_destroy();
+        config_destroy();
         
-        IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
         //IbDetourDetach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
         IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
         break;
