@@ -99,7 +99,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 out << L"startwith:";
             if (modifiers.endwith)
                 out << L"endwith:";
-            out << keyword << L' ';
+            out << keyword;
             return;
         }
 
@@ -127,7 +127,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 }
             }
         }
-
+        
         out << L"regex:";
 
         /*
@@ -282,8 +282,6 @@ std::wstring* edit_process_content(const std::wstring& content) {
         if (!quoted)
             out << L'"';
         */
-
-        out << L' ';
     };
 
     wchar_t c;
@@ -327,19 +325,28 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 }
             }
             break;
+        case L'!':
+            if (in.tellg() == last_colon_next + std::streamoff(1)) {
+                out << c;
+                last_colon_next += 1;
+            }
+            break;
         case L' ':
             if (!in_quotes) {
                 // keyword
 
                 size_t size = in.tellg() - last_colon_next - 1;
-                if (size) {  // not L"  "
-                    std::wstring keyword(size, L'\0');
+                std::wstring keyword(size, L'\0');
+                if (size) {
                     in.seekg(last_colon_next);
                     in.read(keyword.data(), size);
-
-                    process_keyword(keyword);
-                    modifiers = {};
+                    in.ignore();  // ignore L' '
                 }
+
+                process_keyword(keyword);
+                out << L' ';
+
+                modifiers = {};
                 last_colon_next = in.tellg();
             }
             break;
@@ -347,15 +354,17 @@ std::wstring* edit_process_content(const std::wstring& content) {
     }
     // stream EOF
     in.clear();
+
     size_t size = in.tellg() - last_colon_next;
     std::wstring keyword(size, L'\0');
     in.seekg(last_colon_next);
     in.read(keyword.data(), size);
+
     process_keyword(keyword);
 
+    // return the result
     if constexpr (debug)
         DebugOStream() << content << L" -> " << out.str() << std::endl;
-
     return new std::wstring(out.str());
 }
 
