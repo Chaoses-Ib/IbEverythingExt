@@ -18,20 +18,12 @@
     * py: 小写字母只匹配拼音
     * nopy: 禁用拼音搜索（对所有关键字生效）
 
-<img src="docs/search.png" height="500">
+<img src="docs/search.png" height="500" />
 
 ## 快速选择
 * `Alt+键`：打开（选中并按 Enter）
 * `Alt+Ctrl+键`：定位（选中并按 Ctrl+Enter）
 * `Alt+Shift+键`：打开右键菜单
-
-## 第三方程序支持
-（如果使用的是 Everything Alpha 版，由于 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](../../issues/5)。）
-
-* [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
-  <img src="docs/EverythingToolbar.png" height="400">
-* [uTools](https://u.tools) 本地搜索  
-  <img src="docs/uTools.png" height="400">
 
 ## 配置
 ```yaml
@@ -43,6 +35,22 @@ quick_select: true
 （`true` 为开启，`false` 为关闭）
 
 命名为 `IbEverythingExt.yaml`，保存在 WindowsCodecs.dll 旁（UTF-8 编码）。
+
+## 第三方程序支持
+拼音搜索支持以下第三方程序调用：
+
+* [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
+  <img src="docs/EverythingToolbar.png" height="400" />
+* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Everything 插件](https://github.com/Flow-Launcher/Flow.Launcher.Plugin.Everything)  
+  <img src="docs/FlowLauncher.png" />
+* [火柴（火萤酱）](https://www.huochaipro.com/)本地搜索  
+  <img src="docs/HuoChat.png" />
+* [uTools](https://u.tools) 本地搜索  
+  <img src="docs/uTools.png" height="400" />
+* [Wox](https://github.com/Wox-launcher/Wox) 的 Everything 插件 
+  <img src="docs/Wox.png" />
+
+（如果使用的是 Everything Alpha 版，因为 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](../../issues/5)。）
 
 ## 构建
 * Hijacker 和 Test

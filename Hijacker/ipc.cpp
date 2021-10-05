@@ -92,7 +92,13 @@ LRESULT CALLBACK ipc_window_proc(
 
                 if (path.ends_with(L"\\explorer.exe"))  // stnkl/EverythingToolbar
                     known = true;
+                else if (path.ends_with(L"\\Flow.Launcher.exe"))  // Flow Launcher
+                    known = true;
+                else if (path.ends_with(L"\\HuoChat.exe"))  // HuoChat
+                    known = true;
                 else if (path.ends_with(L"\\uTools.exe"))  // uTools
+                    known = true;
+                else if (path.ends_with(L"\\Wox.exe"))  // Wox
                     known = true;
 
                 CloseHandle(process);
