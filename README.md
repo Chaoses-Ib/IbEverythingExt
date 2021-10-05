@@ -24,6 +24,7 @@
 * `Alt+键`：打开（选中并按 Enter）
 * `Alt+Ctrl+键`：定位（选中并按 Ctrl+Enter）
 * `Alt+Shift+键`：打开右键菜单
+* 原 Alt 键的功能可以通过先单击 Alt 键再按键实现。
 
 ## 配置
 ```yaml

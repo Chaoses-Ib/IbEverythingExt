@@ -27,9 +27,14 @@ LRESULT CALLBACK keyboard_proc(
 
         if (down) {
             if (bool alt = GetKeyState(VK_MENU) & 0x8000) {
-                HWND list = (HWND)GetPropW(GetFocus(), prop_edit_list);
-                if (!list)
-                    break;
+                HWND focus = GetFocus();
+                HWND list = (HWND)GetPropW(focus, prop_edit_list);
+                if (!list) {  // not in Search Edit
+                    HWND quick_list = (HWND)GetPropW(focus, prop_list_quick_list);
+                    if (!quick_list)  // not in Result List
+                        break;
+                    list = focus;
+                }
 
                 int num;
                 if ('0' <= wParam && wParam <= '9')
@@ -52,8 +57,9 @@ LRESULT CALLBACK keyboard_proc(
                 SetKeyboardState(state);
                 */
                 //PostMessageW(GetFocus(), WM_SYSKEYUP, VK_MENU, 0xC0'38'0001);
-                
-                SetFocus(list);
+
+                if (focus != list)
+                    SetFocus(list);
                 ListView_SetItemState(list, -1, 0, LVIS_SELECTED);
                 ListView_SetItemState(list, ListView_GetTopIndex(list) + num, LVIS_SELECTED, LVIS_SELECTED);
                 /*
