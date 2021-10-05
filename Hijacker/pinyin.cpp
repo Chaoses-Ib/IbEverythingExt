@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
 #include "pinyin.hpp"
 #include <mutex>
-#include <IbEverythingLib/Everything.hpp>
 #include "helper.hpp"
+#include "ipc.hpp"
 
 std::wstring pinyin_regexs[26]{};
 std::pair<std::wstring, std::wstring> pinyin_pair_regexs[26][26]{};
@@ -42,11 +42,10 @@ protected:
     }
 };
 
-void query_and_merge_into_pinyin_regexs() {
+void pinyin_query_and_merge() {
     using namespace Everythings;
     using namespace std::literals;
-
-    static EverythingMT ev;
+    
     static DWORD last_query = 0;
 
     static std::mutex mutex;  // be careful
@@ -57,14 +56,14 @@ void query_and_merge_into_pinyin_regexs() {
     std::wstring query;
     if (!last_query) {
         query = L"regex:[〇-𰻞]";
-        ev.database_loaded_future().get();
+        ipc_ev->database_loaded_future().get();
         last_query = GetTickCount() / 1000;
     } else {
         DWORD time = GetTickCount() / 1000;
         query = L"rc:last" + std::to_wstring(time - last_query + 1) + L"secs regex:[〇-𰻞]";
         last_query = time;
     }
-    QueryResults results = ev.query_send(query, Search::MatchCase, Request::FileName).get();
+    QueryResults results = ipc_ev->query_send(query, Search::MatchCase, Request::FileName).get();
 
     // merge functions
     //"拼"

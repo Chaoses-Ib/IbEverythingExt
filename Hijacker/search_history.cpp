@@ -48,104 +48,113 @@ BOOL WINAPI MoveFileExW_detour(
 ) {
     using namespace std::literals;
 
-    if (search_history_handle && std::wstring_view(lpExistingFileName).ends_with(L"Search History.csv.tmp"sv)) {
-        search_history_handle = nullptr;
+    if (search_history_handle) {
+        if (std::wstring_view existing_file(lpExistingFileName);
+            existing_file.ends_with(L".csv.tmp"sv) && existing_file.find(L"\\Search History") != existing_file.npos)
+        {
+            search_history_handle = nullptr;
 
-        /*
-        Search,Search Count,Last Search Date
-        "a",4,132767094406609228
-        "case:regex:""[aA][bB][cC]""[dD单到的]",2,132767108299260960
-        */
-        auto& history = search_history_to_write;
+            /*
+            Search,Search Count,Last Search Date
+            "a",4,132767094406609228
+            "case:regex:""[aA][bB][cC]""[dD单到的]",2,132767108299260960
+            */
+            auto& history = search_history_to_write;
 
-        std::ostringstream out(std::ios_base::binary);  // may be longer than buffer (such as "a" -> "nopy:a")
-        out << "Search,Search Count,Last Search Date\r\n"sv;
+            std::ostringstream out(std::ios_base::binary);  // may be longer than buffer (such as "a" -> "nopy:a")
+            out << "Search,Search Count,Last Search Date\r\n"sv;
 
-        std::unordered_map<std::string, uint32_t> search_map{};
-        uint32_t i = "Search,Search Count,Last Search Date\r\n"sv.size();
-        while (i < history.size()) {
-            if (history[i++] != '"')
-                break;
-            out << '"';
-
-            // parse Search and convert processed content to raw content
-            std::string search;
+            std::unordered_map<std::string, uint32_t> search_map{};
+            uint32_t i = "Search,Search Count,Last Search Date\r\n"sv.size();
             while (i < history.size()) {
-                char c = history[i++];
-                if (c == '"') {
-                    if (i < history.size() && history[i] == '"') {  // ""
-                        search.push_back('"');
-                        i++;
-                    } else
-                        break;
-                } else
-                    search.push_back(c);
-            }
-            {
-                // search to search_u16
-                // std::wstring_convert is deprecated in C++ 17
-                std::wstring search_u16(search.size(), L'\0');
-                search_u16.resize(MultiByteToWideChar(CP_UTF8, 0, search.data(), search.size(), search_u16.data(), search_u16.size()));
+                if (history[i++] != '"')
+                    break;
+                out << '"';
 
-                // processed content -> content
-                auto iter = content_map.find<std::wstring>(search_u16);
-                if (iter != content_map.end()) {
-                    // content to content_u8
-                    std::string content_u8(iter->second.size() * 3, '\0');
-                    int length = WideCharToMultiByte(CP_UTF8, 0, iter->second.data(), iter->second.size(), content_u8.data(), content_u8.size(), nullptr, nullptr);
-                    if (!length) {
-                        if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+                // parse Search and convert processed content to raw content
+                std::string search;
+                while (i < history.size()) {
+                    char c = history[i++];
+                    if (c == '"') {
+                        if (i < history.size() && history[i] == '"') {  // ""
+                            search.push_back('"');
+                            i++;
+                        } else
                             break;
-                        content_u8.resize(iter->second.size() * 4);
-                        length = WideCharToMultiByte(CP_UTF8, 0, iter->second.data(), iter->second.size(), content_u8.data(), content_u8.size(), nullptr, nullptr);
-                    }
-                    content_u8.resize(length);
+                    } else
+                        search.push_back(c);
+                }
+                {
+                    // search to search_u16
+                    // std::wstring_convert is deprecated in C++ 17
+                    std::wstring search_u16(search.size(), L'\0');
+                    search_u16.resize(MultiByteToWideChar(CP_UTF8, 0, search.data(), search.size(), search_u16.data(), search_u16.size()));
 
-                    search = content_u8;
+                    // processed content -> content
+                    auto iter = content_map.find<std::wstring>(search_u16);
+                    if (iter != content_map.end()) {
+                        // content to content_u8
+                        std::string content_u8(iter->second.size() * 3, '\0');
+                        int length = WideCharToMultiByte(CP_UTF8, 0, iter->second.data(), iter->second.size(), content_u8.data(), content_u8.size(), nullptr, nullptr);
+                        if (!length) {
+                            if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+                                break;
+                            content_u8.resize(iter->second.size() * 4);
+                            length = WideCharToMultiByte(CP_UTF8, 0, iter->second.data(), iter->second.size(), content_u8.data(), content_u8.size(), nullptr, nullptr);
+                        }
+                        content_u8.resize(length);
+
+                        search = content_u8;
+                    }
+                }
+                for (char c : search) {
+                    if (c == '"')
+                        out << '"';
+                    out << c;
+                }
+                out << '"' << ',';
+                i++;  // ','
+
+                // parse Search Count and do sums
+                uint32_t j = i;
+                while (j < history.size()) {
+                    if (history[j++] == ',')
+                        break;
+                }
+                j--;
+                uint32_t count = std::atoi(&history[i]);  // (i, j - i)
+                auto iter = search_map.find<std::string>(search);
+                if (iter == search_map.end()) {
+                    search_map[search] = count;
+                } else {
+                    count += iter->second;
+                    search_map.erase(iter);
+                    out << count;
+                    i = j;
+                }
+
+                // the remaining
+                while (i < history.size()) {
+                    char c = history[i++];
+                    out << c;
+                    if (c == '\n')
+                        break;
                 }
             }
-            out << search << '"' << ',';
-            i++;  // ','
+            history.clear();
 
-            // parse Search Count and do sums
-            uint32_t j = i;
-            while (j < history.size()) {
-                if (history[j++] == ',')
-                    break;
-            }
-            j--;
-            uint32_t count = std::atoi(&history[i]);  // (i, j - i)
-            auto iter = search_map.find<std::string>(search);
-            if (iter == search_map.end()) {
-                search_map[search] = count;
-            } else {
-                count += iter->second;
-                search_map.erase(iter);
-                out << count;
-                i = j;
-            }
+            HANDLE file = CreateFileW(lpExistingFileName, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, 0, nullptr);
+            if (!file)
+                return false;
 
-            // the remaining
-            while (i < history.size()) {
-                char c = history[i++];
-                out << c;
-                if (c == '\n')
-                    break;
-            }
+            const std::string& out_str = out.str();
+            DWORD written;
+            bool result = WriteFile_real(file, out_str.data(), out_str.size(), &written, nullptr);
+
+            CloseHandle(file);
+            if (!result)
+                return false;
         }
-        history.clear();
-
-        HANDLE file = CreateFileW(lpExistingFileName, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, 0, nullptr);
-        if (!file)
-            return false;
-
-        const std::string& out_str = out.str();
-        DWORD written;
-        bool result = WriteFile_real(file, out_str.data(), out_str.size(), &written, nullptr);
-
-        CloseHandle(file);
-        if (!result)
-            return false;
     }
     return MoveFileExW_real(lpExistingFileName, lpNewFileName, dwFlags);
 }

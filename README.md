@@ -1,30 +1,56 @@
 ﻿# IbEverythingExt
-[Everything](https://www.voidtools.com/) 拼音搜索扩展。 
+[Everything](https://www.voidtools.com/) 拼音搜索、快速选择扩展。 
 
 ## 预览
 ![](docs/preview.png)
 
 ## 安装
-1. 支持 Everything x64 安装版和便携版，不支持 Lite。  
-  v1.5 Alpha 需要进行[一定配置](../../issues/5)。
+1. 支持 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版和便携版，不支持精简版（Lite）。  
+  [v1.5 Alpha](http://www.voidtools.com/forum/viewtopic.php?f=12&t=9787) 目前相比 v1.4 有大约 30% 的性能提升，但没有中文语言，且可能存在一些 bug，请根据自己的需要进行选择。
 1. 从 [Releases](../../releases) 下载压缩包。
-1. 解压压缩包，将 WindowsCodecs.dll 放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
+1. 解压压缩包，将 bin 目录下的文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
 1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
 
-## 搜索说明
-* 拼音搜索支持包括辅助平面在内的 Unicode 汉字。
+## 拼音搜索
+* 支持包括辅助平面在内的 Unicode 汉字。
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
 * 修饰符
     * py: 小写字母只匹配拼音
     * nopy: 禁用拼音搜索（对所有关键字生效）
 
-<img src="docs/search.png" max-height="500">
+<img src="docs/search.png" style="max-height: 500px;"/>
+
+## 快速选择
+* `Alt+键`：打开（选中并按 Enter）
+* `Alt+Ctrl+键`：定位（选中并按 Ctrl+Enter）
+* `Alt+Shift+键`：打开右键菜单
+* 原 Alt 键的功能可以通过先单击 Alt 键再按键实现。
+
+## 配置
+修改 `IbEverythingExt.yaml` 文件：
+```yaml
+# 拼音搜索
+pinyin_search: true
+# 快速选择
+quick_select: true
+```
+（`true` 为开启，`false` 为关闭）
 
 ## 第三方程序支持
+拼音搜索支持以下第三方程序调用：
+
 * [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
-  <img src="docs/EverythingToolbar.png" max-height="400">
+  <img src="docs/EverythingToolbar.png" style="max-height: 400px;"/>
+* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Everything 插件](https://github.com/Flow-Launcher/Flow.Launcher.Plugin.Everything)  
+  <img src="docs/FlowLauncher.png"/>
+* [火柴（火萤酱）](https://www.huochaipro.com/)本地搜索  
+  <img src="docs/HuoChat.png"/>
 * [uTools](https://u.tools) 本地搜索  
-  <img src="docs/uTools.png" max-height="400">
+  <img src="docs/uTools.png" style="max-height: 400px;"/>
+* [Wox](https://github.com/Wox-launcher/Wox) 的 Everything 插件 
+  <img src="docs/Wox.png"/>
+
+（如果使用的是 Everything Alpha 版，因为 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](../../issues/5)。）
 
 ## 构建
 * Hijacker 和 Test
@@ -35,7 +61,7 @@
     1. [vcpkg](https://github.com/microsoft/vcpkg)
         ```
         set VCPKG_DEFAULT_TRIPLET=x64-windows-static-md
-        vcpkg install detours
+        vcpkg install detours yaml-cpp
         ```
         （x86 版本的 VCPKG_DEFAULT_TRIPLET 应为  x86-windows-static-md）
     1. Test 还需要：

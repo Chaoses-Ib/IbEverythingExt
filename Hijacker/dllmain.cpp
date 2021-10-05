@@ -3,13 +3,19 @@
 #include <string_view>
 #include <thread>
 #include "helper.hpp"
+#include "config.hpp"
+#include "ipc.hpp"
 #include "pinyin.hpp"
+#include "quick_select.hpp"
 #include "search_history.hpp"
-#include <IbEverythingLib/Everything.hpp>
 
+constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
 constexpr wchar_t prop_edit_content[] = L"IbEverythingExt.Content";
 constexpr wchar_t prop_edit_processed_content[] = L"IbEverythingExt.ProcessedContent";
-constexpr wchar_t prop_main_title[] = L"IbEverythingExt.Title";
+
+std::wstring instance_name{};
+std::wstring class_everything = L"EVERYTHING";
+std::wstring title_suffix = L" - Everything";
 
 std::unordered_map<std::wstring, std::wstring> content_map{};
 
@@ -77,13 +83,23 @@ std::wstring* edit_process_content(const std::wstring& content) {
     } modifiers;
 
     auto process_keyword = [&out, &disabled, &modifiers](const std::wstring_view& keyword) {
-        if (disabled || keyword.empty()) {
+        if (keyword.empty())
+            disabled = true;
+        else if (keyword[0] == L'"') {
+            if (keyword.size() >= 4 && keyword[2] == L':')  // '"C:"'
+                disabled = true;
+        } else {
+            if (keyword.size() >= 2 && keyword[1] == L':')  // 'C:'
+                disabled = true;
+        }
+
+        if (disabled) {
             disabled = false;
             if (modifiers.startwith)
                 out << L"startwith:";
             if (modifiers.endwith)
                 out << L"endwith:";
-            out << keyword << L' ';
+            out << keyword;
             return;
         }
 
@@ -111,7 +127,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 }
             }
         }
-
+        
         out << L"regex:";
 
         /*
@@ -266,24 +282,15 @@ std::wstring* edit_process_content(const std::wstring& content) {
         if (!quoted)
             out << L'"';
         */
-
-        out << L' ';
     };
 
     wchar_t c;
-    bool escape = false;
-    bool skip_escape_reset = false;
     bool in_quotes = false;
     std::wistringstream::pos_type last_colon_next{};
     while (in.get(c)) {
         switch (c) {
-        case L'\\':
-            escape = true;
-            skip_escape_reset = true;
-            break;
         case L'"':
-            if (!escape)
-                in_quotes = !in_quotes;
+            in_quotes = !in_quotes;
             break;
         case L':':
             if (!in_quotes) {
@@ -291,6 +298,8 @@ std::wstring* edit_process_content(const std::wstring& content) {
 
                 auto colon_next = in.tellg();
                 size_t size = colon_next - last_colon_next;
+                if (size <= 2)  // "C:"
+                    break;
                 std::wstring modifier(size, L'\0');
                 in.seekg(last_colon_next);
                 in.read(modifier.data(), size);
@@ -299,8 +308,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 if (disabled || is_modifier_in_blacklist(modifier)) {
                     disabled = true;
                     out << modifier;
-                }
-                else if (modifier == L"py:"sv || modifier == L"endwith:"sv || modifier == L"startwith:"sv) {
+                } else if (modifier == L"py:"sv || modifier == L"endwith:"sv || modifier == L"startwith:"sv) {
                     if (modifier == L"py:"sv)
                         modifiers.py = true;
                     else if (modifier == L"endwith:"sv)
@@ -308,8 +316,7 @@ std::wstring* edit_process_content(const std::wstring& content) {
                     else if (modifier == L"startwith:"sv)
                         modifiers.startwith = true;
                     // remove (these modifiers will be implemented with regex)
-                }
-                else {
+                } else {
                     if (modifier == L"nowholefilename:"sv)
                         modifiers.nowholefilename = true;
                     else if (modifier == L"nowildcards:"sv)
@@ -318,44 +325,51 @@ std::wstring* edit_process_content(const std::wstring& content) {
                 }
             }
             break;
+        case L'!':
+            if (in.tellg() == last_colon_next + std::streamoff(1)) {
+                out << c;
+                last_colon_next += 1;
+            }
+            break;
         case L' ':
             if (!in_quotes) {
                 // keyword
 
                 size_t size = in.tellg() - last_colon_next - 1;
-                if (size) {  // not L"  "
-                    std::wstring keyword(size, L'\0');
+                std::wstring keyword(size, L'\0');
+                if (size) {
                     in.seekg(last_colon_next);
                     in.read(keyword.data(), size);
-
-                    process_keyword(keyword);
-                    modifiers = {};
+                    in.ignore();  // ignore L' '
                 }
+
+                process_keyword(keyword);
+                out << L' ';
+
+                modifiers = {};
                 last_colon_next = in.tellg();
             }
             break;
         }
-        if (skip_escape_reset)
-            skip_escape_reset = false;
-        else
-            escape = false;
     }
     // stream EOF
     in.clear();
+
     size_t size = in.tellg() - last_colon_next;
     std::wstring keyword(size, L'\0');
     in.seekg(last_colon_next);
     in.read(keyword.data(), size);
+
     process_keyword(keyword);
 
+    // return the result
     if constexpr (debug)
         DebugOStream() << content << L" -> " << out.str() << std::endl;
-
     return new std::wstring(out.str());
 }
 
-WNDPROC edit_window_proc_prev;
-LRESULT CALLBACK edit_window_proc(
+WNDPROC edit_window_proc_0;
+LRESULT CALLBACK edit_window_proc_1(
     _In_ HWND   hwnd,
     _In_ UINT   uMsg,
     _In_ WPARAM wParam,
@@ -368,9 +382,9 @@ LRESULT CALLBACK edit_window_proc(
                 DebugOStream() << L"WM_GETTEXTLENGTH\n";
 
             // retrieve the content
-            LRESULT result = CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
-            wchar_t* buf = new wchar_t[result + 1 + std::size(" - Everything") - 1];  // for both the content and the title
-            LRESULT content_len = CallWindowProcW(edit_window_proc_prev, hwnd, WM_GETTEXT, result + 1, (LPARAM)buf);
+            LRESULT result = CallWindowProcW(edit_window_proc_0, hwnd, uMsg, wParam, lParam);
+            wchar_t* buf = new wchar_t[result + 1 + title_suffix.size()];  // for both the content and the title
+            LRESULT content_len = CallWindowProcW(edit_window_proc_0, hwnd, WM_GETTEXT, result + 1, (LPARAM)buf);
 
             // save the content
             auto content = (std::wstring*)GetPropW(hwnd, prop_edit_content);
@@ -390,9 +404,9 @@ LRESULT CALLBACK edit_window_proc(
 
             // make the title
             if (content_len)
-                std::copy_n(L" - Everything", std::size(L" - Everything"), buf + content_len);
+                std::copy_n(title_suffix.c_str(), title_suffix.size() + 1, buf + content_len);
             else
-                std::copy_n(L"Everything", std::size(L"Everything"), buf);
+                std::copy_n(title_suffix.c_str() + std::size(L" - ") - 1, title_suffix.size() + 1 - (std::size(L" - ") - 1), buf);
 
             // save the title
             HWND main = GetAncestor(hwnd, GA_ROOT);
@@ -427,218 +441,55 @@ LRESULT CALLBACK edit_window_proc(
         }
         break;
     }
-    return CallWindowProcW(edit_window_proc_prev, hwnd, uMsg, wParam, lParam);
+    return CallWindowProcW(edit_window_proc_0, hwnd, uMsg, wParam, lParam);
 }
 
-#pragma pack(push, 1)
-template <typename CharT>
-struct EVERYTHING_IPC_QUERY2 {
-    // something wrong with MSVC
-    //using namespace Everythings;
-
-    DWORD reply_hwnd;  // !: not sizeof(HWND)
-    DWORD reply_copydata_message;
-    Everythings::SearchFlags search_flags;
-    DWORD offset;
-    DWORD max_results;
-    Everythings::RequestFlags request_flags;
-    Everythings::Sort sort_type;
-    CharT search_string[1];  // '\0'
-    
-    static size_t query_size() {
-        return sizeof(EVERYTHING_IPC_QUERY2) - sizeof(CharT);
-    }
-};
-
-template <typename CharT>
-struct EVERYTHING_IPC_QUERY {
-    // something wrong with MSVC
-    //using namespace Everythings;
-
-    DWORD reply_hwnd;  // !: not sizeof(HWND)
-    DWORD reply_copydata_message;
-    Everythings::SearchFlags search_flags;
-    DWORD offset;
-    DWORD max_results;
-    CharT search_string[1];  // '\0'
-
-    static size_t query_size() {
-        return sizeof(EVERYTHING_IPC_QUERY) - sizeof(CharT);
-    }
-};
-#pragma pack(pop)
-
-WNDPROC ipc_window_proc_prev;
-LRESULT CALLBACK ipc_window_proc(
+/*
+WNDPROC edit_window_proc_2;
+LRESULT CALLBACK edit_window_proc_3(
     _In_ HWND   hwnd,
     _In_ UINT   uMsg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam)
 {
-    using namespace Everythings;
-
     switch (uMsg) {
-    case WM_COPYDATA:
-        {
-            if constexpr (debug)
-                DebugOStream() << L"WM_COPYDATA\n";
-            if (!wParam)
-                break;
-
-            bool known = false;
-
-            static DWORD last_pid = 0;  // window will be different every time when using the official SDK
-            static bool last_known = false;
-            DWORD pid;
-            GetWindowThreadProcessId((HWND)wParam, &pid);
-            if (pid == last_pid)
-                known = last_known;
-            else {
-                HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
-
-                wchar_t path_buf[MAX_PATH];
-                DWORD size = std::size(path_buf);
-                QueryFullProcessImageNameW(process, 0, path_buf, &size);
-                std::wstring_view path(path_buf, size);
-                if constexpr (debug)
-                    DebugOStream() << path << L'\n';
-
-                if (path.ends_with(L"\\explorer.exe"))  // stnkl/EverythingToolbar
-                    known = true;
-                else if (path.ends_with(L"\\uTools.exe"))  // uTools
-                    known = true;
-
-                CloseHandle(process);
-
-                last_pid = pid;
-                last_known = known;
-            }
-            if (!known)
-                break;
-
-            constexpr uintptr_t EVERYTHING_IPC_COPYDATAQUERYA = 1;
-            constexpr uintptr_t EVERYTHING_IPC_COPYDATAQUERYW = 2;
-            constexpr uintptr_t EVERYTHING_IPC_COPYDATA_QUERY2A = 17;
-            constexpr uintptr_t EVERYTHING_IPC_COPYDATA_QUERY2W = 18;
-            auto common_process = [hwnd, uMsg, wParam](uintptr_t command, uint8_t* query, size_t query_size, std::wstring_view search) {
-                std::unique_ptr<std::wstring> processed_search{ edit_process_content(std::wstring(search)) };
-
-                size_t size = query_size + processed_search->size() * sizeof(wchar_t) + sizeof L'\0';
-                auto buf = std::make_unique<uint8_t[]>(size);
-                std::copy_n(query, query_size, buf.get());
-                processed_search->copy((wchar_t*)(buf.get() + query_size), processed_search->size() + 1);
-
-                COPYDATASTRUCT processed_copydata{
-                    command,
-                    size,
-                    (PVOID)buf.get()
-                };
-
-                return CallWindowProcW(ipc_window_proc_prev, hwnd, uMsg, wParam, (LPARAM)&processed_copydata);
-            };
-            COPYDATASTRUCT* copydata = ib::Addr(lParam);
-            switch (copydata->dwData) {
-            case EVERYTHING_IPC_COPYDATA_QUERY2W:
-                {
-                    EVERYTHING_IPC_QUERY2<wchar_t> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::Regex)
-                        break;
-
-                    std::wstring_view search{ query->search_string, (copydata->cbData - query->query_size()) / sizeof(wchar_t) - 1 };
-                    return common_process(copydata->dwData, (uint8_t*)query, query->query_size(), search);
-                }
-                break;
-            case EVERYTHING_IPC_COPYDATA_QUERY2A:
-                {
-                    EVERYTHING_IPC_QUERY2<char> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::Regex)
-                        break;
-
-                    size_t search_len = copydata->cbData - query->query_size() - sizeof(char);
-                    auto search_buf = std::make_unique<wchar_t[]>(search_len);
-
-                    std::wstring_view search{ search_buf.get(), (size_t)MultiByteToWideChar(CP_ACP, 0, query->search_string, search_len, search_buf.get(), search_len) };
-                    return common_process(EVERYTHING_IPC_COPYDATA_QUERY2W, (uint8_t*)query, query->query_size(), search);
-                }
-                break;
-            case EVERYTHING_IPC_COPYDATAQUERYW:
-                {
-                    EVERYTHING_IPC_QUERY<wchar_t> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::Regex)
-                        break;
-
-                    std::wstring_view search{ query->search_string, (copydata->cbData - query->query_size()) / sizeof(wchar_t) - 1 };
-                    return common_process(copydata->dwData, (uint8_t*)query, query->query_size(), search);
-                }
-                break;
-            case EVERYTHING_IPC_COPYDATAQUERYA:
-                {
-                    EVERYTHING_IPC_QUERY<char> *query = ib::Addr(copydata->lpData);
-                    if (query->search_flags & Search::Regex)
-                        break;
-
-                    size_t search_len = copydata->cbData - query->query_size() - sizeof(char);
-                    auto search_buf = std::make_unique<wchar_t[]>(search_len);
-
-                    std::wstring_view search{ search_buf.get(), (size_t)MultiByteToWideChar(CP_ACP, 0, query->search_string, search_len, search_buf.get(), search_len) };
-                    return common_process(EVERYTHING_IPC_COPYDATAQUERYW, (uint8_t*)query, query->query_size(), search);
-                }
-                break;
-            default:
-                if constexpr (debug)
-                    DebugOStream() << L"command: " << copydata->dwData << L'\n';
-            }
-        }
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        if constexpr (debug)
+            DebugOStream() << (uMsg == WM_KEYDOWN ? L"WM_KEYDOWN: " : L"WM_SYSKEYDOWN: ") << wParam << L'\n';
         break;
     }
-    return CallWindowProcW(ipc_window_proc_prev, hwnd, uMsg, wParam, lParam);
+    return CallWindowProcW(edit_window_proc_2, hwnd, uMsg, wParam, lParam);
 }
+*/
 
-auto CreateWindowExW_real = CreateWindowExW;
-HWND WINAPI CreateWindowExW_detour(
-    _In_ DWORD dwExStyle,
-    _In_opt_ LPCWSTR lpClassName,
-    _In_opt_ LPCWSTR lpWindowName,
-    _In_ DWORD dwStyle,
-    _In_ int X,
-    _In_ int Y,
-    _In_ int nWidth,
-    _In_ int nHeight,
-    _In_opt_ HWND hWndParent,
-    _In_opt_ HMENU hMenu,
-    _In_opt_ HINSTANCE hInstance,
-    _In_opt_ LPVOID lpParam)
+/*
+WNDPROC list_window_proc_0;
+LRESULT CALLBACK list_window_proc_1(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
 {
-    using namespace std::literals;
-
-    HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-
-    if ((uintptr_t)lpClassName > 0xFFFF) {
-        if (lpClassName == L"EVERYTHING"sv) {
-            if constexpr (debug)
-                DebugOStream() << L"EVERYTHING\n";
-
-            std::thread t(query_and_merge_into_pinyin_regexs);
-            t.detach();
-        } else if (lpClassName == L"Edit"sv) {
-            wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
-            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
-                if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
-                    edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
-                }
-            }
-        } else if (lpClassName == L"EVERYTHING_TASKBAR_NOTIFICATION"sv) {
-            if constexpr (debug)
-                DebugOStream() << L"EVERYTHING_TASKBAR_NOTIFICATION\n";
-
-            ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
-
-            std::thread t(query_and_merge_into_pinyin_regexs);
-            t.detach();
-        }
+    switch (uMsg) {
     }
-    return wnd;
+    return CallWindowProcW(list_window_proc_0, hwnd, uMsg, wParam, lParam);
 }
+*/
+
+/*
+WNDPROC list_window_proc_2;
+LRESULT CALLBACK list_window_proc_3(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg) {
+    }
+    return CallWindowProcW(list_window_proc_2, hwnd, uMsg, wParam, lParam);
+}
+*/
 
 auto SetWindowTextW_real = SetWindowTextW;
 BOOL WINAPI SetWindowTextW_detour(
@@ -647,11 +498,11 @@ BOOL WINAPI SetWindowTextW_detour(
 {
     using namespace std::literals;
 
-    wchar_t buf[std::size(L"EVERYTHING")];
+    wchar_t buf[256];
     if (int len = GetClassNameW(hWnd, buf, std::size(buf))) {
         std::wstring_view sv(buf, len);
 
-        if (sv == L"EVERYTHING"sv) {
+        if (sv == class_everything) {
             // set the title
             if (auto title = (const wchar_t*)GetPropW(hWnd, prop_main_title)) {
                 SetWindowTextW_real(hWnd, title);
@@ -672,6 +523,136 @@ BOOL WINAPI SetWindowTextW_detour(
     return SetWindowTextW_real(hWnd, lpString);
 }
 
+/*
+auto SetWindowLongPtrW_real = SetWindowLongPtrW;
+LONG_PTR WINAPI SetWindowLongPtrW_detour(
+    _In_ HWND hWnd,
+    _In_ int nIndex,
+    _In_ LONG_PTR dwNewLong)
+{
+    using namespace std::literals;
+
+    if (nIndex == GWLP_WNDPROC) {
+        wchar_t buf[256];
+        if (int len = GetClassNameW(hWnd, buf, std::size(buf))) {
+            std::wstring_view class_name(buf, len);
+            if (class_name == L"Edit"sv) {
+                if (int len = GetClassNameW(GetParent(hWnd), buf, std::size(buf));
+                    std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv)
+                {
+                    edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW_real(hWnd, nIndex, (LONG_PTR)edit_window_proc_3);
+                    edit_window_proc_2 = (WNDPROC)dwNewLong;
+                    return (LONG_PTR)edit_window_proc_1;
+                }
+            } else if (class_name == L"SysListView32"sv) {
+                if (int len = GetClassNameW(GetParent(hWnd), buf, std::size(buf));
+                    std::wstring_view(buf, len) == class_everything)
+                {
+                    list_window_proc_0 = (WNDPROC)SetWindowLongPtrW_real(hWnd, nIndex, (LONG_PTR)list_window_proc_3);
+                    list_window_proc_2 = (WNDPROC)dwNewLong;
+                    return (LONG_PTR)list_window_proc_1;
+                }
+            }
+        }
+    }
+    return SetWindowLongPtrW_real(hWnd, nIndex, dwNewLong);
+}
+*/
+
+auto CreateWindowExW_real = CreateWindowExW;
+HWND WINAPI CreateWindowExW_detour(
+    _In_ DWORD dwExStyle,
+    _In_opt_ LPCWSTR lpClassName,
+    _In_opt_ LPCWSTR lpWindowName,
+    _In_ DWORD dwStyle,
+    _In_ int X,
+    _In_ int Y,
+    _In_ int nWidth,
+    _In_ int nHeight,
+    _In_opt_ HWND hWndParent,
+    _In_opt_ HMENU hMenu,
+    _In_opt_ HINSTANCE hInstance,
+    _In_opt_ LPVOID lpParam)
+{
+    using namespace std::literals;
+
+    // EVERYTHING
+    // EVERYTHING_TOOLBAR
+    // Edit
+    // SysListView32
+    // msctls_statusbar32
+    // ComboBox
+    // EVERYTHING_PREVIEW
+
+    HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+    if ((uintptr_t)lpClassName > 0xFFFF) {
+        std::wstring_view class_name(lpClassName);
+        if constexpr (debug)
+            DebugOStream() << class_name << L", parent: " << hWndParent << L'\n';
+
+        // named instances
+        if (class_name.ends_with(L')') && instance_name.empty()) {
+            size_t n = class_name.find(L"_("sv);
+            if (n != class_name.npos) {
+                size_t begin = n + std::size(L"_("sv);
+                instance_name = class_name.substr(begin, class_name.size() - 1 - begin);
+
+                class_everything += class_name.substr(n);
+
+                title_suffix += L" ("sv;
+                title_suffix += instance_name;
+                title_suffix += L')';
+            }
+        }
+
+        if (class_name == class_everything) {
+            if (config.pinyin_search) {
+                std::thread t(pinyin_query_and_merge);
+                t.detach();
+            }
+        } else if (class_name == L"Edit"sv) {
+            if (config.pinyin_search) {
+                wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
+                if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                    if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
+                        edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)edit_window_proc_1);
+                    }
+                }
+            }
+        } else if (class_name == L"SysListView32"sv) {
+            if (config.quick_select) {
+                wchar_t buf[256];
+                if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                    if (std::wstring_view(buf, len) == class_everything) {
+                        // bind list to editor
+                        HWND toolbar = FindWindowExW(hWndParent, nullptr, L"EVERYTHING_TOOLBAR", nullptr);
+                        SetPropW(FindWindowExW(toolbar, nullptr, L"Edit", nullptr), prop_edit_list, wnd);
+
+                        // create quick list
+                        // X == Y == nWidth == nHeight == 0
+                        HWND quick_list = quick_list_create(hWndParent, hInstance);
+                        SetPropW(wnd, prop_list_quick_list, quick_list);
+                    }
+                }
+            }
+        } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
+            ipc_init(instance_name);
+
+            if (config.pinyin_search) {
+                ipc_window_proc_prev = (WNDPROC)SetWindowLongPtrW(wnd, GWLP_WNDPROC, (LONG_PTR)ipc_window_proc);
+
+                std::thread t(pinyin_query_and_merge);
+                t.detach();
+            }
+            if (config.quick_select)
+                quick_select_init();
+        }
+    }
+    return wnd;
+}
+
+/*
 BOOL CALLBACK enum_window_proc(
     _In_ HWND hwnd,
     _In_ LPARAM lParam)
@@ -685,13 +666,14 @@ BOOL CALLBACK enum_window_proc(
             if (std::wstring_view(buf, len) == L"EVERYTHING"sv) {
                 if (HWND toolbar = FindWindowExW(hwnd, 0, L"EVERYTHING_TOOLBAR", nullptr))
                     if (HWND edit = FindWindowExW(toolbar, 0, L"Edit", nullptr))
-                        edit_window_proc_prev = (WNDPROC)SetWindowLongPtrW(edit, GWLP_WNDPROC, (LONG_PTR)edit_window_proc);
+                        edit_window_proc_0 = (WNDPROC)SetWindowLongPtrW(edit, GWLP_WNDPROC, (LONG_PTR)edit_window_proc_1);
             }
         }
     }
 
     return true;
 }
+*/
 
 #include <IbDllHijackLib/Dlls/WindowsCodecs.h>
 
@@ -707,12 +689,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             DebugOStream() << L"DLL_PROCESS_ATTACH\n";
 
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
-        IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
+        //IbDetourAttach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
 
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc,GetCurrentThreadId());
 
-        search_history_init();
+        config_init();
+        if (config.pinyin_search) {
+            IbDetourAttach(&SetWindowTextW_real, SetWindowTextW_detour);
+            search_history_init();
+        }
         break;
     case DLL_THREAD_ATTACH:
         break;
@@ -722,9 +708,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
 
-        search_history_destroy();
-
-        IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
+        if (config.quick_select)
+            quick_select_destroy();
+        if (config.pinyin_search) {
+            search_history_destroy();
+            IbDetourDetach(&SetWindowTextW_real, SetWindowTextW_detour);
+        }
+        ipc_destroy();
+        config_destroy();
+        
+        //IbDetourDetach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
         IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
         break;
     }
