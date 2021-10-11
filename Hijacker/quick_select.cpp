@@ -154,20 +154,31 @@ HDWP WINAPI DeferWindowPos_detour(
     _In_ int cy,
     _In_ UINT uFlags)
 {
-    if (x == 0 && uFlags == SWP_NOACTIVATE | SWP_NOREPOSITION | SWP_NOZORDER) {
+    if (y != 0 && uFlags == SWP_NOACTIVATE | SWP_NOREPOSITION | SWP_NOZORDER) {  // x is not 0 when there is a sidebar
         if (HWND quick_list = (HWND)GetPropW(hWnd, prop_list_quick_list)) {
-            DeferWindowPos_real(hWinPosInfo, quick_list, hWndInsertAfter, x, y, quick_list_width, cy, uFlags);
+            // it will turn into a gray block in some cases without SWP_FRAMECHANGED
+            DeferWindowPos_real(hWinPosInfo, quick_list, hWndInsertAfter, x, y, quick_list_width, cy, SWP_FRAMECHANGED | uFlags);
 
-            x = quick_list_width;
+            x += quick_list_width;
             cx -= quick_list_width;
         }
     }
     return DeferWindowPos_real(hWinPosInfo, hWnd, hWndInsertAfter, x, y, cx, cy, uFlags);
 }
 
+/*
+auto EndDeferWindowPos_real = EndDeferWindowPos;
+BOOL WINAPI EndDeferWindowPos_detour(_In_ HDWP hWinPosInfo) {
+    bool result = EndDeferWindowPos_real(hWinPosInfo);
+    return result;
+}
+*/
+
 void quick_select_init() {
-    if (ipc_version.major >= 1 && ipc_version.minor >= 5)
+    if (ipc_version.major >= 1 && ipc_version.minor >= 5) {
         IbDetourAttach(&DeferWindowPos_real, DeferWindowPos_detour);
+        //IbDetourAttach(&EndDeferWindowPos_real, EndDeferWindowPos_detour);
+    }
     else
         IbDetourAttach(&SetWindowPos_real, SetWindowPos_detour);
     
