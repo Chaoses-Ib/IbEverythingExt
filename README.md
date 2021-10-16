@@ -69,5 +69,5 @@ quick_select: true
         vcpkg install boost-test
         ```
 * data
-    1. 从 [mozillazg/pinyin-data](https://github.com/mozillazg/pinyin-data) 获取 `pinyin.txt`，放入 data 目录。
+    1. 从 [Chaoses-Ib/pinyin-data](https://github.com/Chaoses-Ib/pinyin-data) 获取 `pinyin.txt`，放入 data 目录。
     1. 运行 `generate_ord_pinyin.py`，得到 `output_ord_pinyin.txt`。

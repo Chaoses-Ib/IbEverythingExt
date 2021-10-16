@@ -14,7 +14,7 @@ struct PinyinRange {
     bool has(char32_t c) const;
     uint32_t& get_flags(char32_t c) const;
 };
-extern PinyinRange pinyin_ranges[5];
+extern PinyinRange pinyin_ranges[7];
 
 struct Utf16Pair {
     wchar_t l;

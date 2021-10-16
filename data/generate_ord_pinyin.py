@@ -1,11 +1,13 @@
 import re
 
 tables = {
-    range(0x3400, 0x9FED+1): [],
-    range(0x20000, 0x2CE93+1): [],
+    range(0x3400, 0x9FED+1): [],  # .{1017}\0
+    range(0x20000, 0x2D016+1): [],
     range(0x3007, 0x3007+1): [],
-    range(0xE815, 0xE864+1): [],
-    range(0x30EDD, 0x30EDE+1): []
+    range(0xE815, 0xE864+1): [],  # .{18472}\0
+    range(0xFA18, 0xFA18+1): [],  # .{4532}\0
+    range(0x2F835, 0x2F835+1): [],  # .{10271}\0
+    range(0x30EDD, 0x30EDE+1): []  # .{5800}\0
 }
 for rng, lst in tables.items():
     lst[:] = [0] * (rng.stop - rng.start)
