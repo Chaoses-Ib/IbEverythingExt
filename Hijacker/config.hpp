@@ -5,6 +5,7 @@ struct Config {
     struct {
         bool enable;
         PinyinSearchMode mode;
+        std::vector<pinyin::PinyinFlagValue> flags;
     } pinyin_search;
     struct {
         bool enable;

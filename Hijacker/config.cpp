@@ -30,6 +30,20 @@ void config_init() {
                     else if (mode == "Edit")
                         return PinyinSearchMode::Edit;
                     throw std::range_error("Invalid pinyin_search.mode");
+                }(),
+                .flags = [&node] {
+                    std::vector<pinyin::PinyinFlagValue> flags;
+
+                    // mind the order
+                    if (node["pinyin_ascii_digit"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::PinyinAsciiDigit);
+                    if (node["pinyin_ascii"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::PinyinAscii);
+                    if (node["double_pinyin_xiaohe"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::DoublePinyinXiaohe);
+                    if (node["initial"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::Initial);
+                    return flags;
                 }()
             };
         }

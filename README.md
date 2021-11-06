@@ -15,10 +15,12 @@
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
 
 ### PCRE 模式
+* 支持简拼、全拼、带声调全拼、小鹤双拼搜索。（双拼搜索默认不开启）
 * 仅支持 Everything 以下版本：
   * v1.4.1.1009 x64 安装版/便携版
 
 ### Edit 模式（停止维护）
+* 只支持简拼搜索。
 * 支持 Everything x64 安装版和便携版，不支持精简版。
 * 修饰符
     * py: 小写字母只匹配拼音
@@ -39,6 +41,10 @@
 pinyin_search:
   enable: true
   mode: Auto  # Auto, Pcre, Edit
+  initial: true  # 简拼
+  pinyin_ascii: true  # 全拼
+  pinyin_ascii_digit: true  # 带声调全拼
+  double_pinyin_xiaohe: false  # 小鹤双拼
 # 快速选择
 quick_select:
   enable: true

@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "PinyinSearchPcre.hpp"
+#include "config.hpp"
 #include "ipc.hpp"
 #include "match.hpp"
 #include "helper.hpp"
@@ -241,10 +242,7 @@ pcre_exec_detour(const pcre* argument_re, const pcre_extra* extra_data,
         return pcre_exec_real(argument_re, extra_data, subject, length, start_offset, options, offsets, offsetcount);
     }
 
-    // mind the order
-    std::vector<pinyin::PinyinFlagValue> flags = { pinyin::PinyinFlag::PinyinAsciiDigit, pinyin::PinyinFlag::PinyinAscii, pinyin::PinyinFlag::Initial };
-
-    return match((const char8_t*)argument_re, (const char8_t*)subject, length, flags, offsets, offsetcount);
+    return match((const char8_t*)argument_re, (const char8_t*)subject, length, config.pinyin_search.flags, offsets, offsetcount);
 }
 
 /*

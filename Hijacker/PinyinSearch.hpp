@@ -2,6 +2,10 @@
 #include <memory>
 #include <string>
 
+#include <vector>
+#define IB_PINYIN_ENCODING 8
+#include <IbPinyinLib/Pinyin.hpp>
+
 enum class PinyinSearchMode {
     Auto,
     Pcre,

@@ -2,7 +2,7 @@
 #include "match.hpp"
 #include <functional>
 
-int match(const char8_t* pattern, const char8_t* subject, int length, std::vector<pinyin::PinyinFlagValue> flags, int* offsets, int offsetcount)
+int match(const char8_t* pattern, const char8_t* subject, int length, std::vector<pinyin::PinyinFlagValue>& flags, int* offsets, int offsetcount)
 {
     // DFA?
     auto char_match = [&flags](char32_t c, const char8_t* pattern) -> std::vector<size_t> {
