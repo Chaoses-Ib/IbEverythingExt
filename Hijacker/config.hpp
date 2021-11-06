@@ -1,8 +1,14 @@
 ﻿#pragma once
+#include "PinyinSearch.hpp"
 
 struct Config {
-    bool pinyin_search = true;
-    bool quick_select = true;
+    struct {
+        bool enable;
+        PinyinSearchMode mode;
+    } pinyin_search;
+    struct {
+        bool enable;
+    } quick_select;
 };
 extern Config config;
 

@@ -5,8 +5,7 @@
 ![](docs/preview.png)
 
 ## 安装
-1. 支持 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版和便携版，不支持精简版（Lite）。  
-  [v1.5 Alpha](http://www.voidtools.com/forum/viewtopic.php?f=12&t=9787) 目前相比 v1.4 有大约 30% 的性能提升，但没有中文语言，且可能存在一些 bug，请根据自己的需要进行选择。
+1. 安装 [Everything](https://www.voidtools.com/zh-cn/downloads/) v1.4.1.1009 x64 安装版或便携版（不支持精简版）。
 1. 从 [Releases](../../releases) 下载压缩包。
 1. 解压压缩包，将 bin 目录下的文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
 1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
@@ -14,11 +13,18 @@
 ## 拼音搜索
 * 支持包括辅助平面在内的 Unicode 汉字。
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
+
+### PCRE 模式
+* 仅支持 Everything 以下版本：
+  * v1.4.1.1009 x64 安装版/便携版
+
+### Edit 模式（停止维护）
+* 支持 Everything x64 安装版和便携版，不支持精简版。
 * 修饰符
     * py: 小写字母只匹配拼音
     * nopy: 禁用拼音搜索（对所有关键字生效）
 
-<img src="docs/search.png" style="max-height: 500px;"/>
+  <img src="docs/search.png" style="max-height: 500px;"/>
 
 ## 快速选择
 * `Alt+键`：打开（选中并按 Enter）
@@ -30,9 +36,12 @@
 修改 `IbEverythingExt.yaml` 文件：
 ```yaml
 # 拼音搜索
-pinyin_search: true
+pinyin_search:
+  enable: true
+  mode: Auto  # Auto, Pcre, Edit
 # 快速选择
-quick_select: true
+quick_select:
+  enable: true
 ```
 （`true` 为开启，`false` 为关闭）
 
@@ -57,6 +66,7 @@ quick_select: true
     1. 将以下库放入 `C:\L\C++\packages`（其它位置需要修改 .vcxproj 文件）：
         * [IbDllHijackLib](https://github.com/Chaoses-Ib/IbDllHijackLib/tree/master/DllHijackLib/IbDllHijackLib)
         * [IbEverythingLib](https://github.com/Chaoses-Ib/IbEverythingLib/tree/master/Cpp/IbEverythingLib)
+        * [IbPinyinLib](https://github.com/Chaoses-Ib/IbPinyinLib)
         * [IbWinCppLib](https://github.com/Chaoses-Ib/IbWinCppLib/tree/master/WinCppLib/IbWinCppLib)
     1. [vcpkg](https://github.com/microsoft/vcpkg)
         ```
@@ -66,7 +76,7 @@ quick_select: true
         （x86 版本的 VCPKG_DEFAULT_TRIPLET 应为  x86-windows-static-md）
     1. Test 还需要：
         ```
-        vcpkg install boost-test
+        vcpkg install boost-test pcre pcre2
         ```
 * data
     1. 从 [Chaoses-Ib/pinyin-data](https://github.com/Chaoses-Ib/pinyin-data) 获取 `pinyin.txt`，放入 data 目录。

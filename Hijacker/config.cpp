@@ -17,8 +17,28 @@ void config_init() {
     std::ifstream in(path);
     if (in) {
         YAML::Node root = YAML::Load(in);
-        config.pinyin_search = root["pinyin_search"].as<bool>();
-        config.quick_select = root["quick_select"].as<bool>();
+
+        if (YAML::Node node = root["pinyin_search"]) {
+            config.pinyin_search = {
+                .enable = node["enable"].as<bool>(),
+                .mode = [&node] {
+                    auto mode = node["mode"].as<std::string>();
+                    if (mode == "Auto")
+                        return PinyinSearchMode::Auto;
+                    else if (mode == "Pcre")
+                        return PinyinSearchMode::Pcre;
+                    else if (mode == "Edit")
+                        return PinyinSearchMode::Edit;
+                    throw std::range_error("Invalid pinyin_search.mode");
+                }()
+            };
+        }
+
+        if (YAML::Node node = root["quick_select"]) {
+            config.quick_select = {
+                .enable = node["enable"].as<bool>()
+            };
+        }
     }
 }
 

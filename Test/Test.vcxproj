@@ -155,6 +155,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="match.cpp" />
+    <ClCompile Include="pcre.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="v1.4.cpp" />
     <ClCompile Include="v1.5a.cpp" />
@@ -168,5 +170,6 @@
   <ImportGroup Label="Dependencies">
     <Import Project="C:\L\C++\packages\IbWinCppLib\IbWinCppLib.props" />
     <Import Project="C:\L\C++\packages\IbEverythingLib\IbEverythingLib.props" />
+    <Import Project="C:\L\C++\packages\IbPinyinLib\IbPinyinLib.props" />
   </ImportGroup>
 </Project>

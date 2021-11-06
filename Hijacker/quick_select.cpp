@@ -14,7 +14,7 @@ LRESULT CALLBACK keyboard_proc(
     _In_ LPARAM lParam)
 {
     bool down = !(lParam & 0xC0000000);
-    if constexpr (debug)
+    if constexpr (debug_verbose)
         DebugOStream() << L"keyboard_proc: " << code << L", " << wParam << L", " << std::hex << lParam << L'(' << down << L')' << L'\n';
 
     do {

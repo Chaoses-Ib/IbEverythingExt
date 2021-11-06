@@ -9,6 +9,13 @@ constexpr bool debug =
     0;
 #endif
 
+constexpr bool debug_verbose =
+#ifdef IB_DEBUG_VERBOSE
+    1;
+#else
+    0;
+#endif
+
 inline ib::DebugOStream<> DebugOStream() {
     return ib::DebugOStream(L"IbEverythingExt: ");
 }
