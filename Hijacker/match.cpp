@@ -46,22 +46,24 @@ int match(const char8_t* pattern, const char8_t* subject, int length, std::vecto
     };
 
     // global match
-    int count = 0;
     const char8_t* sub = subject;
     int char_len;
     for (char32_t c = pinyin::read_char32((const char*)sub, &char_len); c; c = pinyin::read_char32((const char*)sub, &char_len)) {
         if (const char8_t* s = subject_match(sub, pattern)) {
-            if (offsets) {  // may be null
-                offsets[count * 2] = sub - subject;
-                offsets[count * 2 + 1] = s - subject;
+            if (offsets && offsetcount >= 2) {  // may be null
+                offsets[0] = sub - subject;
+                offsets[1] = s - subject;
+                return 1;
+            } else {
+                return 0;
             }
-            count++;
-
+            /*
             sub = s;
             continue;
+            */
         }
         sub += char_len;
     }
 
-    return count == 0 ? -1 : count;
+    return -1;
 }
