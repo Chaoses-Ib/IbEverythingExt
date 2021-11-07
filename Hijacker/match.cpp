@@ -1,41 +1,77 @@
 ﻿#include "pch.h"
 #include "match.hpp"
 #include <functional>
+#include <IbWinCppLib/WinCppLib.hpp>
 
-int match(const char8_t* pattern, const char8_t* subject, int length, std::vector<pinyin::PinyinFlagValue>& flags, int* offsets, int offsetcount)
+char32_t read_char32(const char8_t* str, int* length) {
+    char c = str[0];
+    switch (*length = 1 + ((c & 0b11000000) == 0b11000000) + ((c & 0b11100000) == 0b11100000) + ((c & 0b11110000) == 0b11110000)) {
+    case 1: return c;
+    case 2: return (c & 0b11111) << 6 | (str[1] & 0b111111);
+    case 3: return (c & 0b1111) << 12 | (str[1] & 0b111111) << 6 | (str[2] & 0b111111);
+    case 4: return (c & 0b111) << 18 | (str[1] & 0b111111) << 12 | (str[2] & 0b111111) << 6 | (str[3] & 0b111111);
+    }
+}
+
+Pattern* compile(const char8_t* pattern, PatternFlag::Value flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags) {
+    size_t length = 1;  // '\0'
+    {
+        const char8_t* p = pattern;
+        int char_len;
+        for (char32_t c = read_char32(p, &char_len); c; c = read_char32(p += char_len, &char_len))
+            length++;
+    }
+    //Pattern* pat = ib::Addr(new ib::Byte[sizeof Pattern + length * sizeof(char32_t)]);
+    Pattern* pat = ib::Addr(HeapAlloc(GetProcessHeap(), 0, sizeof Pattern + length * sizeof(char32_t)));
+
+    pat->flags = flags;
+    pat->pinyin_flags = pinyin_flags;
+
+    const char8_t* p = pattern;
+    int char_len;
+    for (size_t i = 0; i < length; i++) {
+        pat->pattern[i] = read_char32(p, &char_len);
+        p += char_len;
+    }
+
+    return pat;
+}
+
+int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], PatternFlag::Value flags)
 {
+    const char8_t* subject_end = subject + length;
+
     // DFA?
-    auto char_match = [&flags](char32_t c, const char8_t* pattern) -> std::vector<size_t> {
+    auto char_match = [pattern](char32_t c, const char32_t* pat) -> std::vector<size_t> {
         std::vector<size_t> v;
-        if (c < 0x3007) {
-            if ('A' <= c && c <= 'Z') {
-                if (*pattern == c || *pattern == c - 'A' + 'a')
-                    v.push_back(1);
-            } else if ('a' <= c && c <= 'z') {
-                if (*pattern == c || *pattern == c - 'a' + 'A')
-                    v.push_back(1);
+        if (c == *pat)
+            v.push_back(1);
+        else {
+            if (c < 0x3007) {
+                if (U'A' <= c && c <= U'Z') {
+                    if (*pat == c - U'A' + U'a')
+                        v.push_back(1);
+                } else if (U'a' <= c && c <= U'z') {
+                    if (*pat == c - U'a' + U'A')
+                        v.push_back(1);
+                }
             } else {
-                int char_len;
-                char32_t pat_char = pinyin::read_char32((const char*)pattern, &char_len);
-                if (pat_char == c)
-                    v.push_back(char_len);
-            }
-        } else {
-            for (pinyin::PinyinFlagValue flag : flags) {
-                if (size_t size = pinyin::match_pinyin((const char*)pattern, c, flag))
-                    v.push_back(size);
+                for (pinyin::PinyinFlagValue flag : *pattern->pinyin_flags) {
+                    if (size_t size = pinyin::match_pinyin(pat, c, flag))
+                        v.push_back(size);
+                }
             }
         }
         return v;
     };
-    std::function<const char8_t* (const char8_t*, const char8_t*)> subject_match = [&char_match, &subject_match](const char8_t* sub, const char8_t* pattern) -> const char8_t* {
+    std::function<const char8_t* (const char8_t*, const char32_t*)> subject_match = [&char_match, &subject_match, subject_end](const char8_t* sub, const char32_t* pattern) -> const char8_t* {
         if (!*pattern)
             return sub;
 
-        int char_len;
-        char32_t c = pinyin::read_char32((const char*)sub, &char_len);
-        if (!c)
+        if (sub == subject_end)
             return nullptr;
+        int char_len;
+        char32_t c = read_char32(sub, &char_len);
 
         std::vector<size_t> v = char_match(c, pattern);
         for (size_t size : v) {
@@ -48,11 +84,11 @@ int match(const char8_t* pattern, const char8_t* subject, int length, std::vecto
     // global match
     const char8_t* sub = subject;
     int char_len;
-    for (char32_t c = pinyin::read_char32((const char*)sub, &char_len); c; c = pinyin::read_char32((const char*)sub, &char_len)) {
-        if (const char8_t* s = subject_match(sub, pattern)) {
-            if (offsets && offsetcount >= 2) {  // may be null
-                offsets[0] = sub - subject;
-                offsets[1] = s - subject;
+    while (sub != subject_end) {
+        if (const char8_t* s = subject_match(sub, pattern->pattern)) {
+            if (nmatch) {
+                pmatch[0] = sub - subject;
+                pmatch[1] = s - subject;
                 return 1;
             } else {
                 return 0;
@@ -62,6 +98,7 @@ int match(const char8_t* pattern, const char8_t* subject, int length, std::vecto
             continue;
             */
         }
+        read_char32(sub, &char_len);
         sub += char_len;
     }
 

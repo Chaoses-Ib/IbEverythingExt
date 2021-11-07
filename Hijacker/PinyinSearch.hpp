@@ -3,7 +3,7 @@
 #include <string>
 
 #include <vector>
-#define IB_PINYIN_ENCODING 8
+#define IB_PINYIN_ENCODING 32
 #include <IbPinyinLib/Pinyin.hpp>
 
 enum class PinyinSearchMode {

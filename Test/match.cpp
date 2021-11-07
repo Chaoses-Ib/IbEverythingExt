@@ -5,30 +5,33 @@
 BOOST_AUTO_TEST_SUITE(Match)
     BOOST_AUTO_TEST_CASE(Match) {
     std::vector<pinyin::PinyinFlagValue> flags = { pinyin::PinyinFlag::PinyinAsciiDigit, pinyin::PinyinFlag::PinyinAscii, pinyin::PinyinFlag::Initial };
-        int offsets[30];
-        auto test = [&flags, &offsets](const char8_t* pattern, const char8_t* subject) {
-            return match(pattern, subject, strlen((const char*)subject), flags, offsets, std::size(offsets));
+        int pmatch[20];
+        auto test = [&flags, &pmatch](const char8_t* pat, const char8_t* subject) {
+            Pattern* pattern = compile(pat, 0, &flags);
+            int result = exec(pattern, subject, strlen((const char*)subject), std::size(pmatch) / 2, pmatch, 0);
+            HeapFree(GetProcessHeap(), 0, pattern);
+            return result;
         };
 
         // plain
-        BOOST_CHECK(test(u8"pinyin", u8"pinyin") == 1 && offsets[0] == 0 && offsets[1] == 6);
-        BOOST_CHECK(test(u8"pinyin", u8"PinYin") == 1 && offsets[0] == 0 && offsets[1] == 6);
+        BOOST_CHECK(test(u8"pinyin", u8"pinyin") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
+        BOOST_CHECK(test(u8"pinyin", u8"PinYin") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
 
         // pinyin
-        BOOST_CHECK(test(u8"py", u8"拼音") == 1 && offsets[0] == 0 && offsets[1] == 6);
-        BOOST_CHECK(test(u8"pinyin", u8"拼音") == 1 && offsets[0] == 0 && offsets[1] == 6);
-        BOOST_CHECK(test(u8"pin1yin1", u8"拼音") == 1 && offsets[0] == 0 && offsets[1] == 6);
+        BOOST_CHECK(test(u8"py", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
+        BOOST_CHECK(test(u8"pinyin", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
+        BOOST_CHECK(test(u8"pin1yin1", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
 
         // global
-        BOOST_CHECK(test(u8"pinyin", u8"0123pinyin") == 1 && offsets[0] == 4 && offsets[1] == 10);
-        BOOST_CHECK(test(u8"pinyin", u8"0123拼音") == 1 && offsets[0] == 4 && offsets[1] == 10);
+        BOOST_CHECK(test(u8"pinyin", u8"0123pinyin") == 1 && pmatch[0] == 4 && pmatch[1] == 10);
+        BOOST_CHECK(test(u8"pinyin", u8"0123拼音") == 1 && pmatch[0] == 4 && pmatch[1] == 10);
 
         // multiple
-        //BOOST_CHECK(test(u8"pinyin", u8"01拼音23拼音") == 1 && offsets[0] == 2 && offsets[1] == 8);
+        //BOOST_CHECK(test(u8"pinyin", u8"01拼音23拼音") == 1 && pmatch[0] == 2 && pmatch[1] == 8);
 
         // mix
-        BOOST_CHECK(test(u8"pinyin", u8"拼yin") == 1 && offsets[0] == 0 && offsets[1] == 6);
-        BOOST_CHECK(test(u8"sous", u8"拼音搜索Everything") == 1 && offsets[0] == 6 && offsets[1] == 12);
+        BOOST_CHECK(test(u8"pinyin", u8"拼yin") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
+        BOOST_CHECK(test(u8"sous", u8"拼音搜索Everything") == 1 && pmatch[0] == 6 && pmatch[1] == 12);
     }
 
 BOOST_AUTO_TEST_SUITE_END()

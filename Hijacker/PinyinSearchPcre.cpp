@@ -5,33 +5,34 @@
 #include "match.hpp"
 #include "helper.hpp"
 
-using ModifierValue = uint32_t;
+
 struct Modifier {
-    using T = const ModifierValue;
+    using Value = uint32_t;
+    using T = const Value;
 
     static T RegEx = 0x800;
 };
 #pragma pack(push, 1)
-struct compile_p2 {
+struct regcomp_p2 {
     ib::Byte gap0[24];
     void* result18;
     void* result20;
-    ModifierValue modifiers;
+    Modifier::Value modifiers;
     uint32_t int2C;
     char pattern[];
 };
 #pragma pack(pop)
 
-ModifierValue modifiers;
+Modifier::Value modifiers;
 char pattern_initial;
 
-bool (*regex_compile_p2_real)(void* a1, compile_p2* a2);
-bool regex_compile_p2_detour(void* a1, compile_p2* a2) {
+bool (*regcomp_p2_real)(void* a1, regcomp_p2* a2);
+bool regcomp_p2_detour(void* a1, regcomp_p2* a2) {
     if constexpr (debug) {
         size_t pattern_len = strlen(a2->pattern);
         std::wstring pattern_u16(pattern_len, L'\0');
         pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, a2->pattern, pattern_len, pattern_u16.data(), pattern_u16.size()));
-        DebugOStream() << L"regex_compile_p2(" << std::hex << a2 << L"{" << a2->modifiers << L", " << a2->int2C << LR"(}, ")" << pattern_u16 << LR"("))"
+        DebugOStream() << L"regcomp_p2(" << std::hex << a2 << L"{" << a2->modifiers << L", " << a2->int2C << LR"(, ")" << pattern_u16 << LR"("}))"
             << L" on " << GetCurrentThreadId() << L"\n";
 
         // single thread
@@ -39,7 +40,7 @@ bool regex_compile_p2_detour(void* a1, compile_p2* a2) {
 
     modifiers = a2->modifiers;
 
-    if (!(a2->modifiers & Modifier::RegEx)) {
+    if (!(modifiers & Modifier::RegEx)) {
         pattern_initial = a2->pattern[0];
         if (pattern_initial) {  // force to use regex
             a2->modifiers |= Modifier::RegEx;
@@ -48,20 +49,113 @@ bool regex_compile_p2_detour(void* a1, compile_p2* a2) {
     }
 
     if constexpr (debug) {
-        bool result = regex_compile_p2_real(a1, a2);
-        DebugOStream() << L"{" << a2->result18 << L", " << a2->result20 << L"}\n";
+        bool result = regcomp_p2_real(a1, a2);
+        DebugOStream() << L"{" << a2->result18 << L", " << a2->result20 << L", " << std::hex << a2->modifiers << L"}\n";
         return result;
     }
-    return regex_compile_p2_real(a1, a2);
+    return regcomp_p2_real(a1, a2);
 }
 
 
 #define PCRE_CALL_CONVENTION
 
+/* Options, mostly defined by POSIX, but with some extras. */
+
+#define REG_ICASE     0x0001   /* Maps to PCRE_CASELESS */
+#define REG_NEWLINE   0x0002   /* Maps to PCRE_MULTILINE */
+#define REG_NOTBOL    0x0004   /* Maps to PCRE_NOTBOL */
+#define REG_NOTEOL    0x0008   /* Maps to PCRE_NOTEOL */
+#define REG_DOTALL    0x0010   /* NOT defined by POSIX; maps to PCRE_DOTALL */
+#define REG_NOSUB     0x0020   /* Maps to PCRE_NO_AUTO_CAPTURE */
+#define REG_UTF8      0x0040   /* NOT defined by POSIX; maps to PCRE_UTF8 */
+#define REG_STARTEND  0x0080   /* BSD feature: pass subject string by so,eo */
+#define REG_NOTEMPTY  0x0100   /* NOT defined by POSIX; maps to PCRE_NOTEMPTY */
+#define REG_UNGREEDY  0x0200   /* NOT defined by POSIX; maps to PCRE_UNGREEDY */
+#define REG_UCP       0x0400   /* NOT defined by POSIX; maps to PCRE_UCP */
+
+/* Error values. Not all these are relevant or used by the wrapper. */
+
+enum {
+    REG_ASSERT = 1,  /* internal error ? */
+    REG_BADBR,       /* invalid repeat counts in {} */
+    REG_BADPAT,      /* pattern error */
+    REG_BADRPT,      /* ? * + invalid */
+    REG_EBRACE,      /* unbalanced {} */
+    REG_EBRACK,      /* unbalanced [] */
+    REG_ECOLLATE,    /* collation error - not relevant */
+    REG_ECTYPE,      /* bad class */
+    REG_EESCAPE,     /* bad escape sequence */
+    REG_EMPTY,       /* empty expression */
+    REG_EPAREN,      /* unbalanced () */
+    REG_ERANGE,      /* bad range inside [] */
+    REG_ESIZE,       /* expression too big */
+    REG_ESPACE,      /* failed to get memory */
+    REG_ESUBREG,     /* bad back reference */
+    REG_INVARG,      /* bad argument */
+    REG_NOMATCH      /* match failed */
+};
+
+/* The structure representing a compiled regular expression. */
+
+struct regex_t {
+    void* re_pcre;
+    size_t re_nsub;
+    size_t re_erroffset;
+};
+
+/* The structure in which a captured offset is returned. */
+
+using regoff_t = int;
+
+struct regmatch_t {
+    regoff_t rm_so;
+    regoff_t rm_eo;
+};
+
+
+/*************************************************
+*            Compile a regular expression        *
+*************************************************/
+
+/*
+Arguments:
+  preg        points to a structure for recording the compiled expression
+  pattern     the pattern to compile
+  cflags      compilation flags
+
+Returns:      0 on success
+              various non-zero codes on failure
+*/
+
+int PCRE_CALL_CONVENTION
+(*regcomp_real)(regex_t* preg, const char* pattern, int cflags);
+
+int PCRE_CALL_CONVENTION
+regcomp_detour(regex_t* preg, const char* pattern, int cflags)
+{
+    if constexpr (debug) {
+        size_t length = strlen(pattern);
+        std::wstring pattern_u16(length, L'\0');
+        pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, pattern, length, pattern_u16.data(), pattern_u16.size()));
+        DebugOStream() << LR"(regcomp(")" << pattern_u16 << LR"(", )" << std::hex << cflags << L")\n";
+    }
+
+    if (modifiers & Modifier::RegEx) {
+        return regcomp_real(preg, pattern, cflags);
+    }
+
+    const_cast<char*>(pattern)[0] = pattern_initial;
+
+    preg->re_pcre = compile((const char8_t*)pattern, 0, &config.pinyin_search.flags);
+    preg->re_nsub = 0;
+    preg->re_erroffset = (size_t)-1;
+    return 0;
+}
+
+
 using pcre = void;
 using pcre_extra = void;
-#define PCRE_SPTR const char *
-
+using PCRE_SPTR = const char*;
 
 /*************************************************
 *        Compile a Regular Expression            *
@@ -85,10 +179,13 @@ Returns:        pointer to compiled data block, or NULL on error,
                 with errorptr and erroroffset set
 */
 
+[[deprecated]]
+static auto _comment = R"*(
 pcre* PCRE_CALL_CONVENTION
 (*pcre_compile2_real)(const char* pattern, int options, int* errorcodeptr,
     const char** errorptr, int* erroroffset, const unsigned char* tables);
 
+[[deprecated]]
 pcre* PCRE_CALL_CONVENTION
 pcre_compile2_detour(const char* pattern, int options, int* errorcodeptr,
     const char** errorptr, int* erroroffset, const unsigned char* tables)
@@ -121,6 +218,7 @@ pcre_compile2_detour(const char* pattern, int options, int* errorcodeptr,
         return pcre_compile2_real(pattern, options, errorcodeptr, errorptr, erroroffset, tables);
     }
 
+    /*
     size_t len = strlen(pattern) + 1;
     // new and malloc will make the process crash under Debug config (although they are also in the process heap)
     //char* pat = new char[len];
@@ -130,7 +228,11 @@ pcre_compile2_detour(const char* pattern, int options, int* errorcodeptr,
     if constexpr (debug)
         DebugOStream() << (void*)pat << L'\n';
     return (pcre*)pat;
+    */
+
+    return (pcre*)compile((const char8_t*)pattern, 0, &config.pinyin_search.flags);
 }
+)*";
 
 
 /*************************************************
@@ -149,6 +251,7 @@ Arguments:
 Returns:           0 if data returned, negative on error
 */
 
+/*
 int PCRE_CALL_CONVENTION
 (*pcre_fullinfo_real)(const pcre* argument_re, const pcre_extra* extra_data,
     int what, void* where);
@@ -157,16 +260,123 @@ int PCRE_CALL_CONVENTION
 pcre_fullinfo_detour(const pcre* argument_re, const pcre_extra* extra_data,
     int what, void* where)
 {
+    constexpr int PCRE_INFO_CAPTURECOUNT = 2;
+
     if constexpr (debug)
         DebugOStream() << L"pcre_fullinfo(" << argument_re << L", " << extra_data << L", " << what << L", " << where << L")\n";
 
     if (modifiers & Modifier::RegEx) {
-        return pcre_fullinfo_real(argument_re, extra_data, what, where);
+        int result = pcre_fullinfo_real(argument_re, extra_data, what, where);
+        if constexpr (debug)
+            DebugOStream() << *(int*)where << L'\n';
+        return result;
     }
-
-    constexpr int PCRE_INFO_CAPTURECOUNT = 2;
+    
     if (what == PCRE_INFO_CAPTURECOUNT) {
         *(int*)where = 0;
+    }
+    return 0;
+}
+*/
+
+
+/*************************************************
+*              Match a regular expression        *
+*************************************************/
+
+/* Unfortunately, PCRE requires 3 ints of working space for each captured
+substring, so we have to get and release working store instead of just using
+the POSIX structures as was done in earlier releases when PCRE needed only 2
+ints. However, if the number of possible capturing brackets is small, use a
+block of store on the stack, to reduce the use of malloc/free. The threshold is
+in a macro that can be changed at configure time.
+
+If REG_NOSUB was specified at compile time, the PCRE_NO_AUTO_CAPTURE flag will
+be set. When this is the case, the nmatch and pmatch arguments are ignored, and
+the only result is yes/no/error. */
+
+int PCRE_CALL_CONVENTION
+(*regexec_real)(const regex_t* preg, const char* string, size_t nmatch,
+    regmatch_t pmatch[], int eflags);
+
+int PCRE_CALL_CONVENTION
+regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
+    regmatch_t pmatch[], int eflags)
+{
+    if constexpr (debug) {
+        do {
+            thread_local const regex_t* last_preg = nullptr;
+            thread_local size_t count = 0;
+            if (preg == last_preg) {
+                if (count > 10)
+                    break;
+                else
+                    ++count;
+            } else {
+                last_preg = preg;
+                count = 1;
+            }
+
+            //int length = eflags & REG_STARTEND ? pmatch[0].rm_eo : strlen(string);
+            int length, start;
+            if (eflags & REG_STARTEND) {
+                // string is not zero-terminated
+                start = pmatch[0].rm_so;
+                string += start;
+                length = pmatch[0].rm_eo - start;
+            } else {
+                length = strlen(string);
+            }
+
+            std::wstring string_u16(length, L'\0');
+            string_u16.resize(MultiByteToWideChar(CP_UTF8, 0, string, length, string_u16.data(), string_u16.size()));
+
+            auto dout = DebugOStream();
+            dout << LR"(regexec(")" << string_u16 << LR"(", )" << std::hex << eflags << std::dec;
+            if (eflags & REG_STARTEND)
+                dout << L", {" << pmatch[0].rm_so << L"," << pmatch[0].rm_eo << L"}";
+            dout << L") -> ";
+
+            int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, 0);
+            if (rc == -1) {
+                dout << L"-1\n";
+                return REG_NOMATCH;
+            }
+            if (eflags & REG_STARTEND) {
+                for (int i = 0; i < rc; i++) {
+                    pmatch[i].rm_so += start;
+                    pmatch[i].rm_eo += start;
+                    dout << L"{" << pmatch[i].rm_so << L"," << pmatch[i].rm_eo << L"}";
+                }
+            }
+            dout << L'\n';
+            return 0;
+        } while (false);
+    }
+
+    if (modifiers & Modifier::RegEx) {
+        return regexec_real(preg, string, nmatch, pmatch, eflags);
+    }
+
+    int length, start;
+    if (eflags & REG_STARTEND) {
+        // string is not zero-terminated
+        start = pmatch[0].rm_so;
+        string += start;
+        length = pmatch[0].rm_eo - start;
+    } else {
+        length = strlen(string);
+    }
+
+    int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, 0);
+    if (rc == -1) {
+        return REG_NOMATCH;
+    }
+    if (eflags & REG_STARTEND) {
+        for (int i = 0; i < rc; i++) {
+            pmatch[i].rm_so += start;
+            pmatch[i].rm_eo += start;
+        }
     }
     return 0;
 }
@@ -196,6 +406,8 @@ Returns:          > 0 => success; value is the number of elements filled in
                  < -1 => some kind of unexpected problem
 */
 
+[[deprecated]]
+auto _comment1 = R"*(
 int PCRE_CALL_CONVENTION
 (*pcre_exec_real)(const pcre* argument_re, const pcre_extra* extra_data,
     PCRE_SPTR subject, int length, int start_offset, int options, int* offsets,
@@ -220,8 +432,9 @@ pcre_exec_detour(const pcre* argument_re, const pcre_extra* extra_data,
 
             std::wstring subject_u16(length, L'\0');
             subject_u16.resize(MultiByteToWideChar(CP_UTF8, 0, subject, length, subject_u16.data(), subject_u16.size()));
-            DebugOStream() << L"pcre_exec(" << argument_re << L", " << extra_data << LR"(, ")" << subject_u16 << LR"(", )" << length << L", " << start_offset << L", " << std::hex << options << std::dec << L", " << offsets << L", " << offsetcount
-                << std::hex << L") on " << GetCurrentThreadId() << L"\n";
+            auto dout = DebugOStream();
+            dout << L"pcre_exec(" << argument_re /* << L", " << extra_data */ << LR"(, ")" << subject_u16 << LR"(", )" << length << L", " << start_offset << L", " << std::hex << options << std::dec << L", " << offsets << L", " << offsetcount << L")"
+                /* << std::hex << L" on " << GetCurrentThreadId() */;
 
             /*
             pcre_exec(0x03CC42A0, nullptr, "test.txt", 8, 0, 0, 0x0020E910, 30)
@@ -235,6 +448,18 @@ pcre_exec_detour(const pcre* argument_re, const pcre_extra* extra_data,
             pcre_exec(0x03CC42A0, nullptr, "t", 1, 0, PCRE_NOTBOL, 0x0020EB60, 30)
             multi threads
             */
+
+            if (modifiers & Modifier::RegEx) {
+                dout << L'\n';
+                break;
+            }
+
+            int result = match((Pattern*)argument_re, (const char8_t*)subject, length, offsets, offsetcount);
+            dout << L" -> " << result;
+            if (result > 0)
+                dout << L", " << offsets[0] << L", " << offsets[1];
+            dout << L'\n';
+            return result;
         } while (false);
     }
 
@@ -242,8 +467,10 @@ pcre_exec_detour(const pcre* argument_re, const pcre_extra* extra_data,
         return pcre_exec_real(argument_re, extra_data, subject, length, start_offset, options, offsets, offsetcount);
     }
 
-    return match((const char8_t*)argument_re, (const char8_t*)subject, length, config.pinyin_search.flags, offsets, offsetcount);
+    return match((Pattern*)argument_re, (const char8_t*)subject, length, offsets, offsetcount);
 }
+)*";
+
 
 /*
 bool (*regex_free_real)(void* result);
@@ -254,6 +481,7 @@ bool regex_free_detour(void* result) {
     return regex_free_real(result);
 }
 */
+
 
 /*
 auto HeapFree_real = HeapFree;
@@ -271,21 +499,26 @@ _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
 }
 */
 
+
 PinyinSearchPcre::PinyinSearchPcre() {
     ib::Addr Everything = ib::ModuleFactory::CurrentProcess().base;
     if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1 && ipc_version.build == 1009) {
-        regex_compile_p2_real = Everything + 0x5CB70;
-        pcre_compile2_real = Everything + 0x193340;
-        pcre_fullinfo_real = Everything + 0x1A7BF0;
-        pcre_exec_real = Everything + 0x1A69E0;
+        regcomp_p2_real = Everything + 0x5CB70;
+        regcomp_real = Everything + 0x1A8E80;
+        //pcre_compile2_real = Everything + 0x193340;
+        //pcre_fullinfo_real = Everything + 0x1A7BF0;
+        regexec_real = Everything + 0x1A8F60;
+        //pcre_exec_real = Everything + 0x1A69E0;
         //regex_free_real = Everything + 0x5D990;
     } else
         throw;
 
-    IbDetourAttach(&regex_compile_p2_real, regex_compile_p2_detour);
-    IbDetourAttach(&pcre_compile2_real, pcre_compile2_detour);
-    IbDetourAttach(&pcre_fullinfo_real, pcre_fullinfo_detour);
-    IbDetourAttach(&pcre_exec_real, pcre_exec_detour);
+    IbDetourAttach(&regcomp_p2_real, regcomp_p2_detour);
+    IbDetourAttach(&regcomp_real, regcomp_detour);
+    //IbDetourAttach(&pcre_compile2_real, pcre_compile2_detour);
+    //IbDetourAttach(&pcre_fullinfo_real, pcre_fullinfo_detour);
+    IbDetourAttach(&regexec_real, regexec_detour);
+    //IbDetourAttach(&pcre_exec_real, pcre_exec_detour);
     //IbDetourAttach(&regex_free_real, regex_free_detour);
     //IbDetourAttach(&HeapFree_real, HeapFree_detour);
 }
@@ -293,8 +526,10 @@ PinyinSearchPcre::PinyinSearchPcre() {
 PinyinSearchPcre::~PinyinSearchPcre() {
     //IbDetourDetach(&HeapFree_real, HeapFree_detour);
     //IbDetourDetach(&regex_free_real, regex_free_detour);
-    IbDetourDetach(&pcre_exec_real, pcre_exec_detour);
-    IbDetourDetach(&pcre_fullinfo_real, pcre_fullinfo_detour);
-    IbDetourDetach(&pcre_compile2_real, pcre_compile2_detour);
-    IbDetourDetach(&regex_compile_p2_real, regex_compile_p2_detour);
+    //IbDetourDetach(&pcre_exec_real, pcre_exec_detour);
+    IbDetourDetach(&regexec_real, regexec_detour);
+    //IbDetourDetach(&pcre_fullinfo_real, pcre_fullinfo_detour);
+    //IbDetourDetach(&pcre_compile2_real, pcre_compile2_detour);
+    IbDetourDetach(&regcomp_real, regcomp_detour);
+    IbDetourDetach(&regcomp_p2_real, regcomp_p2_detour);
 }
