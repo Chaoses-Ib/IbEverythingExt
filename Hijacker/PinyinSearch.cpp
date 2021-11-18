@@ -7,7 +7,7 @@ std::unique_ptr<PinyinSearch> make_pinyin_search(PinyinSearchMode mode, std::wst
     if (mode == PinyinSearchMode::Auto) {
         try {
             return std::make_unique<PinyinSearchPcre>();
-        } catch (...) {
+        } catch (const std::runtime_error& e) {
             mode = PinyinSearchMode::Edit;
         }
     }

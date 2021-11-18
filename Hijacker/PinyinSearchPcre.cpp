@@ -511,7 +511,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
         //pcre_exec_real = Everything + 0x1A69E0;
         //regex_free_real = Everything + 0x5D990;
     } else
-        throw;
+        throw std::runtime_error("Unsupported Everything version");
 
     IbDetourAttach(&regcomp_p2_real, regcomp_p2_detour);
     IbDetourAttach(&regcomp_real, regcomp_detour);
