@@ -5,7 +5,7 @@
 ![](docs/preview.png)
 
 ## 安装
-1. 安装 [Everything](https://www.voidtools.com/zh-cn/downloads/) v1.4.1.1009 x64 安装版或便携版（不支持精简版）。
+1. 安装 Everything v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)（不支持精简版）。
 1. 从 [Releases](../../releases) 下载压缩包。
 1. 解压压缩包，将 bin 目录下的文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
 1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
@@ -17,7 +17,7 @@
 ### PCRE 模式
 * 支持简拼、全拼、带声调全拼、小鹤双拼搜索。（双拼搜索默认不开启）
 * 仅支持 Everything 以下版本：
-  * v1.4.1.1009 x64 安装版/便携版
+  * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
 
 ### Edit 模式（停止维护）
 * 只支持简拼搜索。
