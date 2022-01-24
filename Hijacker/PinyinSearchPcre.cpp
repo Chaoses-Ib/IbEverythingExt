@@ -5,6 +5,43 @@
 #include "match.hpp"
 #include "helper.hpp"
 
+/*
+* Region list:
+* regcomp_p3
+* regcomp_p2
+* regcomp
+* pcre_compile2 (not in use)
+* pcre_fullinfo (not in use)
+* regexec
+* pcre_exec (not in use)
+* free (not in use)
+*/
+
+#pragma regcomp_p3
+
+bool original_regex;
+
+uint64_t (*regcomp_p3_14_real)(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, const char* search, int a10, const char* a11, int a12, int a13, int a14, int a15);
+uint64_t regcomp_p3_14_detour(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, const char* search, int a10, const char* a11, int a12, int a13, int a14, int a15) {
+    original_regex = regex;
+    return regcomp_p3_14_real(a1, a2, a3, a4, a5, 1, a7, a8, search, a10, a11, a12, a13, a14, a15);
+}
+
+uint64_t (*regcomp_p3_15_real)(void* a1);
+uint64_t regcomp_p3_15_detour(void* a1) {
+    // save the original regex state, and turn it on if it's not
+    uint32_t* regex = (uint32_t*)a1 + 808;
+    original_regex = *regex;
+    if (!original_regex)
+        *regex = 1;
+    
+    return regcomp_p3_15_real(a1);
+}
+
+#pragma endregion
+
+
+#pragma region regcomp_p2
 
 struct Modifier {
     using Value = uint32_t;
@@ -12,8 +49,34 @@ struct Modifier {
 
     static T RegEx = 0x800;
 };
+Modifier::Value modifiers;
+char pattern_initial;
+
+void regcomp_p2_common(Modifier::Value* modifiers_p, char* pattern) {
+    if constexpr (debug) {
+        size_t pattern_len = strlen(pattern);
+        std::wstring pattern_u16(pattern_len, L'\0');
+        pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, pattern, pattern_len, pattern_u16.data(), pattern_u16.size()));
+        DebugOStream() << L"regcomp_p2_common(" << std::hex << *modifiers_p << LR"(, ")" << pattern_u16 << LR"("))"
+            << L" on " << GetCurrentThreadId() << L"\n";
+
+        // single thread
+    }
+
+    modifiers = *modifiers_p;
+
+    if (!(modifiers & Modifier::RegEx)) {
+        pattern_initial = pattern[0];
+        if (pattern_initial) {  // force to use regex
+            //*modifiers_p |= Modifier::RegEx;  // an alternative to hooking regcomp_p3, only works for v1.4 (crashes under v1.5)
+            pattern[0] = '$';  // .\[^$*{?+|()
+            //#TODO: or nofastregex: (v1.5.0.1291)
+        }
+    }
+}
+
 #pragma pack(push, 1)
-struct regcomp_p2 {
+struct regcomp_p2_14 {
     ib::Byte gap0[24];
     void* result18;
     void* result20;
@@ -23,39 +86,31 @@ struct regcomp_p2 {
 };
 #pragma pack(pop)
 
-Modifier::Value modifiers;
-char pattern_initial;
+bool (*regcomp_p2_14_real)(void* a1, regcomp_p2_14* a2);
+bool regcomp_p2_14_detour(void* a1, regcomp_p2_14* a2) {
+    if constexpr (debug)
+        DebugOStream() << L"regcomp_p2_14(" << std::hex << a2 << L"{" << a2->int2C << "})";
 
-bool (*regcomp_p2_real)(void* a1, regcomp_p2* a2);
-bool regcomp_p2_detour(void* a1, regcomp_p2* a2) {
+    regcomp_p2_common(&a2->modifiers, a2->pattern);
+        
     if constexpr (debug) {
-        size_t pattern_len = strlen(a2->pattern);
-        std::wstring pattern_u16(pattern_len, L'\0');
-        pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, a2->pattern, pattern_len, pattern_u16.data(), pattern_u16.size()));
-        DebugOStream() << L"regcomp_p2(" << std::hex << a2 << L"{" << a2->modifiers << L", " << a2->int2C << LR"(, ")" << pattern_u16 << LR"("}))"
-            << L" on " << GetCurrentThreadId() << L"\n";
-
-        // single thread
-    }
-
-    modifiers = a2->modifiers;
-
-    if (!(modifiers & Modifier::RegEx)) {
-        pattern_initial = a2->pattern[0];
-        if (pattern_initial) {  // force to use regex
-            a2->modifiers |= Modifier::RegEx;
-            a2->pattern[0] = '$';  // .\[^$*{?+|()
-        }
-    }
-
-    if constexpr (debug) {
-        bool result = regcomp_p2_real(a1, a2);
+        bool result = regcomp_p2_14_real(a1, a2);
         DebugOStream() << L"{" << a2->result18 << L", " << a2->result20 << L", " << std::hex << a2->modifiers << L"}\n";
         return result;
     }
-    return regcomp_p2_real(a1, a2);
+    return regcomp_p2_14_real(a1, a2);
 }
 
+bool (*regcomp_p2_15_real)(void** a1);
+bool regcomp_p2_15_detour(void** a1) {
+    regcomp_p2_common(ib::Addr(a1[1]) + 280, ib::Addr(a1[1]) + 288);
+    return regcomp_p2_15_real(a1);
+}
+
+#pragma endregion
+
+
+#pragma region regcomp
 
 #define PCRE_CALL_CONVENTION
 
@@ -140,18 +195,26 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
         DebugOStream() << LR"(regcomp(")" << pattern_u16 << LR"(", )" << std::hex << cflags << L")\n";
     }
 
-    if (modifiers & Modifier::RegEx) {
+    if (original_regex) {
         return regcomp_real(preg, pattern, cflags);
     }
 
     const_cast<char*>(pattern)[0] = pattern_initial;
-
+    
     preg->re_pcre = compile((const char8_t*)pattern, 0, &config.pinyin_search.flags);
     preg->re_nsub = 0;
     preg->re_erroffset = (size_t)-1;
+
+    if constexpr (debug)
+        DebugOStream() << L"-> " << preg->re_pcre << L'\n';
+
     return 0;
 }
 
+#pragma endregion
+
+
+#pragma region pcre_compile2 (not in use)
 
 using pcre = void;
 using pcre_extra = void;
@@ -234,6 +297,12 @@ pcre_compile2_detour(const char* pattern, int options, int* errorcodeptr,
 }
 )*";
 
+#pragma endregion
+
+
+#pragma region pcre_fullinfo (not in use)
+
+// pcre_fullinfo (not in use)
 
 /*************************************************
 *        Return info about compiled pattern      *
@@ -279,6 +348,10 @@ pcre_fullinfo_detour(const pcre* argument_re, const pcre_extra* extra_data,
 }
 */
 
+#pragma endregion
+
+
+#pragma region regexec
 
 /*************************************************
 *              Match a regular expression        *
@@ -381,6 +454,10 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
     return 0;
 }
 
+#pragma endregion
+
+
+#pragma region pcre_exec (not in use)
 
 /*************************************************
 *         Execute a Regular Expression           *
@@ -471,6 +548,10 @@ pcre_exec_detour(const pcre* argument_re, const pcre_extra* extra_data,
 }
 )*";
 
+#pragma endregion
+
+
+#pragma region free (not in use)
 
 /*
 bool (*regex_free_real)(void* result);
@@ -482,54 +563,104 @@ bool regex_free_detour(void* result) {
 }
 */
 
+constexpr bool debug_HeapFree = false;
 
-/*
 auto HeapFree_real = HeapFree;
 _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
     _Inout_ HANDLE hHeap,
     _In_ DWORD dwFlags,
     __drv_freesMem(Mem) _Frees_ptr_opt_ LPVOID lpMem)
 {
+    /*
+    if constexpr (debug)
+        DebugOStream() << L"HeapFree(" << lpMem << L")\n";  // multi threads
+    */
+    /*
     if ((uintptr_t)lpMem & 1) {
         if constexpr (debug)
             DebugOStream() << L"HeapFree(lpMem | 1)\n";
         lpMem = (LPVOID)((uintptr_t)lpMem & ~1);
     }
+    */
+
     return HeapFree_real(hHeap, dwFlags, lpMem);
 }
-*/
+
+#pragma endregion
 
 
 PinyinSearchPcre::PinyinSearchPcre() {
+    bool support = true;
     ib::Addr Everything = ib::ModuleFactory::CurrentProcess().base;
-    if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1 && ipc_version.build == 1009) {
-        regcomp_p2_real = Everything + 0x5CB70;
-        regcomp_real = Everything + 0x1A8E80;
-        //pcre_compile2_real = Everything + 0x193340;
-        //pcre_fullinfo_real = Everything + 0x1A7BF0;
-        regexec_real = Everything + 0x1A8F60;
-        //pcre_exec_real = Everything + 0x1A69E0;
-        //regex_free_real = Everything + 0x5D990;
-    } else
-        throw std::runtime_error("Unsupported Everything version");
+    if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1) {
+        if (ipc_version.build == 1009) {
+            regcomp_p3_14_real = Everything + 0x174C0;
+            regcomp_p2_14_real = Everything + 0x5CB70;
+            regcomp_real = Everything + 0x1A8E80;
+            //pcre_compile2_real = Everything + 0x193340;
+            //pcre_fullinfo_real = Everything + 0x1A7BF0;
+            regexec_real = Everything + 0x1A8F60;
+            //pcre_exec_real = Everything + 0x1A69E0;
+            //regex_free_real = Everything + 0x5D990;
+        }
+        else if (ipc_version.build == 1015) {
+            regcomp_p3_14_real = Everything + 0x175A0;
+            regcomp_p2_14_real = Everything + 0x5CEC0;
+            regcomp_real = Everything + 0x1A8FC0;
+            regexec_real = Everything + 0x1A90A0;
+        }
+        else
+            support = false;
 
-    IbDetourAttach(&regcomp_p2_real, regcomp_p2_detour);
+        if (support) {
+            IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+            IbDetourAttach(&regcomp_p2_14_real, regcomp_p2_14_detour);
+        }
+    } else if (ipc_version.major == 1 && ipc_version.minor == 5 && ipc_version.revision == 0) {
+        if (ipc_version.build == 1296) {
+            regcomp_p3_15_real = Everything + 0x2D170;
+            regcomp_p2_15_real = Everything + 0xB17A0;
+            regcomp_real = Everything + 0x320800;
+            regexec_real = Everything + 0x3208E0;
+        }
+        else
+            support = false;
+
+        if (support) {
+            IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+            IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
+        }
+    }
+    else
+        support = false;
+    if (!support)
+        throw std::runtime_error("Unsupported Everything version");
+        
     IbDetourAttach(&regcomp_real, regcomp_detour);
     //IbDetourAttach(&pcre_compile2_real, pcre_compile2_detour);
     //IbDetourAttach(&pcre_fullinfo_real, pcre_fullinfo_detour);
     IbDetourAttach(&regexec_real, regexec_detour);
     //IbDetourAttach(&pcre_exec_real, pcre_exec_detour);
     //IbDetourAttach(&regex_free_real, regex_free_detour);
-    //IbDetourAttach(&HeapFree_real, HeapFree_detour);
+    if constexpr (debug_HeapFree)
+        IbDetourAttach(&HeapFree_real, HeapFree_detour);
 }
 
 PinyinSearchPcre::~PinyinSearchPcre() {
-    //IbDetourDetach(&HeapFree_real, HeapFree_detour);
+    if constexpr (debug_HeapFree)
+        IbDetourDetach(&HeapFree_real, HeapFree_detour);
     //IbDetourDetach(&regex_free_real, regex_free_detour);
     //IbDetourDetach(&pcre_exec_real, pcre_exec_detour);
     IbDetourDetach(&regexec_real, regexec_detour);
     //IbDetourDetach(&pcre_fullinfo_real, pcre_fullinfo_detour);
     //IbDetourDetach(&pcre_compile2_real, pcre_compile2_detour);
     IbDetourDetach(&regcomp_real, regcomp_detour);
-    IbDetourDetach(&regcomp_p2_real, regcomp_p2_detour);
+    if (ipc_version.major == 1 && ipc_version.minor == 4) {
+        IbDetourDetach(&regcomp_p2_14_real, regcomp_p2_14_detour);
+        IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+    }
+    else if (ipc_version.major == 1 && ipc_version.minor == 5) {
+        IbDetourDetach(&regcomp_p2_15_real, regcomp_p2_15_detour);
+        IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+    }
 }
