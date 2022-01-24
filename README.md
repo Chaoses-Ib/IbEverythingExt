@@ -18,7 +18,8 @@
 * 支持简拼、全拼、带声调全拼、小鹤双拼搜索。（双拼搜索默认不开启）
 * 仅支持 Everything 以下版本：
   * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
-  * v1.5.0.1285a x64 [安装版](http://www.voidtools.com/Everything-1.5.0.1285a.x64-Setup.exe)/[便携版](http://www.voidtools.com/Everything-1.5.0.1285a.x64.zip)
+  * v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)
+  * v1.5.0.1296a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1296a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1296a.x64.zip)
 
 ### Edit 模式（停止维护）
 * 只支持简拼搜索。
