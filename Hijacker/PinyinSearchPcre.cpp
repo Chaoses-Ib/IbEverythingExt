@@ -7,7 +7,7 @@
 
 /*
 * Region list:
-* regcomp_p3
+* regcomp_p3  (not in use)
 * regcomp_p2
 * regcomp
 * pcre_compile2 (not in use)
@@ -17,24 +17,28 @@
 * free (not in use)
 */
 
-#pragma regcomp_p3
+#pragma region regcomp_p3 (not in use)
 
-bool original_regex;
+bool global_regex;
 
 uint64_t (*regcomp_p3_14_real)(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, const char* search, int a10, const char* a11, int a12, int a13, int a14, int a15);
 uint64_t regcomp_p3_14_detour(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, const char* search, int a10, const char* a11, int a12, int a13, int a14, int a15) {
-    original_regex = regex;
+    global_regex = regex;
     return regcomp_p3_14_real(a1, a2, a3, a4, a5, 1, a7, a8, search, a10, a11, a12, a13, a14, a15);
 }
 
 uint64_t (*regcomp_p3_15_real)(void* a1);
 uint64_t regcomp_p3_15_detour(void* a1) {
-    // save the original regex state, and turn it on if it's not
     uint32_t* regex = (uint32_t*)a1 + 808;
-    original_regex = *regex;
-    if (!original_regex)
+    global_regex = *regex;
+
+    // enabling global regex will make the entire search content be treated as
+    // a regular expression (even if there are modifiers and spaces)
+    /*
+    if (!global_regex)
         *regex = 1;
-    
+    */
+
     return regcomp_p3_15_real(a1);
 }
 
@@ -67,9 +71,13 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char* pattern) {
 
     if (!(modifiers & Modifier::RegEx)) {
         pattern_initial = pattern[0];
-        if (pattern_initial) {  // force to use regex
-            //*modifiers_p |= Modifier::RegEx;  // an alternative to hooking regcomp_p3, only works for v1.4 (crashes under v1.5)
-            pattern[0] = '$';  // .\[^$*{?+|()
+        if (pattern_initial) {
+            // set regex: modifier
+            *modifiers_p |= Modifier::RegEx;  // may cause crashes under some versions?
+
+            // bypass fast regex optimazation
+            // .\[^$*{?+|()
+            pattern[0] = '$';
             //#TODO: or nofastregex: (v1.5.0.1291)
         }
     }
@@ -195,7 +203,7 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
         DebugOStream() << LR"(regcomp(")" << pattern_u16 << LR"(", )" << std::hex << cflags << L")\n";
     }
 
-    if (original_regex) {
+    if (modifiers & Modifier::RegEx) {
         return regcomp_real(preg, pattern, cflags);
     }
 
@@ -398,6 +406,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
                 string += start;
                 length = pmatch[0].rm_eo - start;
             } else {
+                start = 0;
                 length = strlen(string);
             }
 
@@ -410,18 +419,34 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
                 dout << L", {" << pmatch[0].rm_so << L"," << pmatch[0].rm_eo << L"}";
             dout << L") -> ";
 
-            int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, 0);
-            if (rc == -1) {
-                dout << L"-1\n";
-                return REG_NOMATCH;
+            int error;
+            int rc;
+            if (modifiers & Modifier::RegEx) {
+                string -= start;
+                error = regexec_real(preg, string, nmatch, pmatch, eflags);
+                rc = preg->re_nsub;
             }
-            if (eflags & REG_STARTEND) {
-                for (int i = 0; i < rc; i++) {
+            else {
+                rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, 0);
+                if (rc == -1)
+                    error = REG_NOMATCH;
+                else
+                    error = 0;
+            }
+            dout << rc;
+            if (error == REG_NOMATCH) {
+                dout << L"\n";
+                return error;
+            }
+            
+            for (int i = 0; i < rc; i++) {
+                if (!(modifiers & Modifier::RegEx) && eflags & REG_STARTEND) {
                     pmatch[i].rm_so += start;
                     pmatch[i].rm_eo += start;
-                    dout << L"{" << pmatch[i].rm_so << L"," << pmatch[i].rm_eo << L"}";
                 }
+                dout << L"{" << pmatch[i].rm_so << L"," << pmatch[i].rm_eo << L"}";
             }
+            
             dout << L'\n';
             return 0;
         } while (false);
@@ -594,7 +619,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
     ib::Addr Everything = ib::ModuleFactory::CurrentProcess().base;
     if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1) {
         if (ipc_version.build == 1009) {
-            regcomp_p3_14_real = Everything + 0x174C0;
+            //regcomp_p3_14_real = Everything + 0x174C0;
             regcomp_p2_14_real = Everything + 0x5CB70;
             regcomp_real = Everything + 0x1A8E80;
             //pcre_compile2_real = Everything + 0x193340;
@@ -604,7 +629,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
             //regex_free_real = Everything + 0x5D990;
         }
         else if (ipc_version.build == 1015) {
-            regcomp_p3_14_real = Everything + 0x175A0;
+            //regcomp_p3_14_real = Everything + 0x175A0;
             regcomp_p2_14_real = Everything + 0x5CEC0;
             regcomp_real = Everything + 0x1A8FC0;
             regexec_real = Everything + 0x1A90A0;
@@ -613,12 +638,12 @@ PinyinSearchPcre::PinyinSearchPcre() {
             support = false;
 
         if (support) {
-            IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+            //IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
             IbDetourAttach(&regcomp_p2_14_real, regcomp_p2_14_detour);
         }
     } else if (ipc_version.major == 1 && ipc_version.minor == 5 && ipc_version.revision == 0) {
         if (ipc_version.build == 1296) {
-            regcomp_p3_15_real = Everything + 0x2D170;
+            //regcomp_p3_15_real = Everything + 0x2D170;
             regcomp_p2_15_real = Everything + 0xB17A0;
             regcomp_real = Everything + 0x320800;
             regexec_real = Everything + 0x3208E0;
@@ -627,7 +652,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
             support = false;
 
         if (support) {
-            IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+            //IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         }
     }
@@ -657,10 +682,10 @@ PinyinSearchPcre::~PinyinSearchPcre() {
     IbDetourDetach(&regcomp_real, regcomp_detour);
     if (ipc_version.major == 1 && ipc_version.minor == 4) {
         IbDetourDetach(&regcomp_p2_14_real, regcomp_p2_14_detour);
-        IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+        //IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
     }
     else if (ipc_version.major == 1 && ipc_version.minor == 5) {
         IbDetourDetach(&regcomp_p2_15_real, regcomp_p2_15_detour);
-        IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+        //IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
     }
 }
