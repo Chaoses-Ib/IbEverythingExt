@@ -56,11 +56,11 @@ struct Modifier {
 Modifier::Value modifiers;
 char pattern_initial;
 
-void regcomp_p2_common(Modifier::Value* modifiers_p, char* pattern) {
+void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* pattern) {
     if constexpr (debug) {
-        size_t pattern_len = strlen(pattern);
+        size_t pattern_len = strlen((char*)pattern);
         std::wstring pattern_u16(pattern_len, L'\0');
-        pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, pattern, pattern_len, pattern_u16.data(), pattern_u16.size()));
+        pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, (char*)pattern, pattern_len, pattern_u16.data(), pattern_u16.size()));
         DebugOStream() << L"regcomp_p2_common(" << std::hex << *modifiers_p << LR"(, ")" << pattern_u16 << LR"("))"
             << L" on " << GetCurrentThreadId() << L"\n";
 
@@ -70,6 +70,13 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char* pattern) {
     modifiers = *modifiers_p;
 
     if (!(modifiers & Modifier::RegEx)) {
+        // NoProcess post-modifier
+        std::u8string_view pat(pattern);
+        if (pat.ends_with(u8";np")) {
+            pattern[pat.size() - 3] = u8'\0';
+            return;
+        }
+
         pattern_initial = pattern[0];
         if (pattern_initial) {
             // set regex: modifier
@@ -90,7 +97,7 @@ struct regcomp_p2_14 {
     void* result20;
     Modifier::Value modifiers;
     uint32_t int2C;
-    char pattern[];
+    char8_t pattern[];
 };
 #pragma pack(pop)
 
@@ -209,7 +216,7 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
 
     const_cast<char*>(pattern)[0] = pattern_initial;
     
-    preg->re_pcre = compile((const char8_t*)pattern, 0, &config.pinyin_search.flags);
+    preg->re_pcre = compile((const char8_t*)pattern, {}, &config.pinyin_search.flags);
     preg->re_nsub = 0;
     preg->re_erroffset = (size_t)-1;
 
@@ -424,10 +431,10 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
             if (modifiers & Modifier::RegEx) {
                 string -= start;
                 error = regexec_real(preg, string, nmatch, pmatch, eflags);
-                rc = preg->re_nsub;
+                rc = 1 + preg->re_nsub;
             }
             else {
-                rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, 0);
+                rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {});
                 if (rc == -1)
                     error = REG_NOMATCH;
                 else
@@ -440,10 +447,6 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
             }
             
             for (int i = 0; i < rc; i++) {
-                if (!(modifiers & Modifier::RegEx) && eflags & REG_STARTEND) {
-                    pmatch[i].rm_so += start;
-                    pmatch[i].rm_eo += start;
-                }
                 dout << L"{" << pmatch[i].rm_so << L"," << pmatch[i].rm_eo << L"}";
             }
             
@@ -466,16 +469,21 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         length = strlen(string);
     }
 
-    int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, 0);
+    int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {});
     if (rc == -1) {
         return REG_NOMATCH;
     }
+
+    // Everything removes this characteristic from PCRE regexec
+    /*
     if (eflags & REG_STARTEND) {
         for (int i = 0; i < rc; i++) {
             pmatch[i].rm_so += start;
             pmatch[i].rm_eo += start;
         }
     }
+    */
+
     return 0;
 }
 

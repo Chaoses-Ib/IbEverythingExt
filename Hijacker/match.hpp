@@ -5,24 +5,23 @@
 #include <IbPinyinLib/Pinyin.hpp>
 
 struct PatternFlag {
-    using Value = unsigned int;
-    using T = const Value;
-    //static T case_ = 1;
-    //static T wildcards = 2;
-    //static T py = 3;
+    bool pinyin : 1;
+    bool no_lower_letter_ : 1;
 };
 
 struct Pattern {
-    PatternFlag::Value flags;
+    PatternFlag flags;
     std::vector<pinyin::PinyinFlagValue>* pinyin_flags;
     unsigned int pattern_len;
     unsigned int pattern_u8_len;
     //char32_t pattern[];
     //char8_t pattern_u8[];
 
+    // null-terminated
     char32_t* pattern() {
         return ib::Addr(this) + sizeof(Pattern);
     }
+    // not null-terminated
     char8_t* pattern_u8() {
         return ib::Addr(this) + sizeof(Pattern) + (pattern_len + 1) * sizeof(char32_t);
     }
@@ -31,6 +30,6 @@ struct Pattern {
     }
 };
 
-Pattern* compile(const char8_t* pattern, PatternFlag::Value flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags);
+Pattern* compile(const char8_t* pattern, PatternFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags);
 
-int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], PatternFlag::Value flags);
+int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], PatternFlag flags);

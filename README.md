@@ -16,17 +16,20 @@
 
 ### PCRE 模式
 * 支持简拼、全拼、带声调全拼、小鹤双拼搜索。（双拼搜索默认不开启）
-* 仅支持 Everything 以下版本：
-  * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
+* 支持 Everything 以下版本：
   * v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)
+  * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
   * v1.5.0.1296a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1296a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1296a.x64.zip)
+* 后置修饰符：
+  * `;py`：小写字母只匹配拼音
+  * `;np`：禁用拼音搜索
 
 ### Edit 模式（停止维护）
 * 只支持简拼搜索。
 * 支持 Everything x64 安装版和便携版，不支持精简版。
-* 修饰符
-    * py: 小写字母只匹配拼音
-    * nopy: 禁用拼音搜索（对所有关键字生效）
+* 修饰符：
+    * `py:` 小写字母只匹配拼音
+    * `nopy:` 禁用拼音搜索（对所有关键字生效）
 
   <img src="docs/search.png" style="max-height: 500px;"/>
 
