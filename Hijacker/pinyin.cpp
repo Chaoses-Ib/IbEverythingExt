@@ -1,19 +1,13 @@
 ﻿#include "pch.h"
 #include "pinyin.hpp"
 #include <mutex>
+#include <set>
 #include "helper.hpp"
 #include "ipc.hpp"
 
 std::wstring pinyin_regexs[26]{};
 std::pair<std::wstring, std::wstring> pinyin_pair_regexs[26][26]{};
-
-bool PinyinRange::has(char32_t c) const {
-    return begin <= c && c <= end;
-}
-
-uint32_t& PinyinRange::get_flags(char32_t c) const {
-    return table[c - begin];
-}
+std::set<char32_t> pinyin_merged_set;
 
 bool Utf16Pair::in(std::wstring_view sv) const {
     if (!h) {
@@ -68,24 +62,22 @@ void pinyin_query_and_merge() {
     // merge functions
     //"拼"
     auto merge = [](Utf16PairOrd pair) -> uint32_t {
-        for (PinyinRange range : pinyin_ranges) {
-            if (range.has(pair.ord)) {
-                if (uint32_t& flags = range.get_flags(pair.ord)) {
-                    if (!(flags & 1u << 31)) {
-                        for (int i = 0; i < 26; i++) {
-                            if (flags & 1 << i) {
-                                pinyin_regexs[i].push_back(pair.l);
-                                if (pair.h) pinyin_regexs[i].push_back(pair.h);
-                            }
-                        }
-                        flags |= 1u << 31;
-                    }
-                    return flags & ~(1u << 31);
+        uint32_t flags = pinyin::get_pinyin_initials(pair.ord);
+        if (!flags)
+            return 0;
+
+        if (!pinyin_merged_set.contains(pair.ord)) {
+            pinyin_merged_set.insert(pair.ord);
+
+            for (int i = 0; i < 26; i++) {
+                if (flags & 1 << i) {
+                    pinyin_regexs[i].push_back(pair.l);
+                    if (pair.h) pinyin_regexs[i].push_back(pair.h);
                 }
-                return 0;
             }
         }
-        return 0;
+
+        return flags;
     };
     //"拼音"
     auto merge_pair = [&merge](Utf16PairOrd pair1, Utf16PairOrd pair2, uint32_t py1) -> uint32_t {

@@ -204,7 +204,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="pinyin.cpp" />
-    <ClCompile Include="pinyin_data.cpp" />
     <ClCompile Include="PinyinSearch.cpp" />
     <ClCompile Include="PinyinSearchEdit.cpp" />
     <ClCompile Include="PinyinSearchPcre.cpp" />

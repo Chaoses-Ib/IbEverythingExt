@@ -68,9 +68,6 @@
     <ClCompile Include="pinyin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pinyin_data.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="search_history.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
