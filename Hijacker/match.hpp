@@ -6,6 +6,9 @@
 
 struct PatternFlag {
     bool pinyin : 1;
+
+    // note that regcomp_p2 will filter out content containing no lower letter
+    // completely
     bool no_lower_letter_ : 1;
 };
 

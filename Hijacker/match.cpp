@@ -91,7 +91,7 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
                 });
         }
         else /* pinyin */ {
-             if (!pattern->flags.no_lower_letter_) [[likely]]
+            if (!pattern->flags.no_lower_letter_) [[likely]]
                 return -1;
             
             it = std::search(sv.begin(), sv.end(), pt.begin(), pt.end(),

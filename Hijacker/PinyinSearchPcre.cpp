@@ -70,8 +70,18 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* pattern) {
     modifiers = *modifiers_p;
 
     if (!(modifiers & Modifier::RegEx)) {
-        // NoProcess post-modifier
         std::u8string_view pat(pattern);
+
+        // return if no lower letter
+        if (std::find_if(pat.begin(), pat.end(), [](char8_t c) {
+            return u8'a' <= c && c <= u8'z';
+            }) == pat.end())
+        {
+            return;
+        }
+        // could be `CPP;py`, but that's a rare case
+
+        // NoProcess post-modifier
         if (pat.ends_with(u8";np")) {
             pattern[pat.size() - 3] = u8'\0';
             return;
