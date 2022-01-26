@@ -51,8 +51,20 @@ struct Modifier {
     using Value = uint32_t;
     using T = const Value;
 
-    static T Path = 4;
-    static T RegEx = 0x800;
+    static T Case = 0x1;  // "Match Case" or `case:`
+    static T WholeWord = 0x2;  // "Match Whole Word", `wholeword:` or `ww:`
+    static T Path = 0x4;  // "Match Path" or `path:`
+    static T Diacritics = 0x8;  // "Match Diacritics" or `diacritics:`
+    static T File = 0x10;  // `file:`
+    static T Folder = 0x20;  // `folder:`
+    static T FastAsciiSearch = 0x40;  // `ascii:` (`utf8:` to disable)
+
+    static T WholeFilename = 0x200;  // `wholefilename:` or `wfn:`
+
+    static T RegEx = 0x800;  // "Enable Regex" or `regex:`
+    static T WildcardWholeFilename = 0x1000;  // "Match whole filename when using wildcards"
+    static T Alphanumeric = 0x2000;
+    static T WildcardEx = 0x4000;  // `wildcards:`
 };
 Modifier::Value modifiers;
 char pattern_initial;
@@ -71,7 +83,20 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* pattern) {
     modifiers = *modifiers_p;
 
     if (!(modifiers & Modifier::RegEx)) {
+        // unsupported modifiers
+        if (modifiers & Modifier::WildcardEx || modifiers & Modifier::WholeWord)
+            return;
+
+        // return if case sensitive
+        if (modifiers & Modifier::Case)
+            return;
+
         std::u8string_view pat(pattern);
+
+        //#TODO: wildcards are not supported
+        if (!(modifiers & Modifier::Alphanumeric) && pat.find_first_of(u8"*?") != pat.npos)
+            return;
+
 
         // return if no lower letter
         if (std::find_if(pat.begin(), pat.end(), [](char8_t c) {
@@ -123,13 +148,13 @@ struct regcomp_p2_14 {
 bool (*regcomp_p2_14_real)(void* a1, regcomp_p2_14* a2);
 bool regcomp_p2_14_detour(void* a1, regcomp_p2_14* a2) {
     if constexpr (debug)
-        DebugOStream() << L"regcomp_p2_14(" << std::hex << a2 << L"{" << a2->int2C << "})";
+        DebugOStream() << L"regcomp_p2_14(" << std::hex << a2 << L"{" << a2->int2C << "})\n";
 
     regcomp_p2_common(&a2->modifiers, a2->pattern);
         
     if constexpr (debug) {
         bool result = regcomp_p2_14_real(a1, a2);
-        DebugOStream() << L"{" << a2->result18 << L", " << a2->result20 << L", " << std::hex << a2->modifiers << L"}\n";
+        DebugOStream() << L"-> {" << a2->result18 << L", " << a2->result20 << L", " << std::hex << a2->modifiers << L"}\n";
         return result;
     }
     return regcomp_p2_14_real(a1, a2);
@@ -235,7 +260,10 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
 
     const_cast<char*>(pattern)[0] = pattern_initial;
     
-    preg->re_pcre = compile((const char8_t*)pattern, {}, &config.pinyin_search.flags);
+    preg->re_pcre = compile((const char8_t*)pattern, {
+        .match_at_start = bool(modifiers & Modifier::WholeFilename),
+        .match_at_end = bool(modifiers & Modifier::WholeFilename)
+        }, &config.pinyin_search.flags);
     preg->re_nsub = 0;
     preg->re_erroffset = (size_t)-1;
 
@@ -415,7 +443,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
             thread_local const regex_t* last_preg = nullptr;
             thread_local size_t count = 0;
             if (preg == last_preg) {
-                if (count > 10)
+                if (count > 1)
                     break;
                 else
                     ++count;

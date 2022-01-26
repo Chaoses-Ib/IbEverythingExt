@@ -14,7 +14,10 @@ char32_t read_char32(const char8_t* str, int* length) {
 
 Pattern* compile(const char8_t* pattern, CompileFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags) {
     // parse parse post-modifiers and get length
-    PatternFlag temp_flags{};
+    PatternFlag temp_flags{
+        .match_at_start = flags.match_at_start,
+        .match_at_end = flags.match_at_end
+    };
     size_t length = 0;
     size_t length_u8 = 0;
     {
@@ -63,7 +66,7 @@ Pattern* compile(const char8_t* pattern, CompileFlag flags, std::vector<pinyin::
         }) == sv.end();
     
     // match at the start if pattern is an absolute path
-    if (pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z') {
+    if (!pat->flags.match_at_start && pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z') {
         pat->flags.match_at_start = true;
     }
 
@@ -72,13 +75,14 @@ Pattern* compile(const char8_t* pattern, CompileFlag flags, std::vector<pinyin::
 
 int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], ExecuteFlag exec_flags)
 {
-    if (pattern->flags.match_at_start && exec_flags.not_begin_of_line)
+    PatternFlag flags = pattern->flags;
+    if (flags.match_at_start && exec_flags.not_begin_of_line)
         return -1;
 
     const char8_t* subject_end = subject + length;
     
     // no-hanzi text match
-    bool no_hanzi = pattern->flags.no_lower_letter;
+    bool no_hanzi = flags.no_lower_letter;
     if (!no_hanzi) [[likely]] {
         no_hanzi = true;
         const char8_t* s = subject;
@@ -98,32 +102,39 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
 
         std::u8string_view sv(subject, length);
         std::u8string_view pt = pattern->pattern_u8_sv();
-        std::u8string_view::const_iterator end;
-        if (!pattern->flags.match_at_start) [[likely]] {
-            end = sv.end();
-        }
-        else /* match at start */ {
-            if (sv.size() < pt.size())
+        if (sv.size() < pt.size())
+            return -1;
+
+        std::u8string_view::const_iterator begin = sv.begin(), end = sv.end();
+        if (flags.match_at_start && flags.match_at_end) [[unlikely]] {
+            if (sv.size() != pt.size())
                 return -1;
-            end = sv.begin() + pt.size();
+        }
+        else {
+            if (flags.match_at_end) [[unlikely]] {
+                begin = sv.end() - pt.size();
+            }
+            if (flags.match_at_start) [[unlikely]] {
+                end = sv.begin() + pt.size();
+            }
         }
 
+        std::function<bool(char8_t, char8_t)> pred;
         std::u8string_view::const_iterator it;
-        if (!pattern->flags.pinyin) /* default */ [[likely]] {
-            it = std::search(sv.begin(), end, pt.begin(), pt.end(),
-                [](char8_t c1, char8_t c2) {
+        if (!flags.pinyin) /* default */ [[likely]] {
+            pred = [](char8_t c1, char8_t c2) {
                     return std::toupper(c1) == std::toupper(c2);
-                });
+                };
         }
         else /* pinyin */ {
-            if (!pattern->flags.no_lower_letter) [[likely]]
+            if (!flags.no_lower_letter) [[likely]]
                 return -1;
             
-            it = std::search(sv.begin(), end, pt.begin(), pt.end(),
-                [](char8_t c1, char8_t c2) {
-                    return std::toupper(c1) == c2;
-                });
+            pred = [](char8_t c1, char8_t c2) {
+                return std::toupper(c1) == c2;
+            };
         }
+        it = std::search(begin, end, pt.begin(), pt.end(), pred);
 
         if (it == sv.end()) [[likely]] {
             return -1;
@@ -139,9 +150,9 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
     }
 
     // DFA?
-    auto char_match = [pattern](char32_t c, const char32_t* pat) -> std::vector<size_t> {
+    auto char_match = [pattern, flags](char32_t c, const char32_t* pat) -> std::vector<size_t> {
         std::vector<size_t> v;
-        if (pattern->flags.pinyin) {
+        if (flags.pinyin) {
             if (c >= 0x3007) {
                 for (pinyin::PinyinFlagValue flag : *pattern->pinyin_flags) {
                     if (size_t size = pinyin::match_pinyin(pat, c, flag)) [[unlikely]]
@@ -195,6 +206,9 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
     int char_len;
     while (sub != subject_end) {
         if (const char8_t* s = subject_match(sub, pattern->pattern())) {
+            if (flags.match_at_end && s != subject_end)
+                goto next;
+
             if (nmatch) {
                 pmatch[0] = sub - subject;
                 pmatch[1] = s - subject;
@@ -207,9 +221,10 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
             continue;
             */
         }
-        if (pattern->flags.match_at_start) [[unlikely]]
+        next:
+        if (flags.match_at_start) [[unlikely]]
             break;
-
+        
         read_char32(sub, &char_len);
         sub += char_len;
     }

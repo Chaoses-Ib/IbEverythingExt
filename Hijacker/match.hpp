@@ -5,7 +5,8 @@
 #include <IbPinyinLib/Pinyin.hpp>
 
 struct CompileFlag {
-
+    bool match_at_start : 1;
+    bool match_at_end : 1;
 };
 
 struct PatternFlag {
@@ -16,6 +17,7 @@ struct PatternFlag {
     bool no_lower_letter : 1;
 
     bool match_at_start : 1;
+    bool match_at_end : 1;
 };
 
 struct ExecuteFlag {
