@@ -51,6 +51,7 @@ struct Modifier {
     using Value = uint32_t;
     using T = const Value;
 
+    static T Path = 4;
     static T RegEx = 0x800;
 };
 Modifier::Value modifiers;
@@ -89,12 +90,20 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* pattern) {
 
         pattern_initial = pattern[0];
         if (pattern_initial) {
-            // set regex: modifier
+            // "Match path when a search term contains a path separator"
+            if (!(modifiers & Modifier::Path) && (
+                std::find(pat.begin(), pat.end(), u8'\\') != pat.end()
+                || pat.size() > 1 && pat[1] == u8':' && 'A' <= std::toupper(pat[0]) && std::toupper(pat[0]) <= 'Z'
+            )) {
+                *modifiers_p |= Modifier::Path;
+            }
+
+            // set regex modifier
             *modifiers_p |= Modifier::RegEx;  // may cause crashes under some versions?
 
             // bypass fast regex optimazation
             // .\[^$*{?+|()
-            pattern[0] = '$';
+            pattern[0] = u8'$';
             //#TODO: or nofastregex: (v1.5.0.1291)
         }
     }
@@ -444,7 +453,9 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
                 rc = 1 + preg->re_nsub;
             }
             else {
-                rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {});
+                rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {
+                    .not_begin_of_line = bool(eflags & REG_NOTBOL)
+                    });
                 if (rc == -1)
                     error = REG_NOMATCH;
                 else
@@ -479,7 +490,9 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         length = strlen(string);
     }
 
-    int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {});
+    int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {
+        .not_begin_of_line = bool(eflags & REG_NOTBOL)
+        });
     if (rc == -1) {
         return REG_NOMATCH;
     }

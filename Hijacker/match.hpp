@@ -4,12 +4,22 @@
 #define IB_PINYIN_ENCODING 32
 #include <IbPinyinLib/Pinyin.hpp>
 
+struct CompileFlag {
+
+};
+
 struct PatternFlag {
     bool pinyin : 1;
 
     // note that regcomp_p2 will filter out content containing no lower letter
     // completely
-    bool no_lower_letter_ : 1;
+    bool no_lower_letter : 1;
+
+    bool match_at_start : 1;
+};
+
+struct ExecuteFlag {
+    bool not_begin_of_line : 1;
 };
 
 struct Pattern {
@@ -24,6 +34,10 @@ struct Pattern {
     char32_t* pattern() {
         return ib::Addr(this) + sizeof(Pattern);
     }
+    std::u32string_view pattern_sv() {
+        return { pattern(), pattern_len };
+    }
+
     // not null-terminated
     char8_t* pattern_u8() {
         return ib::Addr(this) + sizeof(Pattern) + (pattern_len + 1) * sizeof(char32_t);
@@ -33,6 +47,6 @@ struct Pattern {
     }
 };
 
-Pattern* compile(const char8_t* pattern, PatternFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags);
+Pattern* compile(const char8_t* pattern, CompileFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags);
 
-int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], PatternFlag flags);
+int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], ExecuteFlag flags);

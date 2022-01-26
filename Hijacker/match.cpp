@@ -12,7 +12,9 @@ char32_t read_char32(const char8_t* str, int* length) {
     }
 }
 
-Pattern* compile(const char8_t* pattern, PatternFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags) {
+Pattern* compile(const char8_t* pattern, CompileFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags) {
+    // parse parse post-modifiers and get length
+    PatternFlag temp_flags{};
     size_t length = 0;
     size_t length_u8 = 0;
     {
@@ -26,44 +28,57 @@ Pattern* compile(const char8_t* pattern, PatternFlag flags, std::vector<pinyin::
         // parse post-modifiers
         std::u8string_view pat(pattern, length_u8);
         if (pat.ends_with(u8";py")) {
-            flags.pinyin = true;
+            temp_flags.pinyin = true;
             length -= 3;
             length_u8 -= 3;
         }
     }
+
+    // make Pattern
     // `pat = new()` cause crashes when using Debug CRT
     Pattern* pat = ib::Addr(HeapAlloc(GetProcessHeap(), 0, sizeof Pattern + (length + 1) * sizeof(char32_t) + length_u8 * sizeof(char8_t)));
 
-    pat->flags = flags;
+    pat->flags = temp_flags;
     pat->pinyin_flags = pinyin_flags;
 
     pat->pattern_len = length;
     pat->pattern_u8_len = length_u8;
-
-    pat->flags.no_lower_letter_ = true;
+    
     const char8_t* p = pattern;
     int char_len;
     for (size_t i = 0; i < length; i++) {
         char32_t c = read_char32(p, &char_len);
         pat->pattern()[i] = c;
         p += char_len;
-
-        if (U'a' <= c && c <= U'z')
-            pat->flags.no_lower_letter_ = false;
     }
     pat->pattern()[length] = U'\0';
 
     memcpy(pat->pattern_u8(), pattern, length_u8);
 
+    // flags
+    std::u32string_view sv = pat->pattern_sv();
+
+    pat->flags.no_lower_letter = std::find_if(sv.begin(), sv.end(), [](char32_t c) {
+        return U'a' <= c && c <= U'z';
+        }) == sv.end();
+    
+    // match at the start if pattern is an absolute path
+    if (pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z') {
+        pat->flags.match_at_start = true;
+    }
+
     return pat;
 }
 
-int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], PatternFlag exec_flags)
+int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, int pmatch[], ExecuteFlag exec_flags)
 {
+    if (pattern->flags.match_at_start && exec_flags.not_begin_of_line)
+        return -1;
+
     const char8_t* subject_end = subject + length;
     
     // no-hanzi text match
-    bool no_hanzi = pattern->flags.no_lower_letter_;
+    bool no_hanzi = pattern->flags.no_lower_letter;
     if (!no_hanzi) [[likely]] {
         no_hanzi = true;
         const char8_t* s = subject;
@@ -83,18 +98,28 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
 
         std::u8string_view sv(subject, length);
         std::u8string_view pt = pattern->pattern_u8_sv();
+        std::u8string_view::const_iterator end;
+        if (!pattern->flags.match_at_start) [[likely]] {
+            end = sv.end();
+        }
+        else /* match at start */ {
+            if (sv.size() < pt.size())
+                return -1;
+            end = sv.begin() + pt.size();
+        }
+
         std::u8string_view::const_iterator it;
-        if (!pattern->flags.pinyin) /* default */ {
-            it = std::search(sv.begin(), sv.end(), pt.begin(), pt.end(),
+        if (!pattern->flags.pinyin) /* default */ [[likely]] {
+            it = std::search(sv.begin(), end, pt.begin(), pt.end(),
                 [](char8_t c1, char8_t c2) {
                     return std::toupper(c1) == std::toupper(c2);
                 });
         }
         else /* pinyin */ {
-            if (!pattern->flags.no_lower_letter_) [[likely]]
+            if (!pattern->flags.no_lower_letter) [[likely]]
                 return -1;
             
-            it = std::search(sv.begin(), sv.end(), pt.begin(), pt.end(),
+            it = std::search(sv.begin(), end, pt.begin(), pt.end(),
                 [](char8_t c1, char8_t c2) {
                     return std::toupper(c1) == c2;
                 });
@@ -182,6 +207,9 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
             continue;
             */
         }
+        if (pattern->flags.match_at_start) [[unlikely]]
+            break;
+
         read_char32(sub, &char_len);
         sub += char_len;
     }
