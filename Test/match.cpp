@@ -4,11 +4,12 @@
 
 BOOST_AUTO_TEST_SUITE(Match)
     BOOST_AUTO_TEST_CASE(Match) {
-    std::vector<pinyin::PinyinFlagValue> flags = { pinyin::PinyinFlag::PinyinAsciiDigit, pinyin::PinyinFlag::PinyinAscii, pinyin::PinyinFlag::Initial };
+        pinyin::init(pinyin::PinyinFlag::All);
+        std::vector<pinyin::PinyinFlagValue> flags = { pinyin::PinyinFlag::PinyinAsciiDigit, pinyin::PinyinFlag::PinyinAscii, pinyin::PinyinFlag::InitialLetter, pinyin::PinyinFlag::DoublePinyinMicrosoft };
         int pmatch[20];
         auto test = [&flags, &pmatch](const char8_t* pat, const char8_t* subject) {
-            Pattern* pattern = compile(pat, 0, &flags);
-            int result = exec(pattern, subject, strlen((const char*)subject), std::size(pmatch) / 2, pmatch, 0);
+            Pattern* pattern = compile(pat, {}, &flags);
+            int result = exec(pattern, subject, strlen((const char*)subject), std::size(pmatch) / 2, pmatch, {});
             HeapFree(GetProcessHeap(), 0, pattern);
             return result;
         };
@@ -21,6 +22,8 @@ BOOST_AUTO_TEST_SUITE(Match)
         BOOST_CHECK(test(u8"py", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
         BOOST_CHECK(test(u8"pinyin", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
         BOOST_CHECK(test(u8"pin1yin1", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
+        // DoublePinyinMicrosoft
+        BOOST_CHECK(test(u8"pn", u8"拼音") == 1 && pmatch[0] == 0 && pmatch[1] == 3);
 
         // global
         BOOST_CHECK(test(u8"pinyin", u8"0123pinyin") == 1 && pmatch[0] == 4 && pmatch[1] == 10);
@@ -32,6 +35,8 @@ BOOST_AUTO_TEST_SUITE(Match)
         // mix
         BOOST_CHECK(test(u8"pinyin", u8"拼yin") == 1 && pmatch[0] == 0 && pmatch[1] == 6);
         BOOST_CHECK(test(u8"sous", u8"拼音搜索Everything") == 1 && pmatch[0] == 6 && pmatch[1] == 12);
+
+        pinyin::destroy();
     }
 
 BOOST_AUTO_TEST_SUITE_END()

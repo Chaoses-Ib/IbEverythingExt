@@ -11,11 +11,18 @@
 1. 重启 Everything。（如果不生效，请确认你安装了 [VC++ 2019 x64 运行库](https://support.microsoft.com/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)）
 
 ## 拼音搜索
-* 支持包括辅助平面在内的 Unicode 汉字。
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
+* 支持 Unicode 辅助平面汉字。
 
 ### PCRE 模式
-* 支持简拼、全拼、带声调全拼、小鹤双拼搜索。（双拼搜索默认不开启）
+* 支持简拼、全拼、带声调全拼和双拼搜索。（双拼搜索默认不开启）  
+  双拼搜索支持以下方案：
+    * 微软双拼
+    * 自然码双拼
+    * 小鹤双拼
+    * 拼音加加双拼
+    * 智能 ABC 双拼
+    * 华宇双拼（紫光双拼）
 * 支持 Everything 以下版本：
   * v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)
   * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
@@ -46,10 +53,16 @@
 pinyin_search:
   enable: true
   mode: Auto  # Auto, Pcre, Edit
-  initial: true  # 简拼
+  initial_letter: true  # 简拼
   pinyin_ascii: true  # 全拼
   pinyin_ascii_digit: true  # 带声调全拼
+  double_pinyin_abc: false  # 智能 ABC 双拼
+  double_pinyin_jiajia: false  # 拼音加加双拼
+  double_pinyin_microsoft: false  # 微软双拼
+  double_pinyin_thunisoft: false  # 华宇双拼（紫光双拼）
   double_pinyin_xiaohe: false  # 小鹤双拼
+  double_pinyin_zrm: false  # 自然码双拼
+
 # 快速选择
 quick_select:
   enable: true

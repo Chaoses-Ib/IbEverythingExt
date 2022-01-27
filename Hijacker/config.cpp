@@ -39,10 +39,20 @@ void config_init() {
                         flags.push_back(pinyin::PinyinFlag::PinyinAsciiDigit);
                     if (node["pinyin_ascii"].as<bool>())
                         flags.push_back(pinyin::PinyinFlag::PinyinAscii);
+                    if (node["double_pinyin_abc"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::DoublePinyinAbc);
+                    if (node["double_pinyin_jiajia"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::DoublePinyinJiajia);
+                    if (node["double_pinyin_microsoft"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::DoublePinyinMicrosoft);
+                    if (node["double_pinyin_thunisoft"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::DoublePinyinThunisoft);
                     if (node["double_pinyin_xiaohe"].as<bool>())
                         flags.push_back(pinyin::PinyinFlag::DoublePinyinXiaohe);
-                    if (node["initial"].as<bool>())
-                        flags.push_back(pinyin::PinyinFlag::Initial);
+                    if (node["double_pinyin_zrm"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::DoublePinyinZrm);
+                    if (node["initial_letter"].as<bool>())
+                        flags.push_back(pinyin::PinyinFlag::InitialLetter);
                     return flags;
                 }()
             };
@@ -53,7 +63,14 @@ void config_init() {
                 .enable = node["enable"].as<bool>()
             };
         }
+
+        pinyin::PinyinFlagValue flags{};
+        for (pinyin::PinyinFlagValue flag : config.pinyin_search.flags)
+            flags |= flag;
+        pinyin::init(flags);
     }
 }
 
-void config_destroy() {}
+void config_destroy() {
+    pinyin::destroy();
+}

@@ -62,7 +62,7 @@ void pinyin_query_and_merge() {
     // merge functions
     //"拼"
     auto merge = [](Utf16PairOrd pair) -> uint32_t {
-        uint32_t flags = pinyin::get_pinyin_initials(pair.ord);
+        uint32_t flags = pinyin::get_initial_pinyin_letters(pair.ord);
         if (!flags)
             return 0;
 

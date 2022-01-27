@@ -155,7 +155,7 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
         if (flags.pinyin) {
             if (c >= 0x3007) {
                 for (pinyin::PinyinFlagValue flag : *pattern->pinyin_flags) {
-                    if (size_t size = pinyin::match_pinyin(pat, c, flag)) [[unlikely]]
+                    if (size_t size = pinyin::match_pinyin(c, pat, flag)) [[unlikely]]
                         v.push_back(size);
                 }
             }
@@ -176,7 +176,7 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
                 }
                 else {
                     for (pinyin::PinyinFlagValue flag : *pattern->pinyin_flags) {
-                        if (size_t size = pinyin::match_pinyin(pat, c, flag)) [[unlikely]]
+                        if (size_t size = pinyin::match_pinyin(c, pat, flag)) [[unlikely]]
                             v.push_back(size);
                     }
                 }
