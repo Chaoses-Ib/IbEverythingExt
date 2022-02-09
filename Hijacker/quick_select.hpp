@@ -1,10 +1,15 @@
 ﻿#pragma once
 
-constexpr wchar_t prop_edit_list[] = L"IbEverythingExt.List";
-constexpr wchar_t prop_list_quick_list[] = L"IbEverythingExt.QuickList";
+namespace quick {
+    // require ipc_init
+    void init();
+    void destroy();
 
-// require ipc_init
-void quick_select_init();
-void quick_select_destroy();
-
-HWND quick_list_create(HWND parent, HINSTANCE instance);
+    HWND create_quick_list(HWND everything, HWND list, HWND edit, HINSTANCE instance);
+    LRESULT CALLBACK list_window_proc(
+        WNDPROC prev_proc,
+        _In_ HWND   hwnd,
+        _In_ UINT   uMsg,
+        _In_ WPARAM wParam,
+        _In_ LPARAM lParam);
+}
