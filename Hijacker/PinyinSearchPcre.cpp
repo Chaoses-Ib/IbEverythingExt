@@ -125,14 +125,15 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     }
     // could be `CPP;py`, but that's a rare case
 
+    // return if termtext is an absolute path
+    if (pattern.size() > 1 && pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z')
+        return;
     
     // "Match path when a search term contains a path separator"
-    if (!(modifiers & Modifier::Path) && (
-        std::find(pattern.begin(), pattern.end(), u8'\\') != pattern.end()
-        || pattern.size() > 1 && pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z'
-    )) {
+    if (!(modifiers & Modifier::Path) && std::find(pattern.begin(), pattern.end(), u8'\\') != pattern.end()) {
         *modifiers_p |= Modifier::Path;
     }
+    
 
     // set regex modifier
     *modifiers_p |= Modifier::RegEx;  // may cause crashes under some versions?
