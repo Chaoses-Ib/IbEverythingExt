@@ -7,7 +7,7 @@
 
 /*
 * Region list:
-* regcomp_p3  (not in use)
+* regcomp_p3
 * regcomp_p2
 * regcomp
 * pcre_compile2 (not in use)
@@ -17,20 +17,29 @@
 * free (not in use)
 */
 
-#pragma region regcomp_p3 (not in use)
+#pragma region regcomp_p3
 
-bool global_regex;
+//bool global_regex;
 
-uint64_t (*regcomp_p3_14_real)(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, const char* search, int a10, const char* a11, int a12, int a13, int a14, int a15);
-uint64_t regcomp_p3_14_detour(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, const char* search, int a10, const char* a11, int a12, int a13, int a14, int a15) {
-    global_regex = regex;
-    return regcomp_p3_14_real(a1, a2, a3, a4, a5, 1, a7, a8, search, a10, a11, a12, a13, a14, a15);
+void regcomp_p3_common(char* search, char* filter) {
+    if constexpr (debug)
+        DebugOStream() << LR"(regcomp_p3_common(")" << search << LR"(", ")" << filter << LR"("))" << L"\n";
+}
+
+uint64_t (*regcomp_p3_14_real)(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, char* search, int a10, char* filter, int sort, int a13, int a14, int a15);
+uint64_t regcomp_p3_14_detour(__int64 a1, int a2, int a3, int a4, int a5, int regex, int a7, int a8, char* search, int a10, char* filter, int sort, int a13, int a14, int a15) {
+    //global_regex = regex;
+
+    regcomp_p3_common(search, filter);
+    return regcomp_p3_14_real(a1, a2, a3, a4, a5, regex /*1*/, a7, a8, search, a10, filter, sort, a13, a14, a15);
 }
 
 uint64_t (*regcomp_p3_15_real)(void* a1);
 uint64_t regcomp_p3_15_detour(void* a1) {
+    /*
     uint32_t* regex = (uint32_t*)a1 + 808;
     global_regex = *regex;
+    */
 
     // enabling global regex will make the entire search content be treated as
     // a regular expression (even if there are modifiers and spaces)
@@ -39,6 +48,7 @@ uint64_t regcomp_p3_15_detour(void* a1) {
         *regex = 1;
     */
 
+    regcomp_p3_common(ib::Addr(a1).offset<uint64_t>(406)[0], ib::Addr(a1).offset<uint64_t>(408)[0]);
     return regcomp_p3_15_real(a1);
 }
 
@@ -67,14 +77,13 @@ struct Modifier {
     static T WildcardEx = 0x4000;  // `wildcards:`
 };
 Modifier::Value modifiers;
-char pattern_initial;
+char termtext_initial;
 
-void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* pattern) {
+void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* termtext_len) {
     if constexpr (debug) {
-        size_t pattern_len = strlen((char*)pattern);
-        std::wstring pattern_u16(pattern_len, L'\0');
-        pattern_u16.resize(MultiByteToWideChar(CP_UTF8, 0, (char*)pattern, pattern_len, pattern_u16.data(), pattern_u16.size()));
-        DebugOStream() << L"regcomp_p2_common(" << std::hex << *modifiers_p << LR"(, ")" << pattern_u16 << LR"("))"
+        std::wstring termtext_u16(*termtext_len, L'\0');
+        termtext_u16.resize(MultiByteToWideChar(CP_UTF8, 0, (char*)termtext, *termtext_len, termtext_u16.data(), termtext_u16.size()));
+        DebugOStream() << L"regcomp_p2_common(" << std::hex << *modifiers_p << LR"(, ")" << termtext_u16 << LR"("))"
             << L" on " << GetCurrentThreadId() << L"\n";
 
         // single thread
@@ -82,56 +91,57 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* pattern) {
 
     modifiers = *modifiers_p;
 
-    if (!(modifiers & Modifier::RegEx)) {
-        // unsupported modifiers
-        if (modifiers & Modifier::WildcardEx || modifiers & Modifier::WholeWord)
-            return;
+    std::u8string_view pattern(termtext, *termtext_len);
 
-        // return if case sensitive
-        if (modifiers & Modifier::Case)
-            return;
+    if (pattern.empty())
+        return;
 
-        std::u8string_view pat(pattern);
-
-        //#TODO: wildcards are not supported
-        if (!(modifiers & Modifier::Alphanumeric) && pat.find_first_of(u8"*?") != pat.npos)
-            return;
-
-
-        // return if no lower letter
-        if (std::find_if(pat.begin(), pat.end(), [](char8_t c) {
-            return u8'a' <= c && c <= u8'z';
-            }) == pat.end())
-        {
-            return;
-        }
-        // could be `CPP;py`, but that's a rare case
-
-        // NoProcess post-modifier
-        if (pat.ends_with(u8";np")) {
-            pattern[pat.size() - 3] = u8'\0';
-            return;
-        }
-
-        pattern_initial = pattern[0];
-        if (pattern_initial) {
-            // "Match path when a search term contains a path separator"
-            if (!(modifiers & Modifier::Path) && (
-                std::find(pat.begin(), pat.end(), u8'\\') != pat.end()
-                || pat.size() > 1 && pat[1] == u8':' && 'A' <= std::toupper(pat[0]) && std::toupper(pat[0]) <= 'Z'
-            )) {
-                *modifiers_p |= Modifier::Path;
-            }
-
-            // set regex modifier
-            *modifiers_p |= Modifier::RegEx;  // may cause crashes under some versions?
-
-            // bypass fast regex optimazation
-            // .\[^$*{?+|()
-            pattern[0] = u8'$';
-            //#TODO: or nofastregex: (v1.5.0.1291)
-        }
+    // post-modifiers must be processed first (or it may return with a termtext containing post-modifiers)
+    // NoProcess post-modifier
+    if (pattern.ends_with(u8";np")) {
+        *termtext_len -= 3;
+        return;
     }
+
+    // return if term is a regex or term is case sensitive
+    if (modifiers & Modifier::RegEx || modifiers & Modifier::Case)
+        return;
+
+    // unsupported modifiers
+    if (modifiers & Modifier::WildcardEx || modifiers & Modifier::WholeWord)
+        return;
+
+    //#TODO: wildcards are not supported
+    if (!(modifiers & Modifier::Alphanumeric) && pattern.find_first_of(u8"*?") != pattern.npos)
+        return;
+
+
+    // return if no lower letter
+    if (std::find_if(pattern.begin(), pattern.end(), [](char8_t c) {
+        return u8'a' <= c && c <= u8'z';
+        }) == pattern.end())
+    {
+        return;
+    }
+    // could be `CPP;py`, but that's a rare case
+
+    
+    // "Match path when a search term contains a path separator"
+    if (!(modifiers & Modifier::Path) && (
+        std::find(pattern.begin(), pattern.end(), u8'\\') != pattern.end()
+        || pattern.size() > 1 && pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z'
+    )) {
+        *modifiers_p |= Modifier::Path;
+    }
+
+    // set regex modifier
+    *modifiers_p |= Modifier::RegEx;  // may cause crashes under some versions?
+
+    // bypass fast regex optimazation
+    termtext_initial = termtext[0];
+    // .\[^$*{?+|()
+    termtext[0] = u8'$';
+    //#TODO: or nofastregex: (v1.5.0.1291)
 }
 
 #pragma pack(push, 1)
@@ -141,7 +151,7 @@ struct regcomp_p2_14 {
     void* result20;
     Modifier::Value modifiers;
     uint32_t int2C;
-    char8_t pattern[];
+    char8_t termtext[];
 };
 #pragma pack(pop)
 
@@ -150,8 +160,10 @@ bool regcomp_p2_14_detour(void* a1, regcomp_p2_14* a2) {
     if constexpr (debug)
         DebugOStream() << L"regcomp_p2_14(" << std::hex << a2 << L"{" << a2->int2C << "})\n";
 
-    regcomp_p2_common(&a2->modifiers, a2->pattern);
-        
+    size_t termtext_len = strlen((char*)a2->termtext);
+    regcomp_p2_common(&a2->modifiers, a2->termtext, &termtext_len);
+    a2->termtext[termtext_len] = u8'\0';
+    
     if constexpr (debug) {
         bool result = regcomp_p2_14_real(a1, a2);
         DebugOStream() << L"-> {" << a2->result18 << L", " << a2->result20 << L", " << std::hex << a2->modifiers << L"}\n";
@@ -162,7 +174,12 @@ bool regcomp_p2_14_detour(void* a1, regcomp_p2_14* a2) {
 
 bool (*regcomp_p2_15_real)(void** a1);
 bool regcomp_p2_15_detour(void** a1) {
-    regcomp_p2_common(ib::Addr(a1[1]) + 280, ib::Addr(a1[1]) + 288);
+    char8_t* termtext = ib::Addr(a1[1]) + 288;
+    size_t* termtext_len = ib::Addr(a1[1]) + 256;
+    assert(termtext[*termtext_len] == u8'\0');
+
+    regcomp_p2_common(ib::Addr(a1[1]) + 280, termtext, termtext_len);
+    termtext[*termtext_len] = u8'\0';
     return regcomp_p2_15_real(a1);
 }
 
@@ -258,7 +275,7 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
         return regcomp_real(preg, pattern, cflags);
     }
 
-    const_cast<char*>(pattern)[0] = pattern_initial;
+    const_cast<char*>(pattern)[0] = termtext_initial;
     
     preg->re_pcre = compile((const char8_t*)pattern, {
         .match_at_start = bool(modifiers & Modifier::WholeFilename),
@@ -316,7 +333,7 @@ pcre_compile2_detour(const char* pattern, int options, int* errorcodeptr,
     const char** errorptr, int* erroroffset, const unsigned char* tables)
 {
     if (!(modifiers & Modifier::RegEx)) {
-        const_cast<char*>(pattern)[0] = pattern_initial;
+        const_cast<char*>(pattern)[0] = termtext_initial;
     }
 
     if constexpr (debug) {
@@ -678,7 +695,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
     ib::Addr Everything = ib::ModuleFactory::CurrentProcess().base;
     if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1) {
         if (ipc_version.build == 1009) {
-            //regcomp_p3_14_real = Everything + 0x174C0;
+            regcomp_p3_14_real = Everything + 0x174C0;
             regcomp_p2_14_real = Everything + 0x5CB70;
             regcomp_real = Everything + 0x1A8E80;
             //pcre_compile2_real = Everything + 0x193340;
@@ -688,7 +705,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
             //regex_free_real = Everything + 0x5D990;
         }
         else if (ipc_version.build == 1015) {
-            //regcomp_p3_14_real = Everything + 0x175A0;
+            regcomp_p3_14_real = Everything + 0x175A0;
             regcomp_p2_14_real = Everything + 0x5CEC0;
             regcomp_real = Everything + 0x1A8FC0;
             regexec_real = Everything + 0x1A90A0;
@@ -697,12 +714,12 @@ PinyinSearchPcre::PinyinSearchPcre() {
             support = false;
 
         if (support) {
-            //IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+            IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
             IbDetourAttach(&regcomp_p2_14_real, regcomp_p2_14_detour);
         }
     } else if (ipc_version.major == 1 && ipc_version.minor == 5 && ipc_version.revision == 0) {
         if (ipc_version.build == 1296) {
-            //regcomp_p3_15_real = Everything + 0x2D170;
+            regcomp_p3_15_real = Everything + 0x2D170;
             regcomp_p2_15_real = Everything + 0xB17A0;
             regcomp_real = Everything + 0x320800;
             regexec_real = Everything + 0x3208E0;
@@ -711,7 +728,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
             support = false;
 
         if (support) {
-            //IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+            IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         }
     }
@@ -741,10 +758,10 @@ PinyinSearchPcre::~PinyinSearchPcre() {
     IbDetourDetach(&regcomp_real, regcomp_detour);
     if (ipc_version.major == 1 && ipc_version.minor == 4) {
         IbDetourDetach(&regcomp_p2_14_real, regcomp_p2_14_detour);
-        //IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+        IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
     }
     else if (ipc_version.major == 1 && ipc_version.minor == 5) {
         IbDetourDetach(&regcomp_p2_15_real, regcomp_p2_15_detour);
-        //IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+        IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
     }
 }
