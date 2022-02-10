@@ -136,7 +136,7 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
         }
         it = std::search(begin, end, pt.begin(), pt.end(), pred);
 
-        if (it == sv.end()) [[likely]] {
+        if (it == end) [[likely]] {
             return -1;
         } else {
             if (nmatch) {
