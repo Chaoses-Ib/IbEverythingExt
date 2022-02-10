@@ -140,7 +140,8 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     // bypass fast regex optimazation
     termtext_initial = termtext[0];
     // .\[^$*{?+|()
-    termtext[0] = u8'$';
+    // $: invalid when termtext is a single char
+    termtext[0] = u8'.';
     //#TODO: or nofastregex: (v1.5.0.1291)
 }
 
