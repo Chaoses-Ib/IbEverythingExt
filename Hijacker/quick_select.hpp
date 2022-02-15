@@ -1,6 +1,12 @@
 ﻿#pragma once
 
 namespace quick {
+    enum InputMode {
+        Auto,
+        WmKey,
+        SendInput
+    };
+
     // require ipc_init
     void init();
     void destroy();

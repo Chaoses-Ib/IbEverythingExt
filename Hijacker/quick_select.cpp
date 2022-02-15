@@ -1,12 +1,13 @@
 ﻿#include "pch.h"
 #include "quick_select.hpp"
 #include <CommCtrl.h>
+#include "config.hpp"
 #include "helper.hpp"
 #include "ipc.hpp"
 
 constexpr wchar_t everything_prop_quick_list[] = L"IbEverythingExt.QuickList";
-constexpr wchar_t edit_prop_list[] = L"IbEverythingExt.List";
-constexpr wchar_t list_prop_quick_list[] = L"IbEverythingExt.QuickList";
+constexpr wchar_t edit_prop_list[] = L"IbEverythingExt.Edit_List";  // need to be unique
+constexpr wchar_t list_prop_quick_list[] = L"IbEverythingExt.List_QuickList";  // need to be unique
 struct QuickListData {
     HWND header;
     HWND list;
@@ -36,114 +37,221 @@ constexpr UINT quick_list_msg_update = WM_APP;
 extern decltype(&CreateWindowExW) CreateWindowExW_real;
 extern decltype(&SetWindowLongPtrW) SetWindowLongPtrW_real;
 
+// for InputMode::SendInput
+static bool close_when_killfocus = false;
+
+// for menus
+static bool disable_keyboard_hook = false;
+
 HHOOK keyboard_hook;
 LRESULT CALLBACK keyboard_proc(
     _In_ int    code,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam)
 {
-    bool down = !(lParam & 0xC0000000);
-    if constexpr (debug_verbose)
-        DebugOStream() << L"keyboard_proc: " << code << L", " << wParam << L", " << std::hex << lParam << L'(' << down << L')' << L'\n';
+    static bool filter = false;
+    static WPARAM filter_wparam;
+    static LPARAM filter_lparam;
 
-    do {
-        static enum {
-            None,
-            Alt,
-            AltCtrl,
-            AltShift
-        } hotkey;
+    bool become_down = !(lParam & 0xC0000000);  // not (previous_state == down || transition_state == release)
+    if constexpr (debug)
+        DebugOStream() << L"keyboard_proc: " << code << L", " << wParam << L", " << std::hex << lParam << L'(' << become_down << L") "
+            << (GetKeyState(VK_CONTROL) & 0x8000 ? L"Ctrl " : L"")
+            << (GetKeyState(VK_SHIFT) & 0x8000 ? L"Shift " : L"")
+            << (GetKeyState(VK_MENU) & 0x8000 ? L"Alt " : L"")
+            << (GetKeyState(VK_LWIN) & 0x8000 || GetKeyState(VK_RWIN) & 0x8000 ? L"Win " : L"")
+            << (filter ? L"may filter " : L"")
+            << L'\n';
+    /*
+    Ctrl+Alt+A:
+    3, 17, 1d0001(1) 
+    3, 17, 401d0001(0) Ctrl 
+    0, 17, 1d0001(1) Ctrl 
 
-        if (down) {
-            if (bool alt = GetKeyState(VK_MENU) & 0x8000) {
-                HWND focus = GetFocus();
-                HWND list = (HWND)GetPropW(focus, edit_prop_list);
-                if (!list) {  // not in Search Edit
-                    HWND quick_list = (HWND)GetPropW(focus, list_prop_quick_list);
-                    if (!quick_list)  // not in Result List
-                        break;
-                    list = focus;
-                }
+    3, 18, 380001(1) Ctrl 
+    3, 18, 60380001(0) Ctrl Alt 
+    0, 18, 20380001(1) Ctrl Alt 
 
-                int num;
-                if ('0' <= wParam && wParam <= '9')
-                    num = wParam == '0' ? 9 : wParam - '1';
-                else if ('A' <= wParam && wParam <= 'Z')
-                    num = wParam - 'A' + 10;
-                else
-                    break;
+    3, 65, 201e0001(1) Ctrl Alt 
+    original:
+        3, 65, 601e0001(0) Ctrl Alt
+        0, 65, 201e0001(1) Ctrl Alt
+    return true:
+        ;
+    SendMessage:
+        3, 65, 201e0001(1) Ctrl Alt
+        3, 65, 201e0001(1) Ctrl Alt
+        ...
 
-                bool ctrl = GetKeyState(VK_CONTROL) & 0x8000;
-                bool shift = GetKeyState(VK_SHIFT) & 0x8000;
-                if constexpr (debug)
-                    DebugOStream() << (ctrl ? L"Ctrl " : L"") << (shift ? L"Shift " : L"") << (alt ? L"Alt " : L"") << (wchar_t)wParam << L'\n';
+    3, 65, e01e0001(0) Ctrl Alt 
+    3, 65, e01e0001(0) Ctrl Alt 
+    0, 65, e01e0001(0) Ctrl Alt 
 
-                // these do not work, so we have to execute the hotkey when Alt is being releasing
-                /*
-                BYTE state[256];
-                GetKeyboardState(state);
-                state[VK_MENU] &= ~0x8000;
-                SetKeyboardState(state);
-                */
-                //PostMessageW(GetFocus(), WM_SYSKEYUP, VK_MENU, 0xC0'38'0001);
+    3, 18, e0380001(0) Ctrl Alt 
+    3, 18, c0380001(0) Ctrl 
+    0, 18, c0380001(0) Ctrl 
 
-                if (focus != list)
-                    SetFocus(list);
-                ListView_SetItemState(list, -1, 0, LVIS_SELECTED);
-                ListView_SetItemState(list, ListView_GetTopIndex(list) + num, LVIS_SELECTED, LVIS_SELECTED);
-                /*
-                RECT rect;
-                ListView_GetItemRect((HWND)GetPropW(list, prop_list_quick_list), num, &rect, LVIR_BOUNDS);
-                LPARAM coord = rect.right | (rect.top + 10) << 16;
-                PostMessageW(list, WM_LBUTTONDOWN, 0, coord);
-                PostMessageW(list, WM_LBUTTONUP, 0, coord);
-                */
+    3, 17, c01d0001(0) Ctrl 
+    3, 17, c01d0001(0) 
+    0, 17, c01d0001(0) 
+    */
 
-                if (!ctrl && !shift)
-                    hotkey = Alt;
-                else if (ctrl && !shift)
-                    hotkey = AltCtrl;
-                else if (!ctrl && shift)
-                    hotkey = AltShift;
+    if (disable_keyboard_hook)
+        goto call_next;
+    
+    if (filter)
+        if (code == HC_NOREMOVE && wParam == filter_wparam && lParam == filter_lparam)
+            return true;
+        else
+            filter = false;
 
-                return true;
+    if (become_down) {
+        int num;
+        if ('0' <= wParam && wParam <= '9')
+            num = wParam == '0' ? 9 : wParam - '1';
+        else if ('A' <= wParam && wParam <= 'Z')
+            num = wParam - 'A' + 10;
+        else
+            goto call_next;
+
+        // get the focus window, focus type and list window
+        HWND focus = GetFocus();
+        enum {
+            SearchEdit,
+            ResultList
+        } focus_type;
+        HWND list = (HWND)GetPropW(focus, edit_prop_list);
+        if (list) /* in Search Edit */
+            focus_type = SearchEdit;
+        else {
+            HWND quick_list = (HWND)GetPropW(focus, list_prop_quick_list);
+            if (quick_list) /* in Result List */ {
+                focus_type = ResultList;
+                list = focus;
             }
-        } else if (hotkey != None && code == HC_ACTION) {  // !down
-            // the order of releasing is uncertain
-            HWND list = GetFocus();
-            switch (hotkey) {
-            case Alt:
-                if (wParam == VK_MENU) {
-                    PostMessageW(list, WM_KEYDOWN, VK_RETURN, 0x00'1C'0001);
-                    PostMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
-                    hotkey = None;
+            else
+                goto call_next;
+        }
+
+        bool alt = GetKeyState(VK_MENU) & 0x8000;
+        if (config.quick_select.hotkey_mode == 1 && (focus_type == SearchEdit && (!alt || num >= 10))
+            || config.quick_select.hotkey_mode == 2 && !alt) [[likely]]
+        {
+            goto call_next;
+        }
+        bool win = GetKeyState(VK_LWIN) & 0x8000 || GetKeyState(VK_RWIN) & 0x8000;
+        if (win)
+            goto call_next;
+
+        BYTE original_state[256];
+        GetKeyboardState(original_state);
+        bool ctrl = original_state[VK_CONTROL] & 0x80;  // not 0x8000
+        bool shift = original_state[VK_SHIFT] & 0x80;
+        if (config.quick_select.hotkey_mode == 1 && focus_type == ResultList && (alt || ctrl || shift))
+            goto call_next;
+        if (alt && ctrl && shift) [[unlikely]]
+            goto call_next;
+
+        // select the item
+        if (focus_type != ResultList)
+            SetFocus(list);
+        ListView_SetItemState(list, -1, 0, LVIS_SELECTED);
+        ListView_SetItemState(list, ListView_GetTopIndex(list) + num, LVIS_SELECTED, LVIS_SELECTED);
+        /*
+        RECT rect;
+        ListView_GetItemRect((HWND)GetPropW(list, prop_list_quick_list), num, &rect, LVIR_BOUNDS);
+        LPARAM coord = rect.right | (rect.top + 10) << 16;
+        PostMessageW(list, WM_LBUTTONDOWN, 0, coord);
+        PostMessageW(list, WM_LBUTTONUP, 0, coord);
+        */
+
+        // perform operation
+        if (config.quick_select.hotkey_mode == 1 && focus_type == SearchEdit || config.quick_select.hotkey_mode == 2) {
+            if constexpr (debug)
+                DebugOStream() << (ctrl ? L"Ctrl " : L"") << (shift ? L"Shift " : L"") << (alt ? L"Alt " : L"") << (wchar_t)wParam << L'\n';
+
+            switch (config.quick_select.input_mode) {
+            case quick::InputMode::WmKey: {
+                // do not change this if you don't know why it's needed
+                filter = true;
+                filter_wparam = wParam;
+                filter_lparam = lParam;
+
+                BYTE temp_state[256]{};
+                if (!ctrl && !shift) /* Alt */ {
+                    temp_state[VK_RETURN] = 0x80;
+                    SetKeyboardState(temp_state);
+                    SendMessageW(list, WM_KEYDOWN, VK_RETURN, 0x00'1C'0001);
+                    //temp_state[VK_RETURN] = 0;
+                    //SetKeyboardState(temp_state);
+                    //SendMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
+                    SetKeyboardState(original_state);
+
+                    if (config.quick_select.close_everything)
+                        PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
+                }
+                else if (ctrl && !shift) /* Alt+Ctrl */ {
+                    temp_state[VK_CONTROL] = 0x80;
+                    SetKeyboardState(temp_state);
+                    SendMessageW(list, WM_KEYDOWN, VK_RETURN, 0x00'1C'0001);
+                    //temp_state[VK_CONTROL] = 0;
+                    //SetKeyboardState(temp_state);
+                    //SendMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
+                    SetKeyboardState(original_state);
+
+                    if (config.quick_select.close_everything)
+                        PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
+                }
+                else if (!ctrl && shift) /* Alt+Shift */ {
+                    SendMessageW(list, WM_CONTEXTMENU, (WPARAM)list, -1);
                 }
                 break;
-            case AltCtrl:
-                if (wParam == VK_MENU) {
-                    bool ctrl = GetKeyState(VK_CONTROL) & 0x8000;
-                    if (!ctrl)
-                        PostMessageW(list, WM_KEYDOWN, VK_CONTROL, 0x00'1D'0001);
-                    PostMessageW(list, WM_KEYDOWN, VK_RETURN, 0x00'1C'0001);
-                    PostMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
-                    if (!ctrl)
-                        PostMessageW(list, WM_KEYUP, VK_CONTROL, 0xC0'1D'0001);
-                    hotkey = None;
+            }
+            case quick::InputMode::SendInput: {
+                static auto make_input = [](WORD vk, DWORD dwFlags = 0) -> INPUT {
+                    return INPUT{
+                        .type = INPUT_KEYBOARD,
+                        .ki = {
+                            .wVk = vk,
+                            .dwFlags = dwFlags
+                        }
+                    };
+                };
+
+                if (!ctrl && !shift) /* Alt */ {
+                    static INPUT inputs[]{
+                    make_input(VK_MENU, KEYEVENTF_KEYUP),
+                    make_input(VK_RETURN),
+                    make_input(VK_RETURN, KEYEVENTF_KEYUP)
+                    };
+                    close_when_killfocus = true;
+                    SendInput(std::size(inputs), inputs, sizeof INPUT);
+                }
+                else if (ctrl && !shift) /* Alt+Ctrl */ {
+                    static INPUT inputs[]{
+                    make_input(VK_MENU, KEYEVENTF_KEYUP),
+                    make_input(VK_CONTROL),
+                    make_input(VK_RETURN),
+                    make_input(VK_RETURN, KEYEVENTF_KEYUP),
+                    make_input(VK_CONTROL, KEYEVENTF_KEYUP)
+                    };
+                    close_when_killfocus = true;
+                    SendInput(std::size(inputs), inputs, sizeof INPUT);
+                }
+                else if (!ctrl && shift) /* Alt+Shift */ {
+                    SendMessageW(list, WM_CONTEXTMENU, (WPARAM)list, -1);
                 }
                 break;
-            case AltShift:
-                if (wParam == VK_MENU && !(GetKeyState(VK_SHIFT) & 0x8000)
-                    || wParam == VK_SHIFT && !(GetKeyState(VK_MENU) & 0x8000))
-                {
-                    //PostMessageW(list, WM_KEYDOWN, VK_APPS, 0x01'5D'0001);
-                    //PostMessageW(list, WM_KEYUP, VK_APPS, 0xC1'5D'0001);
-                    PostMessageW(list, WM_CONTEXTMENU, (WPARAM)list, -1);
-                    hotkey = None;
-                }
-                break;
+            default:
+                assert(false);
+            }
             }
         }
-    } while (false);
+
+        return true;
+    }
+
+    call_next:
     return CallNextHookEx(keyboard_hook, code, wParam, lParam);
 }
 
@@ -210,12 +318,19 @@ BOOL WINAPI EndDeferWindowPos_detour(_In_ HDWP hWinPosInfo) {
 */
 
 void quick::init() {
-    if (ipc_version.major >= 1 && ipc_version.minor >= 5) {
+    if (ipc_version.major == 1 && ipc_version.minor >= 5) {
+        if (config.quick_select.input_mode == InputMode::Auto)
+            config.quick_select.input_mode = InputMode::WmKey;
+
         IbDetourAttach(&DeferWindowPos_real, DeferWindowPos_detour);
         //IbDetourAttach(&EndDeferWindowPos_real, EndDeferWindowPos_detour);
     }
-    else
+    else {
+        if (config.quick_select.input_mode == InputMode::Auto)
+            config.quick_select.input_mode = InputMode::SendInput;
+
         IbDetourAttach(&SetWindowPos_real, SetWindowPos_detour);
+    }
     
     keyboard_hook = SetWindowsHookExW(WH_KEYBOARD, keyboard_proc, nullptr, GetCurrentThreadId());
 }
@@ -223,7 +338,7 @@ void quick::init() {
 void quick::destroy() {
     UnhookWindowsHookEx(keyboard_hook);
 
-    if (ipc_version.major >= 1 && ipc_version.minor >= 5)
+    if (ipc_version.major == 1 && ipc_version.minor >= 5)
         IbDetourDetach(&DeferWindowPos_real, DeferWindowPos_detour);
     else
         IbDetourDetach(&SetWindowPos_real, SetWindowPos_detour);
@@ -290,6 +405,33 @@ LRESULT CALLBACK everything_window_proc(
 
         return true;
     }
+    case WM_CONTEXTMENU: {
+        if constexpr (debug)
+            DebugOStream() << L"Everything: WM_CONTEXTMENU\n";
+        break;
+    }
+    case WM_ENTERMENULOOP: {
+        if constexpr (debug)
+            DebugOStream() << L"WM_ENTERMENULOOP\n";
+        disable_keyboard_hook = true;
+        break;
+    }
+    case WM_INITMENUPOPUP: {
+        if constexpr (debug)
+            DebugOStream() << L"WM_INITMENUPOPUP\n";
+        break;
+    }
+    case WM_UNINITMENUPOPUP: {
+        if constexpr (debug)
+            DebugOStream() << L"WM_UNINITMENUPOPUP\n";
+        break;
+    }
+    case WM_EXITMENULOOP: {
+        if constexpr (debug)
+            DebugOStream() << L"WM_EXITMENULOOP\n";
+        disable_keyboard_hook = false;
+        break;
+    }
     }
     return CallWindowProcW(everything_window_proc_prev, hwnd, uMsg, wParam, lParam);
 }
@@ -307,6 +449,16 @@ LRESULT CALLBACK quick::list_window_proc(
         // updating quick list by SetWindowPos or WM_SETFONT will cause the list to be a gray block,
         // so we update the list at another place
         PostMessageW(quick_list, quick_list_msg_update, 0, 0);
+        break;
+    }
+    case WM_CONTEXTMENU: {
+        if constexpr (debug)
+            DebugOStream() << L"ResultList: WM_CONTEXTMENU\n";
+        break;
+    }
+    case WM_KILLFOCUS: {
+        if (close_when_killfocus)
+            PostMessageW(GetParent(hwnd), WM_CLOSE, 0, 0);
         break;
     }
     }

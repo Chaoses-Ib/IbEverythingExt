@@ -15,7 +15,7 @@
 * 支持 Unicode 辅助平面汉字。
 
 ### PCRE 模式
-* 支持简拼、全拼、带声调全拼和双拼搜索。（双拼搜索默认不开启）  
+* 支持简拼、全拼、带声调全拼和双拼搜索。（默认只开启简拼和全拼）  
   双拼搜索支持以下方案：
     * 微软双拼
     * 自然码双拼
@@ -40,34 +40,84 @@
 
   <img src="docs/search.png" style="max-height: 500px;"/>
 
-## 快速选择
-* `Alt+键`：打开（选中并按 Enter）
-* `Alt+Ctrl+键`：定位（选中并按 Ctrl+Enter）
-* `Alt+Shift+键`：打开右键菜单
-* 原 Alt 键的功能可以通过先单击 Alt 键再按键实现。
-
-## 配置
-修改 `IbEverythingExt.yaml` 文件：
+### 配置
+`IbEverythingExt.yaml` 文件：
 ```yaml
 # 拼音搜索
 pinyin_search:
+  # true：开启，false：关闭
   enable: true
-  mode: Auto  # Auto, Pcre, Edit
+
+  # 模式
+  # Auto：优先尝试 PCRE 模式，PCRE 模式不可用时使用 Edit 模式
+  # Pcre
+  # Edit：只支持简拼搜索
+  mode: Auto
+
   initial_letter: true  # 简拼
   pinyin_ascii: true  # 全拼
-  pinyin_ascii_digit: true  # 带声调全拼
+  pinyin_ascii_digit: false  # 带声调全拼
   double_pinyin_abc: false  # 智能 ABC 双拼
   double_pinyin_jiajia: false  # 拼音加加双拼
   double_pinyin_microsoft: false  # 微软双拼
   double_pinyin_thunisoft: false  # 华宇双拼（紫光双拼）
   double_pinyin_xiaohe: false  # 小鹤双拼
   double_pinyin_zrm: false  # 自然码双拼
+```
 
+## 快速选择
+### 热键模式1（默认）
+搜索编辑框：
+* `Alt+0~9`：打开文件（Enter）并关闭窗口
+* `Alt+Ctrl+0~9`：定位文件（Ctrl+Enter）并关闭窗口
+* `Alt+Shift+0~9`：打开右键菜单
+* `Alt+Shift+0~9, R`：查看文件属性
+* `Tab`：转移焦点到结果列表\*
+* `Esc` / `Ctrl+W`：关闭窗口\*
+
+结果列表：
+* `[0-9A-Z]`：选中项目
+* `Enter`：打开文件\*
+* `Ctrl+Enter`：定位文件\*
+* `Shift+F10` / `Menu`：打开右键菜单\*
+* `Alt+Enter`：查看文件属性\*
+* `Esc` / `Ctrl+W`：关闭窗口\*
+
+### 热键模式2
+搜索编辑框/结果列表：
+* `Alt+[0-9A-Z]`：打开文件（Enter）并关闭窗口
+* `Alt+Ctrl+[0-9A-Z]`：定位文件（Ctrl+Enter）并关闭窗口
+* `Alt+Shift+[0-9A-Z]`：打开右键菜单
+* `Alt+Shift+[0-9A-Z], R`：查看文件属性
+* `Esc` / `Ctrl+W`：关闭窗口\*
+
+原本的 `Alt+A~Z` 访问菜单功能可以通过先单击 Alt 键再按 A\~Z 实现，默认的 `Alt+1~4` 调整窗口大小、`Alt+P` 预览和 `Alt+D` 聚焦搜索编辑框则无法使用，可以通过更改 Everything 选项来绑定到其它热键上（其中 `Alt+D` 也可使用相同功能的默认热键 `Ctrl+F` 和 `F3` 来代替）。
+
+注：  
+* `[0-9A-Z]` 指 0\~9 和 A\~Z 这 36 个键。  
+* 操作之后是否关闭窗口可以通过配置进行控制。
+* 标 \* 的热键为 Everything 默认热键，不是扩展增加的，在这里列出是为了完整性。
+
+### 配置
+`IbEverythingExt.yaml` 文件：
+```yaml
 # 快速选择
 quick_select:
+  # true：开启，false：关闭
   enable: true
+  
+  # 热键模式
+  # 1, 2
+  hotkey_mode: 1
+
+  # 输入模拟模式
+  # Auto, WmKey, SendInput
+  input_mode: Auto
+
+  # 打开或定位文件后关闭窗口（不对 Everything 默认热键生效）
+  # 如果想要默认 Enter 热键也关闭窗口，可在 Everything 快捷键选项中将“打开选中对象，并退出 Everything”设置为 Enter
+  close_everything: true
 ```
-（`true` 为开启，`false` 为关闭）
 
 ## 第三方程序支持
 拼音搜索支持以下第三方程序调用：

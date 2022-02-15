@@ -38,7 +38,7 @@ bool config_init() {
                         return PinyinSearchMode::Pcre;
                     else if (mode == "Edit")
                         return PinyinSearchMode::Edit;
-                    throw std::range_error("Invalid pinyin_search.mode");
+                    throw YAML::Exception(YAML::Mark::null_mark(), "Invalid pinyin_search.mode");
                 }(),
                 .flags = [&node] {
                     std::vector<pinyin::PinyinFlagValue> flags;
@@ -70,7 +70,19 @@ bool config_init() {
         {
             YAML::Node node = root["quick_select"];
             config.quick_select = {
-                .enable = node["enable"].as<bool>()
+                .enable = node["enable"].as<bool>(),
+                .hotkey_mode = node["hotkey_mode"].as<int>(),
+                .input_mode = [&node] {
+                    auto mode = node["input_mode"].as<std::string>();
+                    if (mode == "Auto")
+                        return quick::InputMode::Auto;
+                    else if (mode == "WmKey")
+                        return quick::InputMode::WmKey;
+                    else if (mode == "SendInput")
+                        return quick::InputMode::SendInput;
+                    throw YAML::Exception(YAML::Mark::null_mark(), "Invalid quick_select.input_mode");
+                }(),
+                .close_everything = node["close_everything"].as<bool>()
             };
         }
     }
