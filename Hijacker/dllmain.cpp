@@ -199,7 +199,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_ATTACH\n";
 
-        config_init();
+        if (!config_init())
+            break;
 
         IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
         if (config.quick_select.enable)
@@ -215,6 +216,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_DETACH:
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
+
+        if (!config.enable)
+            break;
 
         if (config.quick_select.enable)
             quick::destroy();

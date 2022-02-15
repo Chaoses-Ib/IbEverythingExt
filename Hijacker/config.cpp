@@ -8,17 +8,26 @@
 
 Config config{};
 
-void config_init() {
+bool config_init() {
+    using namespace std::literals;
+
+    config.enable = false;
+
     wchar_t path[MAX_PATH];
     GetModuleFileNameW(nullptr, path, std::size(path));
     PathRemoveFileSpecW(path);
     PathAppendW(path, L"IbEverythingExt.yaml");
 
     std::ifstream in(path);
-    if (in) {
+    if (!in) {
+        MessageBoxW(nullptr, L"配置文件 IbEverythingExt.yaml 不存在！", L"IbEverythingExt", MB_ICONERROR);
+        return false;
+    }
+    try {
         YAML::Node root = YAML::Load(in);
 
-        if (YAML::Node node = root["pinyin_search"]) {
+        {
+            YAML::Node node = root["pinyin_search"];
             config.pinyin_search = {
                 .enable = node["enable"].as<bool>(),
                 .mode = [&node] {
@@ -58,17 +67,24 @@ void config_init() {
             };
         }
 
-        if (YAML::Node node = root["quick_select"]) {
+        {
+            YAML::Node node = root["quick_select"];
             config.quick_select = {
                 .enable = node["enable"].as<bool>()
             };
         }
-
-        pinyin::PinyinFlagValue flags{};
-        for (pinyin::PinyinFlagValue flag : config.pinyin_search.flags)
-            flags |= flag;
-        pinyin::init(flags);
     }
+    catch (YAML::Exception& e) {
+        MessageBoxA(nullptr, ("配置文件读取错误：\n"s + e.what()).c_str(), "IbEverythingExt", MB_ICONERROR);
+        return false;
+    }
+
+    pinyin::PinyinFlagValue flags{};
+    for (pinyin::PinyinFlagValue flag : config.pinyin_search.flags)
+        flags |= flag;
+    pinyin::init(flags);
+
+    config.enable = true;
 }
 
 void config_destroy() {
