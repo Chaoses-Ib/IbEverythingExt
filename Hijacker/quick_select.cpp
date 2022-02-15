@@ -224,7 +224,8 @@ LRESULT CALLBACK keyboard_proc(
                     make_input(VK_RETURN),
                     make_input(VK_RETURN, KEYEVENTF_KEYUP)
                     };
-                    close_when_killfocus = true;
+                    if (config.quick_select.close_everything)
+                        close_when_killfocus = true;
                     SendInput(std::size(inputs), inputs, sizeof INPUT);
                 }
                 else if (ctrl && !shift) /* Alt+Ctrl */ {
@@ -235,7 +236,8 @@ LRESULT CALLBACK keyboard_proc(
                     make_input(VK_RETURN, KEYEVENTF_KEYUP),
                     make_input(VK_CONTROL, KEYEVENTF_KEYUP)
                     };
-                    close_when_killfocus = true;
+                    if (config.quick_select.close_everything)
+                        close_when_killfocus = true;
                     SendInput(std::size(inputs), inputs, sizeof INPUT);
                 }
                 else if (!ctrl && shift) /* Alt+Shift */ {
