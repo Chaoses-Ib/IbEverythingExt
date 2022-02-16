@@ -168,6 +168,7 @@ quick_select:
 ### 硬盘清理
 * 重复文件：`dupe: sizedupe:`
 * 大于 100MB 的文件：`size:>100mb`
+* 空文件夹：`empty:`
 * Visual Studio 解决方案缓存：`wfn:.vs`
 
 推荐开启文件夹大小索引，便于查看文件夹占用：选项-索引-索引文件夹大小
