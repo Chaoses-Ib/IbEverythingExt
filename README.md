@@ -3,6 +3,23 @@
 
 ![](docs/preview.png)
 
+## 目录
+* [安装](#安装)
+* [拼音搜索](#拼音搜索)
+  * [第三方程序支持](#第三方程序支持)
+    * [→预览](docs/third_party/README.md)
+  * [配置](#配置)
+* [快速选择](#快速选择)
+  * [热键](#热键)
+    * [模式1（默认）](#模式1默认)
+    * [模式2](#模式2)
+  * [键列表](#键列表)
+  * [配置](#配置-1)
+* [使用技巧](#使用技巧)
+  * [快速启动器](#快速启动器)
+  * [硬盘清理](#硬盘清理)
+* [→开发](docs/development.md)
+
 ## 安装
 1. 安装 Everything v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)（不支持精简版）。
 1. 从 [Releases](../../releases) 下载压缩包。
@@ -125,7 +142,7 @@ quick_select:
   hotkey_mode: 1
 
   # 输入模拟模式
-  # Auto：v1.5a→WmKey，v1.4→WmKey
+  # Auto：v1.5a→WmKey，v1.4→SendInput
   # WmKey
   # SendInput
   input_mode: Auto
