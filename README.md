@@ -135,5 +135,27 @@ quick_select:
   close_everything: true
 ```
 
+## 使用技巧
+一些 Everything 的使用技巧。
+
+### 快速启动器
+将 Everything 用作简易的快速启动器：
+1. 添加运行次数列：右键结果列表表头，选中运行次数
+2. 设置默认按运行次数排序：选项-常规-首页-排序-运行次数（降序）
+3. 配合扩展的拼音搜索和快速选择启动文件
+
+相较于传统的快速启动器，使用 Everything 的主要好处是去中心化，不必将所有启动入口集中维护，而是可以在任意层级的文件夹中声明启动入口，更加灵活，也减少了维护成本，更适合有大量启动入口的情况。
+
+若想更进一步地提高启动效率，可以建立限定路径和扩展名的过滤器或书签，并通过快捷方式或 AutoHotkey 等工具注册全局热键，通过命令行新建 Everything 窗口并应用指定过滤器或书签。
+
+### 硬盘清理
+* 重复文件：`dupe: sizedupe:`
+* 大于 100MB 的文件：`size:>100mb`
+* Visual Studio 解决方案缓存：`wfn:.vs`
+
+推荐开启文件夹大小索引，便于查看文件夹占用：选项-索引-索引文件夹大小
+
+对于文件管理器 [Directory Opus](https://www.gpsoft.com.au/) 的用户，亦可使用 [IbDOpusExt](https://github.com/Chaoses-Ib/IbDOpusExt) 从 Everything 获取文件夹大小并显示为尺寸列，方便分析硬盘占用。
+
 ## 开发
 见 [开发](docs/development.md)。
