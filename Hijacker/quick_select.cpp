@@ -54,7 +54,7 @@ LRESULT CALLBACK keyboard_proc(
     static LPARAM filter_lparam;
 
     bool become_down = !(lParam & 0xC0000000);  // not (previous_state == down || transition_state == release)
-    if constexpr (debug)
+    if constexpr (debug_verbose)
         DebugOStream() << L"keyboard_proc: " << code << L", " << wParam << L", " << std::hex << lParam << L'(' << become_down << L") "
             << (GetKeyState(VK_CONTROL) & 0x8000 ? L"Ctrl " : L"")
             << (GetKeyState(VK_SHIFT) & 0x8000 ? L"Shift " : L"")

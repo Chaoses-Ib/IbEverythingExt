@@ -1,8 +1,25 @@
 ﻿#pragma once
+#include "helper.hpp"
 #include <vector>
+#include <functional>
 #include <IbWinCppLib/WinCppLib.hpp>
 #define IB_PINYIN_ENCODING 32
 #include <IbPinyinLib/Pinyin.hpp>
+
+/*
+SEARCH_STD
+// SEARCH_STD_SEARCHER
+SEARCH_BOOST_ALGORITHM
+SEARCH_BOOST_XPRESSIVE
+*/
+#define SEARCH_STD
+
+#ifdef SEARCH_BOOST_ALGORITHM
+#include <boost/algorithm/string/find.hpp>
+#endif
+#ifdef SEARCH_BOOST_XPRESSIVE
+#include <boost/xpressive/xpressive.hpp>
+#endif
 
 struct CompileFlag {
     bool match_at_start : 1;
@@ -27,26 +44,23 @@ struct ExecuteFlag {
 struct Pattern {
     PatternFlag flags;
     std::vector<pinyin::PinyinFlagValue>* pinyin_flags;
-    unsigned int pattern_len;
-    unsigned int pattern_u8_len;
-    //char32_t pattern[];
-    //char8_t pattern_u8[];
-
-    // null-terminated
-    char32_t* pattern() {
-        return ib::Addr(this) + sizeof(Pattern);
-    }
-    std::u32string_view pattern_sv() {
-        return { pattern(), pattern_len };
-    }
-
-    // not null-terminated
-    char8_t* pattern_u8() {
-        return ib::Addr(this) + sizeof(Pattern) + (pattern_len + 1) * sizeof(char32_t);
-    }
-    std::u8string_view pattern_u8_sv() {
-        return { pattern_u8(), pattern_u8_len };
-    }
+    std::u32string pattern;
+    std::u8string pattern_u8_upper;
+    size_t pattern_u8_len;
+#ifdef SEARCH_STD_SEARCHER
+    std::boyer_moore_horspool_searcher<std::u8string_view::const_iterator,
+        decltype([](char8_t c) { return std::hash<char8_t>()(ib::toupper(c)); }),
+        decltype([](char8_t c1, char8_t c2) {
+            //DebugOStream() << wchar_t(c1) << L' ' << wchar_t(c2) << L'\n';
+            // c2 is not guaranteed to be from pattern?
+            return ib::toupper(c1) == ib::toupper(c2);  // don't use std::toupper, it's slow
+        })
+    > searcher;
+#endif
+#ifdef SEARCH_BOOST_XPRESSIVE
+        boost::xpressive::regex_traits<char8_t> traits;
+        boost::xpressive::detail::boyer_moore<std::u8string_view::const_iterator, boost::xpressive::regex_traits<char8_t>> searcher;
+#endif
 };
 
 Pattern* compile(const char8_t* pattern, CompileFlag flags, std::vector<pinyin::PinyinFlagValue>* pinyin_flags);

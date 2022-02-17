@@ -97,6 +97,7 @@ bool config_init() {
     pinyin::init(flags);
 
     config.enable = true;
+    return true;
 }
 
 void config_destroy() {

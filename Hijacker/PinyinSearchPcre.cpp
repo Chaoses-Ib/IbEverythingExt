@@ -14,7 +14,7 @@
 * pcre_fullinfo (not in use)
 * regexec
 * pcre_exec (not in use)
-* free (not in use)
+* free
 */
 
 #pragma region regcomp_p3
@@ -126,7 +126,7 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     // could be `CPP;py`, but that's a rare case
 
     // return if termtext is an absolute path
-    if (pattern.size() > 1 && pattern[1] == u8':' && 'A' <= std::toupper(pattern[0]) && std::toupper(pattern[0]) <= 'Z')
+    if (pattern.size() > 1 && pattern[1] == u8':' && 'A' <= ib::toupper(pattern[0]) && ib::toupper(pattern[0]) <= 'Z')
         return;
     
     // "Match path when a search term contains a path separator"
@@ -279,10 +279,12 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
 
     const_cast<char*>(pattern)[0] = termtext_initial;
     
-    preg->re_pcre = compile((const char8_t*)pattern, {
+    Pattern* compiled_pattern = compile((const char8_t*)pattern, {
         .match_at_start = bool(modifiers & Modifier::WholeFilename),
         .match_at_end = bool(modifiers & Modifier::WholeFilename)
         }, &config.pinyin_search.flags);
+    preg->re_pcre = (void*)((uintptr_t)compiled_pattern | 1);
+
     preg->re_nsub = 0;
     preg->re_erroffset = (size_t)-1;
 
@@ -500,7 +502,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
                 rc = 1 + preg->re_nsub;
             }
             else {
-                rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {
+                rc = exec((Pattern*)((uintptr_t)preg->re_pcre & ~1), (const char8_t*)string, length, nmatch, (int*)pmatch, {
                     .not_begin_of_line = bool(eflags & REG_NOTBOL)
                     });
                 if (rc == -1)
@@ -537,7 +539,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         length = strlen(string);
     }
 
-    int rc = exec((Pattern*)preg->re_pcre, (const char8_t*)string, length, nmatch, (int*)pmatch, {
+    int rc = exec((Pattern*)((uintptr_t)preg->re_pcre & ~1), (const char8_t*)string, length, nmatch, (int*)pmatch, {
         .not_begin_of_line = bool(eflags & REG_NOTBOL)
         });
     if (rc == -1) {
@@ -654,7 +656,7 @@ pcre_exec_detour(const pcre* argument_re, const pcre_extra* extra_data,
 #pragma endregion
 
 
-#pragma region free (not in use)
+#pragma region free
 
 /*
 bool (*regex_free_real)(void* result);
@@ -666,8 +668,6 @@ bool regex_free_detour(void* result) {
 }
 */
 
-constexpr bool debug_HeapFree = false;
-
 auto HeapFree_real = HeapFree;
 _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
     _Inout_ HANDLE hHeap,
@@ -678,13 +678,12 @@ _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
     if constexpr (debug)
         DebugOStream() << L"HeapFree(" << lpMem << L")\n";  // multi threads
     */
-    /*
     if ((uintptr_t)lpMem & 1) {
         if constexpr (debug)
-            DebugOStream() << L"HeapFree(lpMem | 1)\n";
-        lpMem = (LPVOID)((uintptr_t)lpMem & ~1);
+            DebugOStream() << L"HeapFree(" << lpMem << L")\n";
+        delete (Pattern*)((uintptr_t)lpMem & ~1);
+        return true;
     }
-    */
 
     return HeapFree_real(hHeap, dwFlags, lpMem);
 }
@@ -745,13 +744,11 @@ PinyinSearchPcre::PinyinSearchPcre() {
     IbDetourAttach(&regexec_real, regexec_detour);
     //IbDetourAttach(&pcre_exec_real, pcre_exec_detour);
     //IbDetourAttach(&regex_free_real, regex_free_detour);
-    if constexpr (debug_HeapFree)
-        IbDetourAttach(&HeapFree_real, HeapFree_detour);
+    IbDetourAttach(&HeapFree_real, HeapFree_detour);
 }
 
 PinyinSearchPcre::~PinyinSearchPcre() {
-    if constexpr (debug_HeapFree)
-        IbDetourDetach(&HeapFree_real, HeapFree_detour);
+    IbDetourDetach(&HeapFree_real, HeapFree_detour);
     //IbDetourDetach(&regex_free_real, regex_free_detour);
     //IbDetourDetach(&pcre_exec_real, pcre_exec_detour);
     IbDetourDetach(&regexec_real, regexec_detour);

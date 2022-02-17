@@ -35,3 +35,9 @@ LONG IbDetourDetach(_Inout_ T* ppPointer, _In_ T pDetour) {
     DetourDetach((void**)ppPointer, pDetour);
     return DetourTransactionCommit();
 }
+
+namespace ib {
+    // MSVC's implementation has lower performance since it doesn't use a map
+    // (_mbbtoupper uses a map, but it's a two-way case map and therefore needs a check). 
+    char8_t toupper(char8_t c);
+}

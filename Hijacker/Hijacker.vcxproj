@@ -191,6 +191,7 @@
   <ItemGroup>
     <ClCompile Include="config.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="helper.cpp" />
     <ClCompile Include="ipc.cpp" />
     <ClCompile Include="ipc_window.cpp" />
     <ClCompile Include="match.cpp">
