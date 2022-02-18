@@ -60,7 +60,7 @@
 
 预览见 [第三方程序](docs/third_party/README.md)。
 
-如果使用的是 Everything v1.5a，因为 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](../../issues/5)。
+如果使用的是 Everything v1.5a，因为 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
 
 ### 配置
 `IbEverythingExt.yaml` 文件：
