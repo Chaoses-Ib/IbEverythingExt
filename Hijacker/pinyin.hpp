@@ -2,19 +2,11 @@
 #include <cstdint>
 #include <string>
 #include <utility>
+#define IB_PINYIN_ENCODING 32
+#include <IbPinyinLib/Pinyin.hpp>
 
 extern std::wstring pinyin_regexs[26];
 extern std::pair<std::wstring, std::wstring> pinyin_pair_regexs[26][26];
-
-struct PinyinRange {
-    char32_t begin;
-    char32_t end;
-    uint32_t* table;
-
-    bool has(char32_t c) const;
-    uint32_t& get_flags(char32_t c) const;
-};
-extern PinyinRange pinyin_ranges[5];
 
 struct Utf16Pair {
     wchar_t l;

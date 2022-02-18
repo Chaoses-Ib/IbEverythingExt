@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,4,0,1
- PRODUCTVERSION 0,4,0,1
+ FILEVERSION 0,5,0,1
+ PRODUCTVERSION 0,5,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +69,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "https://github.com/Chaoses-Ib/IbEverythingExt"
             VALUE "FileDescription", "Everything ∆¥“ÙÀ—À˜¿©’π"
-            VALUE "FileVersion", "0.4.0.1"
+            VALUE "FileVersion", "0.5.0.1"
             VALUE "InternalName", "Hijacker.dll"
             VALUE "LegalCopyright", "Copyright (C) 2021 ªÏ„ÁIb"
             VALUE "OriginalFilename", "WindowsCodecs.dll"
             VALUE "ProductName", "IbEverythingExt"
-            VALUE "ProductVersion", "0.4.0.1"
+            VALUE "ProductVersion", "0.5.0.1"
         END
     END
     BLOCK "VarFileInfo"
