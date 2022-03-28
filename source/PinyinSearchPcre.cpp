@@ -1,5 +1,4 @@
-﻿#include "pch.h"
-#include "PinyinSearchPcre.hpp"
+﻿#include "PinyinSearchPcre.hpp"
 #include "config.hpp"
 #include "ipc.hpp"
 #include "match.hpp"
@@ -693,7 +692,7 @@ _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
 
 PinyinSearchPcre::PinyinSearchPcre() {
     bool support = true;
-    ib::Addr Everything = ib::ModuleFactory::CurrentProcess().base;
+    ib::Addr Everything = ib::ModuleFactory::current_process().base;
     if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1) {
         if (ipc_version.build == 1009) {
             regcomp_p3_14_real = Everything + 0x174C0;

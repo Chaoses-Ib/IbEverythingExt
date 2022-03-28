@@ -1,10 +1,11 @@
 ﻿#pragma once
+#include "common.hpp"
 #include <memory>
 #include <string>
 
 #include <vector>
 #define IB_PINYIN_ENCODING 32
-#include <IbPinyinLib/Pinyin.hpp>
+#include <IbPinyin/pinyin.hpp>
 
 enum class PinyinSearchMode {
     Auto,

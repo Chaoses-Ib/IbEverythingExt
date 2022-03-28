@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "common.hpp"
 #include "pinyin.hpp"
 #include <mutex>
 #include <set>

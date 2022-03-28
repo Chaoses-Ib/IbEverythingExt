@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <IbWinCppLib/WinCppLib.hpp>
+#include <IbWinCpp/WinCpp.hpp>
 #include <detours/detours.h>
 
 constexpr bool debug =

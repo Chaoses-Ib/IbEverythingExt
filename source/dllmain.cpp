@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "common.hpp"
 #include "helper.hpp"
 #include "config.hpp"
 #include "ipc.hpp"
@@ -186,7 +186,7 @@ BOOL CALLBACK enum_window_proc(
 }
 */
 
-#include <IbDllHijackLib/Dlls/WindowsCodecs.h>
+#include <IbDllHijack/dlls/WindowsCodecs.h>
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,

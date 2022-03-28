@@ -1,5 +1,4 @@
-﻿#include "pch.h"
-#include "PinyinSearch.hpp"
+﻿#include "PinyinSearch.hpp"
 #include "PinyinSearchPcre.hpp"
 #include "PinyinSearchEdit.hpp"
 #include <cassert>

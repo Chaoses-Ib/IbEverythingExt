@@ -1,6 +1,7 @@
 ﻿#include "common.hpp"
 
-#include "../Hijacker/match.cpp"
+#include "../source/match.cpp"
+#include "../source/helper.cpp"
 
 BOOST_AUTO_TEST_SUITE(Match)
     BOOST_AUTO_TEST_CASE(Match) {

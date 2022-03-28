@@ -1,5 +1,4 @@
-﻿#include "pch.h"
-#include "PinyinSearchEdit.hpp"
+﻿#include "PinyinSearchEdit.hpp"
 #include <thread>
 #include <unordered_map>
 #include "helper.hpp"

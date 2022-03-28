@@ -1,5 +1,8 @@
-﻿#include "pch.h"
-#include "match.hpp"
+﻿#include "match.hpp"
+
+#ifndef NDEBUG
+#pragma optimize("gt", on)
+#endif
 
 char32_t read_char32(const char8_t* str, int* length) {
     char c = str[0];
@@ -287,3 +290,8 @@ int exec(Pattern* pattern, const char8_t* subject, int length, size_t nmatch, in
 
     return -1;
 }
+
+// because match.cpp is included by test/match.cpp, we need to reset the optimizations
+#ifndef NDEBUG
+#pragma optimize("", on)
+#endif

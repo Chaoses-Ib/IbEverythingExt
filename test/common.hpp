@@ -3,7 +3,7 @@
 
 #include <string>
 #include <Windows.h>
-#include <IbEverythingLib/Everything.hpp>
+#include <IbEverything/Everything.hpp>
 
 #pragma comment(lib, "winmm.lib")
 

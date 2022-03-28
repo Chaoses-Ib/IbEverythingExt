@@ -2,9 +2,9 @@
 #include "helper.hpp"
 #include <vector>
 #include <functional>
-#include <IbWinCppLib/WinCppLib.hpp>
+#include <IbWinCpp/WinCpp.hpp>
 #define IB_PINYIN_ENCODING 32
-#include <IbPinyinLib/Pinyin.hpp>
+#include <IbPinyin/pinyin.hpp>
 
 /*
 SEARCH_STD

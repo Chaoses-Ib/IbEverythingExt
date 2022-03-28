@@ -1,5 +1,4 @@
-﻿#include "pch.h"
-#include "ipc.hpp"
+﻿#include "ipc.hpp"
 #include "helper.hpp"
 
 ib::Holder<Everythings::EverythingMT> ipc_ev;

@@ -3,7 +3,7 @@
 #include <string>
 #include <utility>
 #define IB_PINYIN_ENCODING 32
-#include <IbPinyinLib/Pinyin.hpp>
+#include <IbPinyin/pinyin.hpp>
 
 extern std::wstring pinyin_regexs[26];
 extern std::pair<std::wstring, std::wstring> pinyin_pair_regexs[26][26];

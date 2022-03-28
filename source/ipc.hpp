@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <IbEverythingLib/Everything.hpp>
+#include <IbEverything/Everything.hpp>
 
 extern ib::Holder<Everythings::EverythingMT> ipc_ev;
 extern Everythings::EverythingMT::Version ipc_version;

@@ -1,5 +1,4 @@
-﻿#include "pch.h"
-#include "quick_select.hpp"
+﻿#include "quick_select.hpp"
 #include <CommCtrl.h>
 #include "config.hpp"
 #include "helper.hpp"

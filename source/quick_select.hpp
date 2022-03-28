@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "common.hpp"
 
 namespace quick {
     enum InputMode {

@@ -1,6 +1,5 @@
-﻿#include "pch.h"
-#include "ipc_window.hpp"
-#include <IbEverythingLib/Everything.hpp>
+﻿#include "ipc_window.hpp"
+#include <IbEverything/Everything.hpp>
 #include "helper.hpp"
 
 extern std::wstring* edit_process_content(const std::wstring& content);
