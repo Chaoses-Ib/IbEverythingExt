@@ -154,8 +154,16 @@ HWND WINAPI CreateWindowExW_detour(
         } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
             ipc_init(instance_name);
 
-            if (config.pinyin_search.enable)
-                pinyin_search = make_pinyin_search(config.pinyin_search.mode, instance_name, wnd);
+            if (config.pinyin_search.enable) {
+                try {
+                    pinyin_search = make_pinyin_search(config.pinyin_search.mode, instance_name, wnd);
+                }
+                catch (std::runtime_error& e) {
+                    config.pinyin_search.enable = false;
+                    MessageBoxW(0, L"拼音搜索 PCRE 模式不支持当前 Everything 版本，请更换至受支持的版本或禁用拼音搜索", L"IbEverythingExt", MB_ICONERROR);
+                }
+            }
+                
             if (config.quick_select.enable)
                 quick::init();
         }

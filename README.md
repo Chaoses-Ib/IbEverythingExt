@@ -71,10 +71,9 @@ pinyin_search:
   enable: true
 
   # 模式
-  # Auto：优先尝试 PCRE 模式，PCRE 模式不可用时使用 Edit 模式
   # Pcre：默认模式
-  # Edit：只支持简拼搜索
-  mode: Auto
+  # Edit：版本兼容性好，但只支持简拼搜索，性能较低，且存在许多 bug
+  mode: Pcre
 
   initial_letter: true  # 简拼
   pinyin_ascii: true  # 全拼

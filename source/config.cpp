@@ -32,9 +32,7 @@ bool config_init() {
                 .enable = node["enable"].as<bool>(),
                 .mode = [&node] {
                     auto mode = node["mode"].as<std::string>();
-                    if (mode == "Auto")
-                        return PinyinSearchMode::Auto;
-                    else if (mode == "Pcre")
+                    if (mode == "Pcre")
                         return PinyinSearchMode::Pcre;
                     else if (mode == "Edit")
                         return PinyinSearchMode::Edit;
