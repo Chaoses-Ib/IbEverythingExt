@@ -69,7 +69,22 @@ bool config_init() {
             YAML::Node node = root["quick_select"];
             config.quick_select = {
                 .enable = node["enable"].as<bool>(),
-                .hotkey_mode = node["hotkey_mode"].as<int>(),
+                
+                .search_edit = [](const YAML::Node& node) {
+                    return decltype(config.quick_select.search_edit) {
+                        .alt = node["alt"].as<uint8_t>()
+                    };
+                }(node["search_edit"]),
+                
+                .result_list = [](const YAML::Node& node) {
+                    return decltype(config.quick_select.result_list) {
+                        .select = node["select"].as<bool>(),
+                        .alt = node["alt"].as<uint8_t>()
+                    };
+                }(node["result_list"]),
+                    
+                .close_everything = node["close_everything"].as<bool>(),
+                
                 .input_mode = [&node] {
                     auto mode = node["input_mode"].as<std::string>();
                     if (mode == "Auto")
@@ -79,8 +94,7 @@ bool config_init() {
                     else if (mode == "SendInput")
                         return quick::InputMode::SendInput;
                     throw YAML::Exception(YAML::Mark::null_mark(), "Invalid quick_select.input_mode");
-                }(),
-                .close_everything = node["close_everything"].as<bool>()
+                }()
             };
         }
     }

@@ -11,8 +11,6 @@
   * [配置](#配置)
 * [快速选择](#快速选择)
   * [热键](#热键)
-    * [模式1（默认）](#模式1默认)
-    * [模式2](#模式2)
   * [键列表](#键列表)
   * [配置](#配置-1)
 * [使用技巧](#使用技巧)
@@ -91,32 +89,25 @@ Edit 模式详见 [Edit 模式](docs/pinyin_search/edit_mode.md)。
 在 Everything 结果列表的左侧插入一个显示 0\~9、A\~Z 的键列表，并允许在搜索编辑框和结果列表中通过热键快速打开对应文件。
 
 ### 热键
-#### 模式1（默认）
 搜索编辑框：
-* `Alt+0~9`：打开文件（Enter）并关闭窗口
-* `Alt+Ctrl+0~9`：定位文件（Ctrl+Enter）并关闭窗口
-* `Alt+Shift+0~9`：打开右键菜单
-* `Alt+Shift+0~9, R`：查看文件属性
-* `Tab` / `Enter`：转移焦点到结果列表\*
-* `Esc` / `Ctrl+W`：关闭窗口\*
+热键 | 功能
+--- | ---
+`Alt+0~9` | 打开文件（Enter）并关闭窗口
+`Alt+Ctrl+0~9` | 定位文件（Ctrl+Enter）并关闭窗口
+`Alt+Shift+0~9` | 打开右键菜单
+`Alt+Shift+0~9, R` | 查看文件属性
+`Tab` / `Enter` | 转移焦点到结果列表\*
+`Esc` / `Ctrl+W` | 关闭窗口\*
 
 结果列表：
-* `[0-9A-Z]`：选中项目
-* `Enter`：打开文件\*
-* `Ctrl+Enter`：定位文件\*
-* `Shift+F10` / `Menu`：打开右键菜单\*
-* `Alt+Enter`：查看文件属性\*
-* `Esc` / `Ctrl+W`：关闭窗口\*
-
-#### 模式2
-搜索编辑框/结果列表：
-* `Alt+[0-9A-Z]`：打开文件（Enter）并关闭窗口
-* `Alt+Ctrl+[0-9A-Z]`：定位文件（Ctrl+Enter）并关闭窗口
-* `Alt+Shift+[0-9A-Z]`：打开右键菜单
-* `Alt+Shift+[0-9A-Z], R`：查看文件属性
-* `Esc` / `Ctrl+W`：关闭窗口\*
-
-原本的 `Alt+A~Z` 访问菜单功能可以通过先单击 Alt 键再按 A\~Z 实现，默认的 `Alt+1~4` 调整窗口大小、`Alt+P` 预览和 `Alt+D` 聚焦搜索编辑框则无法使用，可以通过更改 Everything 选项来绑定到其它热键上（其中 `Alt+D` 也可使用相同功能的默认热键 `Ctrl+F` 和 `F3` 来代替）。
+热键 | 功能
+--- | ---
+`[0-9A-Z]` | 选中项目
+`Enter` | 打开文件\*
+`Ctrl+Enter` | 定位文件\*
+`Shift+F10` / `Menu` | 打开右键菜单\*
+`Alt+Enter` | 查看文件属性\*
+`Esc` / `Ctrl+W` | 关闭窗口\*
 
 注：
 * 操作之后是否关闭窗口可以通过配置进行控制。
@@ -135,20 +126,33 @@ Edit 模式详见 [Edit 模式](docs/pinyin_search/edit_mode.md)。
 quick_select:
   # true：开启，false：关闭
   enable: true
-  
-  # 热键模式
-  # 1, 2
-  hotkey_mode: 1
+
+  # 搜索编辑框
+  search_edit:
+    # Alt 组合键范围
+    # 0：禁用
+    # 10：Alt+0~9
+    # 36：Alt+[0-9A-Z]
+      # 原本的 Alt+A~Z 访问菜单功能可以通过先单击 Alt 键再按 A~Z 实现
+      # 默认的 Alt+1~4 调整窗口大小、Alt+P 预览和 Alt+D 聚焦搜索编辑框则无法使用，可以通过更改 Everything 选项来绑定到其它热键上（其中 Alt+D 也可使用相同功能的 Ctrl+F 和 F3 来代替）
+    alt: 10
+
+  # 结果列表
+  result_list:
+    # [0-9A-Z] 选中项目
+    select: true
+    # 同上
+    alt: 0
+
+  # 打开或定位文件后关闭窗口（不对 Everything 默认热键生效）
+  # 如果想要默认 Enter 热键也关闭窗口，可在 Everything 快捷键选项中将“打开选中对象，并退出 Everything”设置为 Enter
+  close_everything: true
 
   # 输入模拟模式
   # Auto：v1.5a→WmKey，v1.4→SendInput
   # WmKey
   # SendInput
   input_mode: Auto
-
-  # 打开或定位文件后关闭窗口（不对 Everything 默认热键生效）
-  # 如果想要默认 Enter 热键也关闭窗口，可在 Everything 快捷键选项中将“打开选中对象，并退出 Everything”设置为 Enter
-  close_everything: true
 ```
 
 ## 使用技巧

@@ -14,9 +14,19 @@ struct Config {
 
     struct {
         bool enable;
-        int hotkey_mode;
-        quick::InputMode input_mode;
+        
+        struct {
+            uint8_t alt;
+        } search_edit;
+        
+        struct {
+            bool select;
+            uint8_t alt;
+        } result_list;
+        
         bool close_everything;
+        
+        quick::InputMode input_mode;
     } quick_select;
 };
 extern Config config;

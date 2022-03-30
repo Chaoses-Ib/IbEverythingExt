@@ -131,44 +131,29 @@ LRESULT CALLBACK keyboard_proc(
             else
                 goto call_next;
         }
-
-        bool alt = GetKeyState(VK_MENU) & 0x8000;
-        if (config.quick_select.hotkey_mode == 1 && (focus_type == SearchEdit && (!alt || num >= 10))
-            || config.quick_select.hotkey_mode == 2 && !alt) [[likely]]
-        {
-            goto call_next;
-        }
+        
         bool win = GetKeyState(VK_LWIN) & 0x8000 || GetKeyState(VK_RWIN) & 0x8000;
         if (win)
             goto call_next;
-
-        BYTE original_state[256];
-        GetKeyboardState(original_state);
-        bool ctrl = original_state[VK_CONTROL] & 0x80;  // not 0x8000
-        bool shift = original_state[VK_SHIFT] & 0x80;
-        if (config.quick_select.hotkey_mode == 1 && focus_type == ResultList && (alt || ctrl || shift))
-            goto call_next;
-        if (alt && ctrl && shift) [[unlikely]]
-            goto call_next;
-
-        // select the item
-        if (focus_type != ResultList)
-            SetFocus(list);
-        ListView_SetItemState(list, -1, 0, LVIS_SELECTED);
-        ListView_SetItemState(list, ListView_GetTopIndex(list) + num, LVIS_SELECTED, LVIS_SELECTED);
-        /*
-        RECT rect;
-        ListView_GetItemRect((HWND)GetPropW(list, prop_list_quick_list), num, &rect, LVIR_BOUNDS);
-        LPARAM coord = rect.right | (rect.top + 10) << 16;
-        PostMessageW(list, WM_LBUTTONDOWN, 0, coord);
-        PostMessageW(list, WM_LBUTTONUP, 0, coord);
-        */
-
-        // perform operation
-        if (config.quick_select.hotkey_mode == 1 && focus_type == SearchEdit || config.quick_select.hotkey_mode == 2) {
-            if constexpr (debug)
-                DebugOStream() << (ctrl ? L"Ctrl " : L"") << (shift ? L"Shift " : L"") << (alt ? L"Alt " : L"") << (wchar_t)wParam << L'\n';
-
+        bool ctrl = GetKeyState(VK_CONTROL) & 0x8000;
+        bool shift = GetKeyState(VK_SHIFT) & 0x8000;
+        bool alt = GetKeyState(VK_MENU) & 0x8000;
+        
+        auto select_item = [focus_type, list, num]() {
+            if (focus_type != ResultList)
+                SetFocus(list);
+            ListView_SetItemState(list, -1, 0, LVIS_SELECTED);
+            ListView_SetItemState(list, ListView_GetTopIndex(list) + num, LVIS_SELECTED, LVIS_SELECTED);
+            /*
+            RECT rect;
+            ListView_GetItemRect((HWND)GetPropW(list, prop_list_quick_list), num, &rect, LVIR_BOUNDS);
+            LPARAM coord = rect.right | (rect.top + 10) << 16;
+            PostMessageW(list, WM_LBUTTONDOWN, 0, coord);
+            PostMessageW(list, WM_LBUTTONUP, 0, coord);
+            */
+        };
+        
+        auto perform_alt = [ctrl, shift, alt, wParam, lParam, list]() {
             switch (config.quick_select.input_mode) {
             case quick::InputMode::WmKey: {
                 // do not change this if you don't know why it's needed
@@ -176,26 +161,33 @@ LRESULT CALLBACK keyboard_proc(
                 filter_wparam = wParam;
                 filter_lparam = lParam;
 
+                BYTE original_state[256];
                 BYTE temp_state[256]{};
                 if (!ctrl && !shift) /* Alt */ {
+                    GetKeyboardState(original_state);
+                    
                     temp_state[VK_RETURN] = 0x80;
                     SetKeyboardState(temp_state);
                     SendMessageW(list, WM_KEYDOWN, VK_RETURN, 0x00'1C'0001);
                     //temp_state[VK_RETURN] = 0;
                     //SetKeyboardState(temp_state);
                     //SendMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
+                    
                     SetKeyboardState(original_state);
 
                     if (config.quick_select.close_everything)
                         PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
                 }
                 else if (ctrl && !shift) /* Alt+Ctrl */ {
+                    GetKeyboardState(original_state);
+                    
                     temp_state[VK_CONTROL] = 0x80;
                     SetKeyboardState(temp_state);
                     SendMessageW(list, WM_KEYDOWN, VK_RETURN, 0x00'1C'0001);
                     //temp_state[VK_CONTROL] = 0;
                     //SetKeyboardState(temp_state);
                     //SendMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
+                    
                     SetKeyboardState(original_state);
 
                     if (config.quick_select.close_everything)
@@ -206,6 +198,7 @@ LRESULT CALLBACK keyboard_proc(
                 }
                 break;
             }
+            
             case quick::InputMode::SendInput: {
                 static auto make_input = [](WORD vk, DWORD dwFlags = 0) -> INPUT {
                     return INPUT{
@@ -243,12 +236,48 @@ LRESULT CALLBACK keyboard_proc(
                     SendMessageW(list, WM_CONTEXTMENU, (WPARAM)list, -1);
                 }
                 break;
+            
             default:
                 assert(false);
             }
             }
+        };
+        
+        auto debug_output = [ctrl, shift, alt, wParam]() {
+            if constexpr (debug)
+                DebugOStream() << (ctrl ? L"Ctrl " : L"") << (shift ? L"Shift " : L"") << (alt ? L"Alt " : L"") << (wchar_t)wParam << L'\n';
+        };
+        
+        const auto& quick_select = config.quick_select;
+        switch (focus_type) {
+        case SearchEdit: {
+            if (quick_select.search_edit.alt && alt && !(ctrl && shift)) {
+                if (num < quick_select.search_edit.alt) {
+                    debug_output();
+                    select_item();
+                    perform_alt();
+                    break;
+                }
+            }
+            goto call_next;
         }
-
+        case ResultList: {
+            if (quick_select.result_list.select && !(ctrl || shift || alt)) {
+                debug_output();
+                select_item();
+                break;
+            }
+            else if (quick_select.result_list.alt && alt && !(ctrl && shift)) {
+                if (num < quick_select.result_list.alt) {
+                    debug_output();
+                    select_item();
+                    perform_alt();
+                    break;
+                }
+            }
+            goto call_next;
+        }
+        }
         return true;
     }
 
