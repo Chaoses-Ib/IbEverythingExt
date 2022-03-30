@@ -22,6 +22,8 @@ struct Config {
         struct {
             bool select;
             uint8_t alt;
+            std::wstring terminal_file;
+            std::wstring terminal_parameter;
         } result_list;
         
         bool close_everything;

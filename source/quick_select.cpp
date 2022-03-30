@@ -1,5 +1,6 @@
 ﻿#include "quick_select.hpp"
 #include <CommCtrl.h>
+#include <Shlwapi.h>
 #include "config.hpp"
 #include "helper.hpp"
 #include "ipc.hpp"
@@ -48,7 +49,7 @@ LRESULT CALLBACK keyboard_proc(
     _In_ WPARAM wParam,
     _In_ LPARAM lParam)
 {
-    static bool filter = false;
+    static int filter = -1;
     static WPARAM filter_wparam;
     static LPARAM filter_lparam;
 
@@ -59,7 +60,7 @@ LRESULT CALLBACK keyboard_proc(
             << (GetKeyState(VK_SHIFT) & 0x8000 ? L"Shift " : L"")
             << (GetKeyState(VK_MENU) & 0x8000 ? L"Alt " : L"")
             << (GetKeyState(VK_LWIN) & 0x8000 || GetKeyState(VK_RWIN) & 0x8000 ? L"Win " : L"")
-            << (filter ? L"may filter " : L"")
+            << (filter != -1 ? L"may filter " : L"")
             << L'\n';
     /*
     Ctrl+Alt+A:
@@ -98,11 +99,11 @@ LRESULT CALLBACK keyboard_proc(
     if (disable_keyboard_hook)
         goto call_next;
     
-    if (filter)
-        if (code == HC_NOREMOVE && wParam == filter_wparam && lParam == filter_lparam)
+    if (filter != -1)
+        if (code == filter && wParam == filter_wparam && lParam == filter_lparam)
             return true;
         else
-            filter = false;
+            filter = -1;
 
     if (become_down) {
         int num;
@@ -157,7 +158,7 @@ LRESULT CALLBACK keyboard_proc(
             switch (config.quick_select.input_mode) {
             case quick::InputMode::WmKey: {
                 // do not change this if you don't know why it's needed
-                filter = true;
+                filter = HC_NOREMOVE;
                 filter_wparam = wParam;
                 filter_lparam = lParam;
 
@@ -275,6 +276,65 @@ LRESULT CALLBACK keyboard_proc(
                     break;
                 }
             }
+            else if (quick_select.result_list.terminal_file.size() && shift && !(ctrl || alt)) {
+                if (code == HC_ACTION  // do not change this if you don't know why it's needed
+                    && (wParam == '4' || wParam == '3')  // `$` or `#`
+                ) {
+                    debug_output();
+                    HWND list_item = FindWindowExW(GetParent(list), nullptr, L"EVERYTHING_RESULT_LIST_FOCUS", nullptr);
+                    if (list_item) {
+                        wchar_t item_path[MAX_PATH];
+                        GetWindowTextW(list_item, item_path, std::size(item_path));
+                        if constexpr (debug)
+                            DebugOStream() << L"EVERYTHING_RESULT_LIST_FOCUS: " << item_path << L'\n';
+                        
+                        // copy the filename to the clipboard
+                        std::wstring_view filename = PathFindFileNameW(item_path);
+                        if (OpenClipboard(GetParent(list))) {
+                            if (HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, (2 + filename.size() + 2) * sizeof(wchar_t))) {
+                                wchar_t* p = (wchar_t*)GlobalLock(h);
+                                
+                                memcpy(p, L".\\", 2 * sizeof(wchar_t));
+                                p += 2;
+                                
+                                filename.copy(p, filename.size());
+                                p[filename.size()] = L' ';
+                                p[filename.size() + 1] = L'\0';
+                                
+                                GlobalUnlock(h);
+                                
+                                EmptyClipboard();
+                                SetClipboardData(CF_UNICODETEXT, h);
+                            }
+                            CloseClipboard();
+                        }
+                        
+                        // or `item_path[filename.size()] = L'\0';` ?
+                        PathRemoveFileSpecW(item_path);
+                        
+                        std::wstring parameter = quick_select.result_list.terminal_parameter;
+                        if (size_t pos = parameter.find(L"${fileDirname}"); pos != parameter.npos) {
+                            parameter.replace(pos, std::size(L"${fileDirname}") - 1, std::wstring(L"\"") + item_path + L'"');
+                        }
+                        
+                        SHELLEXECUTEINFOW execute_info{
+                            .cbSize = sizeof(execute_info),
+                            .fMask = 0,
+                            .hwnd = GetParent(list),
+                            .lpVerb = wParam == '4' ? L"" : L"runas",
+                            .lpFile = quick_select.result_list.terminal_file.c_str(),
+                            .lpParameters = parameter.c_str(),
+                            .lpDirectory = item_path,
+                            .nShow = SW_SHOW
+                        };
+                        ShellExecuteExW(&execute_info);
+                        
+                        if (quick_select.close_everything)
+                            PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
+                        break;
+                    }
+                }
+            }
             goto call_next;
         }
         }
@@ -359,6 +419,8 @@ void quick::init() {
         if (config.quick_select.input_mode == InputMode::Auto)
             config.quick_select.input_mode = InputMode::SendInput;
 
+        config.quick_select.result_list.terminal_file = {};
+        
         IbDetourAttach(&SetWindowPos_real, SetWindowPos_detour);
     }
     

@@ -1,12 +1,20 @@
 ﻿#include "common.hpp"
 #include "config.hpp"
 #include <fstream>
+#include <regex>
 #include <Shlwapi.h>
 #include <yaml-cpp/yaml.h>
 
 #pragma comment(lib, "Shlwapi.lib")
 
 Config config{};
+
+std::wstring u8_to_u16(const std::string& u8) {
+    std::wstring u16;
+    u16.resize(MultiByteToWideChar(CP_UTF8, 0, u8.c_str(), u8.size(), nullptr, 0));
+    MultiByteToWideChar(CP_UTF8, 0, u8.c_str(), u8.size(), u16.data(), u16.size());
+    return u16;
+}
 
 bool config_init() {
     using namespace std::literals;
@@ -77,10 +85,19 @@ bool config_init() {
                 }(node["search_edit"]),
                 
                 .result_list = [](const YAML::Node& node) {
-                    return decltype(config.quick_select.result_list) {
+                    decltype(config.quick_select.result_list) result_list {
                         .select = node["select"].as<bool>(),
                         .alt = node["alt"].as<uint8_t>()
                     };
+                    std::wstring terminal = u8_to_u16(node["terminal"].as<std::string>());
+                    if (terminal.size()) {
+                        std::wregex reg(LR"__((?:"([^"]*)"|([^ ]*)) ?(.*))__");
+                        std::wsmatch match;
+                        std::regex_match(terminal, match, reg);
+                        result_list.terminal_file = match[1].str() + match[2].str();
+                        result_list.terminal_parameter = match[3].str();
+                    }
+                    return result_list;
                 }(node["result_list"]),
                     
                 .close_everything = node["close_everything"].as<bool>(),
