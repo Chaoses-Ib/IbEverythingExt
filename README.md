@@ -20,7 +20,7 @@
 
 ## 安装
 1. 安装 Everything v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)（不支持精简版）。  
-  如果你能使用英文界面，也可以选择安装 v1.5.0.1296a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1296a.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.5.0.1296a.x64.zip)。
+  如果你能使用英文界面，也可以选择安装 v1.5.0.1305a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1305a.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.5.0.1305a.x64.zip)。
 1. 安装 [VC++ 2022 x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)。
 1. 从 [Releases](../../releases) 下载压缩包。
 1. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
@@ -43,6 +43,7 @@
 * 只支持 Everything 以下版本：
   * v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)
   * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
+  * v1.5.0.1305a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1305a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1305a.x64.zip)
   * v1.5.0.1296a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1296a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1296a.x64.zip)
 * 后置修饰符：
   * `;py`：小写字母只匹配拼音

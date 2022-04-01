@@ -724,6 +724,12 @@ PinyinSearchPcre::PinyinSearchPcre() {
             regcomp_real = Everything + 0x320800;
             regexec_real = Everything + 0x3208E0;
         }
+        else if (ipc_version.build == 1305) {
+            regcomp_p3_15_real = Everything + 0x2D920;
+            regcomp_p2_15_real = Everything + 0xB44D0;
+            regcomp_real = Everything + 0x336880;
+            regexec_real = Everything + 0x336960;
+        }
         else
             support = false;
 
