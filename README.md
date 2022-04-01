@@ -111,13 +111,12 @@ Edit 模式详见 [Edit 模式](docs/pinyin_search/edit_mode.md)。
 `Shift+F10` / `Menu` | 打开右键菜单\*
 `Alt+Enter` | 查看文件属性\*
 `Esc` / `Ctrl+W` | 关闭窗口\*
-`$ (Shift+4)` | 复制文件名，在文件所属目录下启动终端 (v1.5a)
-`# (Shift+3)` | 复制文件名，以管理员身份在文件所属目录下启动终端 (v1.5a)
+`$ (Shift+4)` | 复制文件名，在文件所属目录下启动终端
+`# (Shift+3)` | 复制文件名，以管理员身份在文件所属目录下启动终端
 
 注：
 * 操作之后是否关闭窗口可以通过配置进行控制。
 * 标 \* 的热键为 Everything 默认热键，不是扩展增加的，在这里列出是为了完整性。
-* “(v1.5a)”表示相应热键仅在 Everything v1.5a 中可用。
 
 ### 键列表
 键列表支持高 DPI，但只在 Everything v1.5a 上支持缩放（热键为 `Ctrl+=` 和 `Ctrl+-`），在 Everything v1.4 上则不支持。
@@ -151,7 +150,7 @@ quick_select:
     # [0-9A-Z] 选中项目
     select: true
 
-    # 终端 (v1.5a)
+    # 终端
     # Windows Terminal："wt -d ${fileDirname}"
     # Windows Console："conhost"（不支持以管理员身份启动）
     # 禁用：""

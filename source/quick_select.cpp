@@ -1,9 +1,12 @@
 ﻿#include "quick_select.hpp"
 #include <CommCtrl.h>
 #include <Shlwapi.h>
+#include <ShlObj.h>
 #include "config.hpp"
 #include "helper.hpp"
 #include "ipc.hpp"
+
+static auto& quick_select = config.quick_select;
 
 constexpr wchar_t everything_prop_quick_list[] = L"IbEverythingExt.QuickList";
 constexpr wchar_t edit_prop_list[] = L"IbEverythingExt.Edit_List";  // need to be unique
@@ -42,6 +45,90 @@ static bool close_when_killfocus = false;
 
 // for menus
 static bool disable_keyboard_hook = false;
+
+inline INPUT make_input(WORD vk, DWORD dwFlags = 0) {
+    return INPUT{
+        .type = INPUT_KEYBOARD,
+        .ki = {
+            .wVk = vk,
+            .dwFlags = dwFlags
+        }
+    };
+}
+
+static struct {
+    bool enable = false;
+    HWND list;
+    WPARAM wParam;
+} clipboard_open_terminal;
+
+decltype(&CloseClipboard) CloseClipboard_real = CloseClipboard;
+BOOL WINAPI CloseClipboard_detour() {
+    if (clipboard_open_terminal.enable) {
+        auto& self = clipboard_open_terminal;
+        self.enable = false;
+        
+        wchar_t item_path[MAX_PATH];
+        {
+            HANDLE h = GetClipboardData(CF_HDROP);
+            if (!h)
+                goto original;
+            DROPFILES* p = (DROPFILES*)GlobalLock(h);
+            DragQueryFileW((HDROP)p, 0, item_path, std::size(item_path));
+            GlobalUnlock(h);
+            if constexpr (debug)
+                DebugOStream() << L"DragQueryFile: " << item_path << L'\n';
+        }
+
+        // copy the filename to the clipboard
+        std::wstring_view filename = PathFindFileNameW(item_path);
+        if (HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, (2 + filename.size() + 2) * sizeof(wchar_t))) {
+            wchar_t* p = (wchar_t*)GlobalLock(h);
+
+            // .\${fileBasename}space
+            memcpy(p, L".\\", 2 * sizeof(wchar_t));
+            p += 2;
+
+            filename.copy(p, filename.size());
+            p += filename.size();
+            
+            memcpy(p, L" ", 2 * sizeof(wchar_t));
+
+            GlobalUnlock(h);
+
+            EmptyClipboard();
+            SetClipboardData(CF_UNICODETEXT, h);
+        }
+        bool result = CloseClipboard();
+
+        // or `item_path[filename.size()] = L'\0';` ?
+        PathRemoveFileSpecW(item_path);
+
+        std::wstring parameter = quick_select.result_list.terminal_parameter;
+        if (size_t pos = parameter.find(L"${fileDirname}"); pos != parameter.npos) {
+            parameter.replace(pos, std::size(L"${fileDirname}") - 1, std::wstring(L"\"") + item_path + L'"');
+        }
+
+        SHELLEXECUTEINFOW execute_info{
+            .cbSize = sizeof(execute_info),
+            .fMask = 0,
+            .hwnd = GetParent(self.list),
+            .lpVerb = self.wParam == '4' ? L"" : L"runas",
+            .lpFile = quick_select.result_list.terminal_file.c_str(),
+            .lpParameters = parameter.c_str(),
+            .lpDirectory = item_path,
+            .nShow = SW_SHOW
+        };
+        ShellExecuteExW(&execute_info);
+
+        if (quick_select.close_everything)
+            PostMessageW(GetParent(self.list), WM_CLOSE, 0, 0);
+        return result;
+    }
+    
+original:
+    return CloseClipboard_real();
+}
 
 HHOOK keyboard_hook;
 LRESULT CALLBACK keyboard_proc(
@@ -140,22 +227,33 @@ LRESULT CALLBACK keyboard_proc(
         bool shift = GetKeyState(VK_SHIFT) & 0x8000;
         bool alt = GetKeyState(VK_MENU) & 0x8000;
         
-        auto select_item = [focus_type, list, num]() {
+        auto select_item = [focus_type, list, num, wParam, lParam]() {
+            // do not change this if you don't know why it's needed
+            filter = HC_NOREMOVE;
+            filter_wparam = wParam;
+            filter_lparam = lParam;
+            
             if (focus_type != ResultList)
                 SetFocus(list);
+            
+            // this method won't change the focus index of Everything, and thus won't update EVERYTHING_RESULT_LIST_FOCUS
             ListView_SetItemState(list, -1, 0, LVIS_SELECTED);
-            ListView_SetItemState(list, ListView_GetTopIndex(list) + num, LVIS_SELECTED, LVIS_SELECTED);
+            size_t index = ListView_GetTopIndex(list) + num;
+            ListView_SetItemState(list, index, LVIS_SELECTED, LVIS_SELECTED);
+            //ListView_SetHotItem(list, index);
+            
             /*
+            // having bugs
             RECT rect;
-            ListView_GetItemRect((HWND)GetPropW(list, prop_list_quick_list), num, &rect, LVIR_BOUNDS);
-            LPARAM coord = rect.right | (rect.top + 10) << 16;
-            PostMessageW(list, WM_LBUTTONDOWN, 0, coord);
-            PostMessageW(list, WM_LBUTTONUP, 0, coord);
+            ListView_GetItemRect(list, ListView_GetTopIndex(list) + num, &rect, LVIR_BOUNDS);
+            LPARAM coord = ((rect.left + rect.right) / 2) | ((rect.top + rect.bottom) / 2) << 16;
+            SendMessageW(list, WM_LBUTTONDOWN, 0, coord);
+            SendMessageW(list, WM_LBUTTONUP, 0, coord);
             */
         };
         
         auto perform_alt = [ctrl, shift, alt, wParam, lParam, list]() {
-            switch (config.quick_select.input_mode) {
+            switch (quick_select.input_mode) {
             case quick::InputMode::WmKey: {
                 // do not change this if you don't know why it's needed
                 filter = HC_NOREMOVE;
@@ -176,7 +274,7 @@ LRESULT CALLBACK keyboard_proc(
                     
                     SetKeyboardState(original_state);
 
-                    if (config.quick_select.close_everything)
+                    if (quick_select.close_everything)
                         PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
                 }
                 else if (ctrl && !shift) /* Alt+Ctrl */ {
@@ -191,7 +289,7 @@ LRESULT CALLBACK keyboard_proc(
                     
                     SetKeyboardState(original_state);
 
-                    if (config.quick_select.close_everything)
+                    if (quick_select.close_everything)
                         PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
                 }
                 else if (!ctrl && shift) /* Alt+Shift */ {
@@ -201,35 +299,25 @@ LRESULT CALLBACK keyboard_proc(
             }
             
             case quick::InputMode::SendInput: {
-                static auto make_input = [](WORD vk, DWORD dwFlags = 0) -> INPUT {
-                    return INPUT{
-                        .type = INPUT_KEYBOARD,
-                        .ki = {
-                            .wVk = vk,
-                            .dwFlags = dwFlags
-                        }
-                    };
-                };
-
                 if (!ctrl && !shift) /* Alt */ {
                     static INPUT inputs[]{
-                    make_input(VK_MENU, KEYEVENTF_KEYUP),
-                    make_input(VK_RETURN),
-                    make_input(VK_RETURN, KEYEVENTF_KEYUP)
+                        make_input(VK_MENU, KEYEVENTF_KEYUP),
+                        make_input(VK_RETURN),
+                        make_input(VK_RETURN, KEYEVENTF_KEYUP)
                     };
-                    if (config.quick_select.close_everything)
+                    if (quick_select.close_everything)
                         close_when_killfocus = true;
                     SendInput(std::size(inputs), inputs, sizeof INPUT);
                 }
                 else if (ctrl && !shift) /* Alt+Ctrl */ {
                     static INPUT inputs[]{
-                    make_input(VK_MENU, KEYEVENTF_KEYUP),
-                    make_input(VK_CONTROL),
-                    make_input(VK_RETURN),
-                    make_input(VK_RETURN, KEYEVENTF_KEYUP),
-                    make_input(VK_CONTROL, KEYEVENTF_KEYUP)
+                        make_input(VK_MENU, KEYEVENTF_KEYUP),
+                        make_input(VK_CONTROL),
+                        make_input(VK_RETURN),
+                        make_input(VK_RETURN, KEYEVENTF_KEYUP),
+                        make_input(VK_CONTROL, KEYEVENTF_KEYUP)
                     };
-                    if (config.quick_select.close_everything)
+                    if (quick_select.close_everything)
                         close_when_killfocus = true;
                     SendInput(std::size(inputs), inputs, sizeof INPUT);
                 }
@@ -249,7 +337,6 @@ LRESULT CALLBACK keyboard_proc(
                 DebugOStream() << (ctrl ? L"Ctrl " : L"") << (shift ? L"Shift " : L"") << (alt ? L"Alt " : L"") << (wchar_t)wParam << L'\n';
         };
         
-        const auto& quick_select = config.quick_select;
         switch (focus_type) {
         case SearchEdit: {
             if (quick_select.search_edit.alt && alt && !(ctrl && shift)) {
@@ -281,58 +368,73 @@ LRESULT CALLBACK keyboard_proc(
                     && (wParam == '4' || wParam == '3')  // `$` or `#`
                 ) {
                     debug_output();
-                    HWND list_item = FindWindowExW(GetParent(list), nullptr, L"EVERYTHING_RESULT_LIST_FOCUS", nullptr);
-                    if (list_item) {
+                    
+                    // there are three ways to retrieve the path of the selected file:
+                    // EVERYTHING_RESULT_LIST_FOCUS: doesn't work with ListView_SetItemState(LVIS_SELECTED)
+                    // CF_HDROP
+                    // LVM_GETITEM: unstable, and require that the path column be chosen
+                    
+                    /*
+                    // retrieve the path by LVM_GETITEM
+                    wchar_t item_text[MAX_PATH];
+                    LVITEMW item{
+                        .mask = LVIF_TEXT,
+                        .iItem = (int)index,
+                        .iSubItem = 1,  // 0: Name, 1: Path
+                        .pszText = item_text,
+                        .cchTextMax = std::size(item_text)
+                    };
+                    if (SendMessageW(list, LVM_GETITEMW, 0, (LPARAM)&item))
+                        if constexpr (debug)
+                            DebugOStream() << L"ListView_GetItem: " << item_text << L'\n';
+                    */
+                    
+                    /*
+                    // retrieve the path by EVERYTHING_RESULT_LIST_FOCUS
+                    if (HWND list_item = FindWindowExW(GetParent(list), nullptr, L"EVERYTHING_RESULT_LIST_FOCUS", nullptr)) {
                         wchar_t item_path[MAX_PATH];
                         GetWindowTextW(list_item, item_path, std::size(item_path));
                         if constexpr (debug)
                             DebugOStream() << L"EVERYTHING_RESULT_LIST_FOCUS: " << item_path << L'\n';
-                        
-                        // copy the filename to the clipboard
-                        std::wstring_view filename = PathFindFileNameW(item_path);
-                        if (OpenClipboard(GetParent(list))) {
-                            if (HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, (2 + filename.size() + 2) * sizeof(wchar_t))) {
-                                wchar_t* p = (wchar_t*)GlobalLock(h);
-                                
-                                memcpy(p, L".\\", 2 * sizeof(wchar_t));
-                                p += 2;
-                                
-                                filename.copy(p, filename.size());
-                                p[filename.size()] = L' ';
-                                p[filename.size() + 1] = L'\0';
-                                
-                                GlobalUnlock(h);
-                                
-                                EmptyClipboard();
-                                SetClipboardData(CF_UNICODETEXT, h);
-                            }
-                            CloseClipboard();
-                        }
-                        
-                        // or `item_path[filename.size()] = L'\0';` ?
-                        PathRemoveFileSpecW(item_path);
-                        
-                        std::wstring parameter = quick_select.result_list.terminal_parameter;
-                        if (size_t pos = parameter.find(L"${fileDirname}"); pos != parameter.npos) {
-                            parameter.replace(pos, std::size(L"${fileDirname}") - 1, std::wstring(L"\"") + item_path + L'"');
-                        }
-                        
-                        SHELLEXECUTEINFOW execute_info{
-                            .cbSize = sizeof(execute_info),
-                            .fMask = 0,
-                            .hwnd = GetParent(list),
-                            .lpVerb = wParam == '4' ? L"" : L"runas",
-                            .lpFile = quick_select.result_list.terminal_file.c_str(),
-                            .lpParameters = parameter.c_str(),
-                            .lpDirectory = item_path,
-                            .nShow = SW_SHOW
-                        };
-                        ShellExecuteExW(&execute_info);
-                        
-                        if (quick_select.close_everything)
-                            PostMessageW(GetParent(list), WM_CLOSE, 0, 0);
-                        break;
                     }
+                    */
+                    
+                    // retrieve the path by CF_HDROP
+                    
+                    // WM_COPY doesn't work
+                    //LRESULT result = SendMessageW(list, WM_COPY, 0, 0);
+                    
+                    /*
+                    // SendMessage doesn't work either
+                    BYTE original_state[256];
+                    GetKeyboardState(original_state);
+
+                    BYTE temp_state[256];
+                    temp_state[VK_CONTROL] = 0x80;
+                    SetKeyboardState(temp_state);
+                    SendMessageW(list, WM_KEYDOWN, 'C', 0x00'1C'0001);
+                    //temp_state[VK_CONTROL] = 0;
+                    //SetKeyboardState(temp_state);
+                    //SendMessageW(list, WM_KEYUP, VK_RETURN, 0xC0'1C'0001);
+
+                    SetKeyboardState(original_state);
+                    */
+                    
+                    static INPUT inputs[]{
+                        make_input(VK_SHIFT, KEYEVENTF_KEYUP),
+                        make_input(VK_CONTROL),
+                        make_input('C'),
+                        make_input('C', KEYEVENTF_KEYUP),
+                        make_input(VK_CONTROL, KEYEVENTF_KEYUP)
+                    };
+                    clipboard_open_terminal = {
+                        .enable = true,
+                        .list = list,
+                        .wParam = wParam
+                    };
+                    SendInput(std::size(inputs), inputs, sizeof INPUT);
+                    
+                    break;
                 }
             }
             goto call_next;
@@ -409,25 +511,31 @@ BOOL WINAPI EndDeferWindowPos_detour(_In_ HDWP hWinPosInfo) {
 
 void quick::init() {
     if (ipc_version.major == 1 && ipc_version.minor >= 5) {
-        if (config.quick_select.input_mode == InputMode::Auto)
-            config.quick_select.input_mode = InputMode::WmKey;
+        if (quick_select.input_mode == InputMode::Auto)
+            quick_select.input_mode = InputMode::WmKey;
 
         IbDetourAttach(&DeferWindowPos_real, DeferWindowPos_detour);
         //IbDetourAttach(&EndDeferWindowPos_real, EndDeferWindowPos_detour);
     }
     else {
-        if (config.quick_select.input_mode == InputMode::Auto)
-            config.quick_select.input_mode = InputMode::SendInput;
-
-        config.quick_select.result_list.terminal_file = {};
+        if (quick_select.input_mode == InputMode::Auto)
+            quick_select.input_mode = InputMode::SendInput;
         
         IbDetourAttach(&SetWindowPos_real, SetWindowPos_detour);
     }
     
     keyboard_hook = SetWindowsHookExW(WH_KEYBOARD, keyboard_proc, nullptr, GetCurrentThreadId());
+    
+    if (quick_select.result_list.terminal_file.size()) {
+        IbDetourAttach(&CloseClipboard_real, CloseClipboard_detour);
+    }
 }
 
 void quick::destroy() {
+    if (quick_select.result_list.terminal_file.size()) {
+        IbDetourDetach(&CloseClipboard_real, CloseClipboard_detour);
+    }
+    
     UnhookWindowsHookEx(keyboard_hook);
 
     if (ipc_version.major == 1 && ipc_version.minor >= 5)
