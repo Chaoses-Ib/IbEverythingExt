@@ -188,7 +188,7 @@ quick_select:
 
 推荐开启文件夹大小索引，便于查看文件夹占用：选项-索引-索引文件夹大小
 
-对于文件管理器 [Directory Opus](https://www.gpsoft.com.au/) 的用户，亦可使用 [IbDOpusExt](https://github.com/Chaoses-Ib/IbDOpusExt) 从 Everything 获取文件夹大小并显示为尺寸列，方便分析硬盘占用。
+对于文件管理器 [Directory Opus](https://github.com/Chaoses-Ib/DirectoryOpus) 的用户，亦可使用 [IbDOpusExt](https://github.com/Chaoses-Ib/IbDOpusExt) 从 Everything 获取文件夹大小并显示为尺寸列，方便分析硬盘占用。
 
 ## 开发
 见 [开发](docs/development.md)。
