@@ -19,7 +19,11 @@ FetchContent_Declare(IbPinyin
     GIT_REPOSITORY https://github.com/Chaoses-Ib/IbPinyinLib.git
     GIT_TAG        e576e81ca06a297436bba7b124630b5d64e3106f
 )
-FetchContent_MakeAvailable(IbWinCpp IbDllHijack IbEverything IbPinyin)
+FetchContent_Declare(IbUpdate
+    GIT_REPOSITORY https://github.com/Chaoses-Ib/IbUpdateLib.git
+    GIT_TAG        eaa36c76e29409aeb89b1d7f493f48d0b54d819c
+)
+FetchContent_MakeAvailable(IbWinCpp IbDllHijack IbEverything IbPinyin IbUpdate)
 
 find_package(yaml-cpp CONFIG REQUIRED)
 # Detours
@@ -71,6 +75,17 @@ target_link_libraries(IbEverythingExt
     PRIVATE ${DETOURS_LIBRARY}
     PRIVATE yaml-cpp
 )
+
+
+# update
+add_executable(update WIN32
+    update/update.cpp
+)
+target_link_libraries(update
+    PRIVATE yaml-cpp
+    PRIVATE IbUpdate
+)
+
 
 # test
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

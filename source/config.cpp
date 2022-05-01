@@ -21,14 +21,18 @@ bool config_init() {
 
     config.enable = false;
 
-    wchar_t path[MAX_PATH];
-    GetModuleFileNameW(nullptr, path, std::size(path));
-    PathRemoveFileSpecW(path);
-    PathAppendW(path, L"IbEverythingExt.yaml");
+    wchar_t root_path[MAX_PATH];
+    GetModuleFileNameW(nullptr, root_path, std::size(root_path));
+    PathRemoveFileSpecW(root_path);
+    PathAppendW(root_path, LR"(IbEverythingExt\)");
+    
+    wchar_t config_path[MAX_PATH];
+    wcscpy_s(config_path, root_path);
+    PathAppendW(config_path, LR"(config.yaml)");
 
-    std::ifstream in(path);
+    std::ifstream in(config_path);
     if (!in) {
-        MessageBoxW(nullptr, L"配置文件 IbEverythingExt.yaml 不存在！", L"IbEverythingExt", MB_ICONERROR);
+        MessageBoxW(nullptr, L"配置文件 config.yaml 不存在！", L"IbEverythingExt", MB_ICONERROR);
         return false;
     }
     try {
@@ -113,6 +117,16 @@ bool config_init() {
                     throw YAML::Exception(YAML::Mark::null_mark(), "Invalid quick_select.input_mode");
                 }()
             };
+        }
+        
+        if (config.update.check = root["update"]["check"].as<bool>()) {
+            wchar_t update_path[MAX_PATH];
+            wcscpy_s(update_path, root_path);
+            PathAppendW(update_path, L"update.exe");
+            config.update.update_path = update_path;
+
+            // to avoid checking on system startup and when calling Everything through command line,
+            // we do the check after the main window is created
         }
     }
     catch (YAML::Exception& e) {

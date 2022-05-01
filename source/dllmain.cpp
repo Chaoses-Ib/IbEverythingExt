@@ -127,6 +127,21 @@ HWND WINAPI CreateWindowExW_detour(
         if (class_name == class_everything) {
             if (config.pinyin_search.enable)
                 pinyin_search->everything_created();
+
+            if (config.update.check) {
+                wchar_t cmd_line[] = L"--quiet";
+                STARTUPINFOW startup_info{ sizeof STARTUPINFOW };
+                PROCESS_INFORMATION process_info{};
+
+                if (CreateProcessW(config.update.update_path.c_str(), cmd_line, nullptr, nullptr, false, 0, nullptr, nullptr, &startup_info, &process_info)) {
+                    CloseHandle(process_info.hThread);
+                    CloseHandle(process_info.hProcess);
+                }
+
+                // only check once
+                config.update.check = false;
+                config.update.update_path = {};
+            }
         } else if (class_name == L"Edit"sv) {
             if (config.pinyin_search.enable) {
                 wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];

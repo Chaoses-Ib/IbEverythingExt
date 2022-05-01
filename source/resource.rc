@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (Simplified, PRC) resources
+// Chinese (Simplified, China) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,5,0,1
- PRODUCTVERSION 0,5,0,1
+ FILEVERSION 0,6,0,3
+ PRODUCTVERSION 0,6,0,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -68,13 +68,13 @@ BEGIN
         BLOCK "080404b0"
         BEGIN
             VALUE "CompanyName", "https://github.com/Chaoses-Ib/IbEverythingExt"
-            VALUE "FileDescription", "Everything Æ´ÒôËÑË÷À©Õ¹"
-            VALUE "FileVersion", "0.5.0.1"
+            VALUE "FileDescription", "Everything Æ´ÒôËÑË÷¡¢¿ìËÙÑ¡ÔñÀ©Õ¹"
+            VALUE "FileVersion", "0.6.0.3"
             VALUE "InternalName", "IbEverythingExt.dll"
             VALUE "LegalCopyright", "Copyright (C) 2022 »ìãçIb"
             VALUE "OriginalFilename", "WindowsCodecs.dll"
             VALUE "ProductName", "IbEverythingExt"
-            VALUE "ProductVersion", "0.5.0.1"
+            VALUE "ProductVersion", "0.6.0.3"
         END
     END
     BLOCK "VarFileInfo"
@@ -83,7 +83,7 @@ BEGIN
     END
 END
 
-#endif    // Chinese (Simplified, PRC) resources
+#endif    // Chinese (Simplified, China) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

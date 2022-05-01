@@ -13,6 +13,8 @@
   * [热键](#热键)
   * [键列表](#键列表)
   * [配置](#配置-1)
+* [其它](#其它)
+  * [检查更新](#检查更新)
 * [使用技巧](#使用技巧)
   * [快速启动器](#快速启动器)
   * [硬盘清理](#硬盘清理)
@@ -64,7 +66,7 @@
 如果使用的是 Everything v1.5a，因为 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
 
 ### 配置
-`IbEverythingExt.yaml` 文件：
+`config.yaml` 文件：
 ```yaml
 # 拼音搜索
 pinyin_search:
@@ -125,7 +127,7 @@ Edit 模式详见 [Edit 模式](docs/pinyin_search/edit_mode.md)。
 ![](docs/quick_select_dark_mode.png)
 
 ### 配置
-`IbEverythingExt.yaml` 文件：
+`config.yaml` 文件：
 ```yaml
 # 快速选择
 quick_select:
@@ -165,6 +167,19 @@ quick_select:
   # WmKey
   # SendInput
   input_mode: Auto
+```
+
+## 其它
+### 检查更新
+`config.yaml` 文件：
+```yaml
+# 更新
+update:
+  # 检查更新
+  check: true
+
+  # 包括预览版
+  prerelease: false
 ```
 
 ## 使用技巧

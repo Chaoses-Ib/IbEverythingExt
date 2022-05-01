@@ -30,6 +30,11 @@ struct Config {
         
         quick::InputMode input_mode;
     } quick_select;
+
+    struct {
+        bool check;
+        std::wstring update_path;
+    } update;
 };
 extern Config config;
 
