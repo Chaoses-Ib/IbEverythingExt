@@ -710,6 +710,12 @@ PinyinSearchPcre::PinyinSearchPcre() {
             regcomp_real = Everything + 0x1A8FC0;
             regexec_real = Everything + 0x1A90A0;
         }
+        else if (ipc_version.build == 1017) {
+            regcomp_p3_14_real = Everything + 0x175C0;
+            regcomp_p2_14_real = Everything + 0x5CEF0;
+            regcomp_real = Everything + 0x1A8FC0;
+            regexec_real = Everything + 0x1A90A0;
+        }
         else
             support = false;
 
@@ -729,6 +735,12 @@ PinyinSearchPcre::PinyinSearchPcre() {
             regcomp_p2_15_real = Everything + 0xB44D0;
             regcomp_real = Everything + 0x336880;
             regexec_real = Everything + 0x336960;
+        }
+        else if (ipc_version.build == 1315) {
+            regcomp_p3_15_real = Everything + 0x2DB30;
+            regcomp_p2_15_real = Everything + 0xB7630;
+            regcomp_real = Everything + 0x348820;
+            regexec_real = Everything + 0x348900;
         }
         else
             support = false;
