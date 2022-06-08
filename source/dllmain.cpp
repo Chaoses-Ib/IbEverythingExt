@@ -129,18 +129,29 @@ HWND WINAPI CreateWindowExW_detour(
                 pinyin_search->everything_created();
 
             if (config.update.check) {
-                wchar_t cmd_line[] = L"--quiet";
-                STARTUPINFOW startup_info{ sizeof STARTUPINFOW };
-                PROCESS_INFORMATION process_info{};
+                // We only want to check for updates when the main window is (first) displayed.
+                // However:
+                // * `Everything64.exe` will create a window without WS_VISIBLE
+                // * `-startup` will not create a window **but with some unknown exceptions**
+                // * `-minimized` will create the same window as `(empty)`
+                // To solve this, we use a simple trick - only check for updates when the main window is created at the second time.
+                
+                static bool created = false;
+                if (created) {
+                    wchar_t cmd_line[] = L"--quiet";
+                    STARTUPINFOW startup_info{ sizeof STARTUPINFOW };
+                    PROCESS_INFORMATION process_info{};
 
-                if (CreateProcessW(config.update.update_path.c_str(), cmd_line, nullptr, nullptr, false, 0, nullptr, nullptr, &startup_info, &process_info)) {
-                    CloseHandle(process_info.hThread);
-                    CloseHandle(process_info.hProcess);
+                    if (CreateProcessW(config.update.update_path.c_str(), cmd_line, nullptr, nullptr, false, 0, nullptr, nullptr, &startup_info, &process_info)) {
+                        CloseHandle(process_info.hThread);
+                        CloseHandle(process_info.hProcess);
+                    }
+
+                    // only check once
+                    config.update.check = false;
+                    config.update.update_path = {};
                 }
-
-                // only check once
-                config.update.check = false;
-                config.update.update_path = {};
+                created = true;
             }
         } else if (class_name == L"Edit"sv) {
             if (config.pinyin_search.enable) {
