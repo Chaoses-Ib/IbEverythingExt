@@ -17,7 +17,7 @@
   * [检查更新](#检查更新)
 * [使用技巧](#使用技巧)
   * [快速启动器](#快速启动器)
-  * [硬盘清理](#硬盘清理)
+  * [硬盘占用分析](#硬盘占用分析)
 * [→开发](docs/development.md)
 
 ## 安装
@@ -197,15 +197,27 @@ update:
 
 若想更进一步地提高启动效率，可以建立限定路径和扩展名的过滤器或书签，并通过快捷方式或 AutoHotkey 等工具注册全局热键，通过命令行新建 Everything 窗口并应用指定过滤器或书签。
 
-### 硬盘清理
-* 重复文件：`dupe: sizedupe:`
-* 大于 100MB 的文件：`size:>100mb`
-* 空文件夹：`empty:`
-* Visual Studio 解决方案缓存：`wfn:.vs`
+### 硬盘占用分析
+* 重复文件  
+  `dupe: sizedupe:`  
+  其中 `dupe:` 用于限定文件名重复，`sizedupe:` 用于限定文件大小重复。
 
-推荐开启文件夹大小索引，便于查看文件夹占用：选项-索引-索引文件夹大小
+  ![](docs/Disk%20space/images/dupe.png)
+* 大于 100MB 的文件  
+  `size:>100mb`
+* 空文件夹  
+  `empty:`
+* Visual Studio 解决方案缓存  
+  `wfn:.vs`  
 
-对于文件管理器 [Directory Opus](https://github.com/Chaoses-Ib/DirectoryOpus) 的用户，亦可使用 [IbDOpusExt](https://github.com/Chaoses-Ib/IbDOpusExt) 从 Everything 获取文件夹大小并显示为尺寸列，方便分析硬盘占用。
+  ![](docs/Disk%20space/images/VisualStudio.png)
+
+  或者也可使用基于 Everything 实现的专用于清理 `.vs` 的工具 [VsCacheCleaner](https://github.com/SpriteOvO/VsCacheCleaner)。
+
+注意，显示文件夹大小需要在 Everything 选项中开启 `索引 → 索引文件夹大小`。
+
+对于文件管理器 [Directory Opus](https://github.com/Chaoses-Ib/DirectoryOpus) 的用户，亦可使用 [IbDOpusExt](https://github.com/Chaoses-Ib/IbDOpusExt) 从 Everything 获取文件夹大小并显示为列，便于分析硬盘占用：  
+![](https://github.com/Chaoses-Ib/IbDOpusExt/blob/develop/docs/images/SizeCol.png?raw=true)
 
 ## 开发
 见 [开发](docs/development.md)。
