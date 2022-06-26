@@ -15,7 +15,6 @@
   * [配置](#配置-1)
 * [其它](#其它)
   * [检查更新](#检查更新)
-* [使用技巧](#使用技巧)
   * [快速启动器](#快速启动器)
   * [硬盘占用分析](#硬盘占用分析)
 * [→开发](docs/development.md)
@@ -172,21 +171,6 @@ quick_select:
 ```
 
 ## 其它
-### 检查更新
-`config.yaml` 文件：
-```yaml
-# 更新
-update:
-  # 检查更新
-  check: true
-
-  # 包括预览版
-  prerelease: false
-```
-
-## 使用技巧
-一些 Everything 的使用技巧。
-
 ### 快速启动器
 将 Everything 用作简易的快速启动器：
 1. 添加运行次数列：右键结果列表表头，选中运行次数
@@ -218,6 +202,18 @@ update:
 
 对于文件管理器 [Directory Opus](https://github.com/Chaoses-Ib/DirectoryOpus) 的用户，亦可使用 [IbDOpusExt](https://github.com/Chaoses-Ib/IbDOpusExt) 从 Everything 获取文件夹大小并显示为列，便于分析硬盘占用：  
 ![](https://github.com/Chaoses-Ib/IbDOpusExt/blob/develop/docs/images/SizeCol.png?raw=true)
+
+### 检查更新
+`config.yaml` 文件：
+```yaml
+# 更新
+update:
+  # 检查更新
+  check: true
+
+  # 包括预览版
+  prerelease: false
+```
 
 ## 开发
 见 [开发](docs/development.md)。
