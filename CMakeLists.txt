@@ -23,7 +23,11 @@ FetchContent_Declare(IbUpdate
     GIT_REPOSITORY https://github.com/Chaoses-Ib/IbUpdateLib.git
     GIT_TAG        eaa36c76e29409aeb89b1d7f493f48d0b54d819c
 )
-FetchContent_MakeAvailable(IbWinCpp IbDllHijack IbEverything IbPinyin IbUpdate)
+FetchContent_Declare(sigmatch
+    GIT_REPOSITORY https://github.com/SpriteOvO/sigmatch.git
+    GIT_TAG        2ca983dc0cb78fe4f4406b67655e7ee132ecf5da
+)
+FetchContent_MakeAvailable(IbWinCpp IbDllHijack IbEverything IbPinyin IbUpdate sigmatch)
 
 find_package(yaml-cpp CONFIG REQUIRED)
 # Detours
@@ -73,6 +77,7 @@ target_link_libraries(IbEverythingExt
     PRIVATE IbEverything
     PRIVATE IbPinyin
     PRIVATE ${DETOURS_LIBRARY}
+    PRIVATE sigmatch
     PRIVATE yaml-cpp
 )
 

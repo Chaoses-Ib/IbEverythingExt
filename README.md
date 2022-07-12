@@ -20,12 +20,13 @@
 * [→开发](docs/development.md)
 
 ## 安装
-1. 安装 Everything v1.4.1.1017 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1017.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.4.1.1017.x64.zip)（不支持精简版）。  
-  如果你能使用英文界面，也可以选择安装 v1.5.0.1315a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1315a.x64-Setup.exe)或[便携版](https://www.voidtools.com/Everything-1.5.0.1315a.x64.zip)。
-1. 安装 [VC++ 2022 x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)。
-1. 从 [Releases](../../releases) 下载压缩包。
-1. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）。
-1. 重启 Everything。
+1. 安装 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版或便携版（不支持其它架构和精简版）  
+  如果你能接受英文界面，也可以选择安装 [Everything 1.5 预览版](https://www.voidtools.com/forum/viewtopic.php?f=12&t=9787#download)。
+2. 安装 [VC++ 2022 x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)  
+   （[PowerToys](https://github.com/microsoft/PowerToys) 在安装时会同时安装 VC++ 2022 运行库，如果你安装了 PowerToys 就可以跳过这一步）
+3. 从 [Releases](../../releases) 下载压缩包
+4. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）
+5. 重启 Everything
 
 ## 拼音搜索
 允许用拼音在 Everything 中搜索文件。
@@ -41,13 +42,6 @@
     * 华宇双拼（紫光双拼） 
   
   支持多音字和 Unicode 辅助平面汉字。
-* 只支持 Everything 以下版本：
-  * v1.4.1.1017 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1017.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1017.x64.zip)
-  * v1.4.1.1015 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1015.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1015.x64.zip)
-  * v1.4.1.1009 x64 [安装版](https://www.voidtools.com/Everything-1.4.1.1009.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.4.1.1009.x64.zip)
-  * v1.5.0.1315a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1315a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1315a.x64.zip)
-  * v1.5.0.1305a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1305a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1305a.x64.zip)
-  * v1.5.0.1296a x64 [安装版](https://www.voidtools.com/Everything-1.5.0.1296a.x64-Setup.exe)/[便携版](https://www.voidtools.com/Everything-1.5.0.1296a.x64.zip)
 * 后置修饰符：
   * `;py`：小写字母只匹配拼音
   * `;np`：禁用拼音搜索
@@ -64,7 +58,7 @@
 
 预览见 [第三方程序](docs/third_party/README.md)。
 
-如果使用的是 Everything v1.5a，因为 Alpha 版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
+如果使用的是 Everything 1.5 预览版，因为预览版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
 
 ### 配置
 `config.yaml` 文件：

@@ -1,4 +1,6 @@
 ﻿#include "PinyinSearchPcre.hpp"
+#include <Psapi.h>
+#include <sigmatch/sigmatch.hpp>
 #include "config.hpp"
 #include "ipc.hpp"
 #include "match.hpp"
@@ -689,69 +691,258 @@ _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
 
 #pragma endregion
 
+bool try_match_signatures(int version) {
+    using namespace sigmatch_literals;
+
+    /*
+    ## regcomp_p3
+    ... CC
+    v1.4: ~0x175C0
+    4C 8B DC                             mov     r11, rsp
+    v1.5: ~0x2DB30
+    40 56                                push    rsi
+
+    0xBD:
+    49 8B 87 F0 0C 00 00                 mov     rax, [r15+0CF0h]
+    0F B7 08                             movzx   ecx, word ptr [rax]
+    41 8B 87 F8 0C 00 00                 mov     eax, [r15+0CF8h]
+    4D 8B 8F C0 0C 00 00                 mov     r9, [r15+0CC0h]
+    4D 8B 87 B0 0C 00 00                 mov     r8, [r15+0CB0h]
+    89 44 24 28                          mov     dword ptr [rsp+4B8h+var_490], eax
+    89 4C 24 20                          mov     dword ptr [rsp+4B8h+var_498], ecx
+    48 8D 15 FD A1 30 00                 lea     rdx, aSearchSFilterS ; "search '%s' filter '%s' sort %d ascendi"...
+    B9 00 FF 00 FF                       mov     ecx, 0FF00FF00h
+    E8 BB 6F 0F 00                       call    @log
+    
+
+    0x3A7:
+    41 80 F8 65                          cmp     r8b, 65h ; 'e'
+    48 8D 4F 30                          lea     rcx, [rdi+30h]
+    48 8D 15 62 DE 19 00                 lea     rdx, aEmpty     ; "empty:"
+    41 80 F8 65 48 8D 4F ?? 48 8D 15 ?? ?? ?? ??
+    - v1.4.1.1017: 1
+    - v1.5.0.1315: 0
+
+    0x4D5:
+    40 38 35 F0 78 3D 00                 cmp     cs:byte_14040590A, sil
+    74 05                                jz      short loc_14002E021
+    41 0F BA E9 1E                       bts     r9d, 1Eh
+    0F BA EB 1E
+    - v1.4.1.1017: 0
+    - v1.5.0.1315: 1
+    40 38 35 ?? ?? ?? ?? 74 05 41 0F BA E9 1E
+    - v1.5.0.1296: 0
+    - v1.5.0.1315: 1
+
+    0x1630:
+    41 F7 C3 02 00 1C 00                 test    r11d, 1C0002h
+    74 43                                jz      short loc_14002F242
+    41 F7 C3 02 00 1C 00 74 ??
+    - v1.4.1.1017: 0
+    - v1.5.0.1296: 1
+    - v1.5.0.1315: 1
+
+
+    ## regcomp_p2
+    ... CC
+    v1.4: ~0x5CEF0
+    48 89 74 24 18                       mov     [rsp+arg_10], rsi
+    48 89 74 24 ??
+
+    v1.5: ~0xB7630
+    4C 8B DC                             mov     r11, rsp
+
+    0xD:
+    8B 52 28                             mov     edx, [rdx+28h]
+    48 8B F9                             mov     rdi, rcx
+    0F BA E2 0B                          bt      edx, 0Bh
+    0F 83 53 06 00 00                    jnb     loc_14005D560
+    44 0F B6 46 30                       movzx   r8d, byte ptr [rsi+48]
+    8B 52 28 48 8B F9 0F BA E2 0B 0F 83 ?? ?? ?? ?? 44 0F B6 46 30
+    - v1.4.1.1017: 1
+
+    0x24:
+    0F BA A0 18 01 00 00 0B              bt      dword ptr [rax+280], 0Bh
+    - v1.5.0.1315: 1
+
+
+    ## regcomp
+    ... CC
+    v1.4: ~0x1A8FC0, v1.5: ~0x348820
+    40 53                                push    rbx
+
+    0x49:
+    41 0F BA E0 0A                       bt      r8d, 10
+    73 04                                jnb     short loc_1401A9014
+    0F BA EA 1D                          bts     edx, 1Dh
+    41 0F BA E0 0A
+    - v1.4.1.1017: 25
+    - v1.5.0.1315: 2
+    0F BA EA 1D
+    - v1.4.1.1017: 1
+    - v1.5.0.1315: 1
+    41 0F BA E0 0A 73 04 0F BA EA 1D
+    - v1.4.1.1017: 1
+    - v1.5.0.1315: 1
+
+    41 0F BA E0 09                       bt      r8d, 9
+    - v1.4.1.1017: 4
+    - v1.5.0.1315: 1
+
+    83 F8 57                             cmp     eax, 87
+    - v1.5.0.1315: 4
+
+
+    ## regexec
+    ... CC
+    v1.4: ~0x1A90A0, v1.5: ~0x348900
+    48 89 5C 24 18                       mov     [rsp+arg_10], rbx
+    48 89 5C 24 ??
+
+    0x91, 0x97:
+    49 81 F8 AA AA AA 0A                 cmp     r8, 0AAAAAAAh
+    76 0A                                jbe     short loc_1403489A4
+    B8 0E 00 00 00                       mov     eax, 0Eh        ; jumptable 0000000140310291 cases -8,-6
+    E9 32 01 00 00                       jmp     loc_140348AD6
+    49 81 F8 AA AA AA 0A 76 0A B8 0E 00 00 00 E9 ?? ?? ?? ??
+    - v1.4.1.1017: 1
+    - v1.5.0.1315: 1
+    */
+
+    MODULEINFO info;
+    if (!GetModuleInformation(GetCurrentProcess(), ib::ModuleFactory::current_process().handle, &info, sizeof info))
+        return false;
+    
+    sigmatch::this_process_target target;
+    sigmatch::search_context context = target.in_range({ info.lpBaseOfDll, info.SizeOfImage });
+
+    /*
+    static auto find_entry_CC = [](const std::byte* p_) {
+        ib::Addr p = (void*)p_;
+        while (p.read<uint16_t>() != 0xCCCC)
+            p -= 1;
+        return p + 2;
+    };
+    */
+
+    auto search_entry = [&target, &context](sigmatch::signature sig, sigmatch::signature entry_sig, size_t entry_range) -> ib::Addr {
+        std::vector<const std::byte*> matches = context.search(sig).matches();
+        if (matches.empty())
+            return nullptr;
+        
+        // not stable
+        //return find_entry_CC(matches[0]);
+
+        matches = target.in_range({ matches[0] - entry_range, entry_range }).search(entry_sig).matches();
+        if (matches.empty())
+            return nullptr;
+
+        return (void*)matches.back();
+    };
+
+    switch (version) {
+    case 4:
+        if (!(regcomp_p3_14_real = search_entry("41 80 F8 65 48 8D 4F ?? 48 8D 15"_sig, "4C 8B DC"_sig, 0xA00)))
+            return false;
+        if (!(regcomp_p2_14_real = search_entry("8B 52 28 48 8B F9 0F BA E2 0B 0F 83 ?? ?? ?? ?? 44 0F B6 46 30"_sig, "48 89 74 24"_sig, 0x30)))
+            return false;
+        if constexpr (debug)
+            DebugOStream() << L"regcomp_p3_14: " << regcomp_p3_14_real << L", regcomp_p2_14: " << regcomp_p2_14_real << L'\n';
+        break;
+    case 5:
+        if (!(regcomp_p3_15_real = search_entry("41 F7 C3 02 00 1C 00 74"_sig, "40 56"_sig, 0x3000)))
+            return false;
+        if (!(regcomp_p2_15_real = search_entry("0F BA A0 18 01 00 00 0B"_sig, "4C 8B DC"_sig, 0x50)))
+            return false;
+        if constexpr (debug)
+            DebugOStream() << L"regcomp_p3_15: " << regcomp_p3_15_real << L", regcomp_p2_15: " << regcomp_p2_15_real << L'\n';
+        break;
+    }
+    
+    if (!(regcomp_real = search_entry("41 0F BA E0 0A 73 04 0F BA EA 1D"_sig, "40 53"_sig, 0xA0)))
+        return false;
+    if (!(regexec_real = search_entry("49 81 F8 AA AA AA 0A 76 0A B8 0E 00 00 00 E9"_sig, "48 89 5C 24"_sig, 0x140)))
+        return false;
+    if constexpr (debug)
+        DebugOStream() << L"regcomp: " << regcomp_real << L", regexec: " << regexec_real << L'\n';
+
+    return true;
+}
+
 
 PinyinSearchPcre::PinyinSearchPcre() {
-    bool support = true;
+    bool support = false;
     ib::Addr Everything = ib::ModuleFactory::current_process().base;
-    if (ipc_version.major == 1 && ipc_version.minor == 4 && ipc_version.revision == 1) {
-        if (ipc_version.build == 1009) {
-            regcomp_p3_14_real = Everything + 0x174C0;
-            regcomp_p2_14_real = Everything + 0x5CB70;
-            regcomp_real = Everything + 0x1A8E80;
-            //pcre_compile2_real = Everything + 0x193340;
-            //pcre_fullinfo_real = Everything + 0x1A7BF0;
-            regexec_real = Everything + 0x1A8F60;
-            //pcre_exec_real = Everything + 0x1A69E0;
-            //regex_free_real = Everything + 0x5D990;
+
+    if (ipc_version.major == 1 && ipc_version.minor == 4) {
+        if (ipc_version.revision == 1) {
+            if (ipc_version.build == 1009) {
+                regcomp_p3_14_real = Everything + 0x174C0;
+                regcomp_p2_14_real = Everything + 0x5CB70;
+                regcomp_real = Everything + 0x1A8E80;
+                //pcre_compile2_real = Everything + 0x193340;
+                //pcre_fullinfo_real = Everything + 0x1A7BF0;
+                regexec_real = Everything + 0x1A8F60;
+                //pcre_exec_real = Everything + 0x1A69E0;
+                //regex_free_real = Everything + 0x5D990;
+                support = true;
+            }
+            else if (ipc_version.build == 1015) {
+                regcomp_p3_14_real = Everything + 0x175A0;
+                regcomp_p2_14_real = Everything + 0x5CEC0;
+                regcomp_real = Everything + 0x1A8FC0;
+                regexec_real = Everything + 0x1A90A0;
+                support = true;
+            }
+            else if (ipc_version.build == 1017) {
+                regcomp_p3_14_real = Everything + 0x175C0;
+                regcomp_p2_14_real = Everything + 0x5CEF0;
+                regcomp_real = Everything + 0x1A8FC0;
+                regexec_real = Everything + 0x1A90A0;
+                support = true;
+            }
         }
-        else if (ipc_version.build == 1015) {
-            regcomp_p3_14_real = Everything + 0x175A0;
-            regcomp_p2_14_real = Everything + 0x5CEC0;
-            regcomp_real = Everything + 0x1A8FC0;
-            regexec_real = Everything + 0x1A90A0;
-        }
-        else if (ipc_version.build == 1017) {
-            regcomp_p3_14_real = Everything + 0x175C0;
-            regcomp_p2_14_real = Everything + 0x5CEF0;
-            regcomp_real = Everything + 0x1A8FC0;
-            regexec_real = Everything + 0x1A90A0;
-        }
-        else
-            support = false;
+        
+        if (!support)
+            support = try_match_signatures(4);
 
         if (support) {
             IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
             IbDetourAttach(&regcomp_p2_14_real, regcomp_p2_14_detour);
         }
-    } else if (ipc_version.major == 1 && ipc_version.minor == 5 && ipc_version.revision == 0) {
-        if (ipc_version.build == 1296) {
-            regcomp_p3_15_real = Everything + 0x2D170;
-            regcomp_p2_15_real = Everything + 0xB17A0;
-            regcomp_real = Everything + 0x320800;
-            regexec_real = Everything + 0x3208E0;
+    } else if (ipc_version.major == 1 && ipc_version.minor >= 5) {
+        if (ipc_version.minor == 5 && ipc_version.revision == 0) {
+            if (ipc_version.build == 1296) {
+                regcomp_p3_15_real = Everything + 0x2D170;
+                regcomp_p2_15_real = Everything + 0xB17A0;
+                regcomp_real = Everything + 0x320800;
+                regexec_real = Everything + 0x3208E0;
+                support = true;
+            }
+            else if (ipc_version.build == 1305) {
+                regcomp_p3_15_real = Everything + 0x2D920;
+                regcomp_p2_15_real = Everything + 0xB44D0;
+                regcomp_real = Everything + 0x336880;
+                regexec_real = Everything + 0x336960;
+                support = true;
+            }
+            else if (ipc_version.build == 1315) {
+                regcomp_p3_15_real = Everything + 0x2DB30;
+                regcomp_p2_15_real = Everything + 0xB7630;
+                regcomp_real = Everything + 0x348820;
+                regexec_real = Everything + 0x348900;
+                support = true;
+            }
         }
-        else if (ipc_version.build == 1305) {
-            regcomp_p3_15_real = Everything + 0x2D920;
-            regcomp_p2_15_real = Everything + 0xB44D0;
-            regcomp_real = Everything + 0x336880;
-            regexec_real = Everything + 0x336960;
-        }
-        else if (ipc_version.build == 1315) {
-            regcomp_p3_15_real = Everything + 0x2DB30;
-            regcomp_p2_15_real = Everything + 0xB7630;
-            regcomp_real = Everything + 0x348820;
-            regexec_real = Everything + 0x348900;
-        }
-        else
-            support = false;
+
+        if (!support)
+            support = try_match_signatures(5);
 
         if (support) {
             IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         }
     }
-    else
-        support = false;
     if (!support)
         throw std::runtime_error("Unsupported Everything version");
         
@@ -776,7 +967,7 @@ PinyinSearchPcre::~PinyinSearchPcre() {
         IbDetourDetach(&regcomp_p2_14_real, regcomp_p2_14_detour);
         IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
     }
-    else if (ipc_version.major == 1 && ipc_version.minor == 5) {
+    else if (ipc_version.major == 1 && ipc_version.minor >= 5) {
         IbDetourDetach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
     }
