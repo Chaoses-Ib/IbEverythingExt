@@ -3,6 +3,12 @@
 #include <yaml-cpp/yaml.h>
 #include <IbUpdate/GitHubUpdater.hpp>
 
+// IbUpdate -> github_api -> cURL
+// See https://github.com/microsoft/vcpkg/issues/2621
+#pragma comment(lib, "Ws2_32.Lib")
+//#pragma comment(lib, "Wldap32.Lib")
+#pragma comment(lib, "Crypt32.Lib")
+
 #pragma comment(lib, "Shlwapi.lib")
 
 std::wstring u8_to_u16(std::string u8) {
@@ -27,7 +33,7 @@ std::string truncate_lines(std::string s, size_t lines) {
         out << line << '\n';
     }
     if (i == lines)
-        out << u8"……\n";
+        out << (const char*)u8"……\n";
     return out.str();
 }
 

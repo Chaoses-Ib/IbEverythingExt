@@ -1,4 +1,5 @@
-﻿#include "common.hpp"
+﻿#include "pch.h"
+#include "common.hpp"
 #include "helper.hpp"
 #include "config.hpp"
 #include "ipc.hpp"

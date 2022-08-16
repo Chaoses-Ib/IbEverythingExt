@@ -1,7 +1,7 @@
 ﻿#include "common.hpp"
 
-#include "../source/match.cpp"
-#include "../source/helper.cpp"
+#include "../EverythingExt/match.cpp"
+#include "../EverythingExt/helper.cpp"
 
 BOOST_AUTO_TEST_SUITE(Match)
     BOOST_AUTO_TEST_CASE(Match) {

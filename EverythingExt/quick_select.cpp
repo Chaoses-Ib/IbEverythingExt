@@ -1,4 +1,5 @@
-﻿#include "quick_select.hpp"
+﻿#include "pch.h"
+#include "quick_select.hpp"
 #include <CommCtrl.h>
 #include <Shlwapi.h>
 #include <ShlObj.h>

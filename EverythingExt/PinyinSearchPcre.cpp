@@ -1,4 +1,5 @@
-﻿#include "PinyinSearchPcre.hpp"
+﻿#include "pch.h"
+#include "PinyinSearchPcre.hpp"
 #include <Psapi.h>
 #include <sigmatch/sigmatch.hpp>
 #include "config.hpp"

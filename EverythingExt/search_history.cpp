@@ -1,4 +1,5 @@
-﻿#include "common.hpp"
+﻿#include "pch.h"
+#include "common.hpp"
 #include "search_history.hpp"
 #include <unordered_map>
 #include <string>

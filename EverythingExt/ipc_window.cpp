@@ -1,4 +1,5 @@
-﻿#include "ipc_window.hpp"
+﻿#include "pch.h"
+#include "ipc_window.hpp"
 #include <IbEverything/Everything.hpp>
 #include "helper.hpp"
 

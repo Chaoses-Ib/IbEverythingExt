@@ -1,4 +1,5 @@
-﻿#include "common.hpp"
+﻿#include "pch.h"
+#include "common.hpp"
 #include "config.hpp"
 #include <fstream>
 #include <regex>
