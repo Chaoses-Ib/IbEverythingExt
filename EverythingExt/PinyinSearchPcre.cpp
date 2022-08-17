@@ -902,6 +902,12 @@ PinyinSearchPcre::PinyinSearchPcre() {
                 regexec_real = Everything + 0x1A90A0;
                 support = true;
             }
+            else if (ipc_version.build == 1018) {
+                regcomp_p3_14_real = Everything + 0x175A0;
+                regcomp_p2_14_real = Everything + 0x5CEB0;
+                regcomp_real = Everything + 0x1A8E80;
+                regexec_real = Everything + 0x1A8F60;
+            }
         }
         
         if (!support)
