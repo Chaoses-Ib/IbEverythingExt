@@ -123,7 +123,7 @@ bool config_init() {
         if (config.update.check = root["update"]["check"].as<bool>()) {
             wchar_t update_path[MAX_PATH];
             wcscpy_s(update_path, root_path);
-            PathAppendW(update_path, L"update.exe");
+            PathAppendW(update_path, L"Updater.exe");
             config.update.update_path = update_path;
 
             // to avoid checking on system startup and when calling Everything through command line,

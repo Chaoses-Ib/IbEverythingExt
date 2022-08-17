@@ -15,3 +15,7 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE="C:\...\vcpkg\scripts\buildsystems\vcpkg.c
 ```
 vcpkg install boost-test pcre pcre2 --triplet=x64-windows-static-md
 ```
+
+## Bump version
+- EverythingExt\resource.rc
+- Updater\updater.cpp
