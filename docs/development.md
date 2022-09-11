@@ -2,7 +2,7 @@
 ## 构建
 [vcpkg](https://github.com/microsoft/vcpkg)：
 ```cmd
-vcpkg install detours yaml-cpp curl --triplet=x64-windows-static-md
+vcpkg install fmt detours yaml-cpp curl --triplet=x64-windows-static-md
 ```
 [CMake](https://cliutils.gitlab.io/modern-cmake/)：
 ```cmd

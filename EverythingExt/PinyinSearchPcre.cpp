@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 #include "PinyinSearchPcre.hpp"
+#include <fmt/core.h>
+#include <fmt/xchar.h>
 #include <Psapi.h>
 #include <sigmatch/sigmatch.hpp>
 #include "config.hpp"
@@ -51,6 +53,11 @@ uint64_t regcomp_p3_15_detour(void* a1) {
     */
 
     regcomp_p3_common(ib::Addr(a1).offset<uint64_t>(406)[0], ib::Addr(a1).offset<uint64_t>(408)[0]);
+    return regcomp_p3_15_real(a1);
+}
+
+uint64_t regcomp_p3_15_0_1318_detour(void* a1) {
+    regcomp_p3_common(ib::Addr(a1).offset<uint64_t>(393)[0], ib::Addr(a1).offset<uint64_t>(395)[0]);
     return regcomp_p3_15_real(a1);
 }
 
@@ -697,11 +704,20 @@ bool try_match_signatures(int version) {
 
     /*
     ## regcomp_p3
+    E9 ?? ?? ?? ?? 48 8B 8F ?? ?? ?? ?? 33 D2
+    - v1.4.1.1018: 0
+    - v1.5.0.1296: 1
+    - v1.5.0.1315: 1
+    - v1.5.0.1318: 1
+
     ... CC
     v1.4: ~0x175C0
     4C 8B DC                             mov     r11, rsp
     v1.5: ~0x2DB30
     40 56                                push    rsi
+    v1.5.0.1318:
+    41 54                                push    r12
+    41 57                                push    r15
 
     0xBD:
     49 8B 87 F0 0C 00 00                 mov     rax, [r15+0CF0h]
@@ -753,6 +769,12 @@ bool try_match_signatures(int version) {
     v1.5: ~0xB7630
     4C 8B DC                             mov     r11, rsp
 
+    4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 41 08
+    - v1.4.1.1018: 0
+    - v1.5.0.1296: 1
+    - v1.5.0.1315: 1
+    - v1.5.0.1318: 1
+
     0xD:
     8B 52 28                             mov     edx, [rdx+28h]
     48 8B F9                             mov     rdi, rcx
@@ -771,6 +793,12 @@ bool try_match_signatures(int version) {
     ... CC
     v1.4: ~0x1A8FC0, v1.5: ~0x348820
     40 53                                push    rbx
+
+    40 53 48 83 EC 40 45 33 C9
+    - v1.4.1.1018: 1
+    - v1.5.1.1296: 1
+    - v1.5.1.1315: 1
+    - v1.5.1.1318: 1
 
     0x49:
     41 0F BA E0 0A                       bt      r8d, 10
@@ -795,6 +823,11 @@ bool try_match_signatures(int version) {
 
 
     ## regexec
+    E8 ? ? ? ? 85 C0 0F 94 C3
+    - v1.4.1.1018: 1
+    - v1.5.0.1296: 1
+    - v1.5.0.1318: 1
+
     ... CC
     v1.4: ~0x1A90A0, v1.5: ~0x348900
     48 89 5C 24 18                       mov     [rsp+arg_10], rbx
@@ -808,6 +841,7 @@ bool try_match_signatures(int version) {
     49 81 F8 AA AA AA 0A 76 0A B8 0E 00 00 00 E9 ?? ?? ?? ??
     - v1.4.1.1017: 1
     - v1.5.0.1315: 1
+    - v1.5.0.1318: 1
     */
 
     MODULEINFO info;
@@ -825,20 +859,41 @@ bool try_match_signatures(int version) {
         return p + 2;
     };
     */
-
-    auto search_entry = [&target, &context](sigmatch::signature sig, sigmatch::signature entry_sig, size_t entry_range) -> ib::Addr {
+    
+    auto search = [&target, &context](sigmatch::signature sig) -> ib::Addr {
         std::vector<const std::byte*> matches = context.search(sig).matches();
-        if (matches.empty())
+        if (matches.empty()) {
+            if constexpr (debug)
+                DebugOStream() << L"search: Found zero result\n";
+            return nullptr;
+        }
+        if constexpr (debug)
+            if (matches.size() > 1)
+                DebugOStream() << L"search: Found more than one results\n";
+        return (void*)matches[0];
+    };
+    auto search_entry = [&target, &context, &search](sigmatch::signature sig, sigmatch::signature entry_sig, size_t entry_range) -> ib::Addr {
+        ib::Addr code = search(sig);
+        if (!code)
             return nullptr;
         
         // not stable
         //return find_entry_CC(matches[0]);
 
-        matches = target.in_range({ matches[0] - entry_range, entry_range }).search(entry_sig).matches();
+        std::vector<const std::byte*> matches = target.in_range({ code - entry_range, entry_range }).search(entry_sig).matches();
         if (matches.empty())
             return nullptr;
 
         return (void*)matches.back();
+    };
+    auto search_call = [&target, &context, &search]<typename offset>(sigmatch::signature sig, size_t call_offset) -> ib::Addr {
+        ib::Addr code = search(sig);
+        if (!code)
+            return nullptr;
+
+        ib::Addr offset_addr = code + call_offset;
+        ib::Addr eip = offset_addr + sizeof(offset);
+        return eip + *(offset*)offset_addr;
     };
 
     switch (version) {
@@ -847,25 +902,53 @@ bool try_match_signatures(int version) {
             return false;
         if (!(regcomp_p2_14_real = search_entry("8B 52 28 48 8B F9 0F BA E2 0B 0F 83 ?? ?? ?? ?? 44 0F B6 46 30"_sig, "48 89 74 24"_sig, 0x30)))
             return false;
-        if constexpr (debug)
-            DebugOStream() << L"regcomp_p3_14: " << regcomp_p3_14_real << L", regcomp_p2_14: " << regcomp_p2_14_real << L'\n';
         break;
     case 5:
-        if (!(regcomp_p3_15_real = search_entry("41 F7 C3 02 00 1C 00 74"_sig, "40 56"_sig, 0x3000)))
-            return false;
-        if (!(regcomp_p2_15_real = search_entry("0F BA A0 18 01 00 00 0B"_sig, "4C 8B DC"_sig, 0x50)))
-            return false;
-        if constexpr (debug)
-            DebugOStream() << L"regcomp_p3_15: " << regcomp_p3_15_real << L", regcomp_p2_15: " << regcomp_p2_15_real << L'\n';
+        if (!(regcomp_p3_15_real = search_call.template operator()<int32_t>("E9 ?? ?? ?? ?? 48 8B 8F ?? ?? ?? ?? 33 D2"_sig, 1))) {
+            if (!(regcomp_p3_15_real = search_entry("41 F7 C3 02 00 1C 00 74"_sig, "40 56"_sig, 0x3000)))  // < v1.5.0.1318
+                return false;
+        }
+        if (!(regcomp_p2_15_real = search("4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 41 08"_sig))) {
+            if (!(regcomp_p2_15_real = search_entry("0F BA A0 18 01 00 00 0B"_sig, "4C 8B DC"_sig, 0x50)))
+                return false;
+        }
         break;
     }
     
-    if (!(regcomp_real = search_entry("41 0F BA E0 0A 73 04 0F BA EA 1D"_sig, "40 53"_sig, 0xA0)))
-        return false;
-    if (!(regexec_real = search_entry("49 81 F8 AA AA AA 0A 76 0A B8 0E 00 00 00 E9"_sig, "48 89 5C 24"_sig, 0x140)))
-        return false;
-    if constexpr (debug)
-        DebugOStream() << L"regcomp: " << regcomp_real << L", regexec: " << regexec_real << L'\n';
+    if (!(regcomp_real = search("40 53 48 83 EC 40 45 33 C9"_sig))) {
+        if (!(regcomp_real = search_entry("41 0F BA E0 0A 73 04 0F BA EA 1D"_sig, "40 53"_sig, 0xA0)))
+            return false;
+    }
+    if (!(regexec_real = search_entry("49 81 F8 AA AA AA 0A 76 0A B8 0E 00 00 00 E9"_sig, "48 89 5C 24"_sig, 0x140))) {
+        if (!(regexec_real = search_call.template operator()<int32_t>("E8 ?? ?? ?? ?? 85 C0 0F 94 C3"_sig, 1)))
+            return false;
+    }
+
+    if constexpr (debug) {
+        switch (version) {
+        case 4:
+            DebugOStream() << fmt::format(
+LR"(regcomp_p3_14_real = Everything + 0x{:X};
+regcomp_p2_14_real = Everything + 0x{:X};
+regcomp_real = Everything + 0x{:X};
+regexec_real = Everything + 0x{:X};
+)", ib::Addr(regcomp_p3_14_real) - info.lpBaseOfDll,
+    ib::Addr(regcomp_p2_14_real) - info.lpBaseOfDll,
+    ib::Addr(regcomp_real) - info.lpBaseOfDll,
+    ib::Addr(regexec_real) - info.lpBaseOfDll);
+            break;
+        case 5:
+            DebugOStream() << fmt::format(
+LR"(regcomp_p3_15_real = Everything + 0x{:X};
+regcomp_p2_15_real = Everything + 0x{:X};
+regcomp_real = Everything + 0x{:X};
+regexec_real = Everything + 0x{:X};
+)", ib::Addr(regcomp_p3_15_real) - info.lpBaseOfDll,
+    ib::Addr(regcomp_p2_15_real) - info.lpBaseOfDll,
+    ib::Addr(regcomp_real) - info.lpBaseOfDll,
+    ib::Addr(regexec_real) - info.lpBaseOfDll);
+        }
+    }
 
     return true;
 }
@@ -907,6 +990,14 @@ PinyinSearchPcre::PinyinSearchPcre() {
                 regcomp_p2_14_real = Everything + 0x5CEB0;
                 regcomp_real = Everything + 0x1A8E80;
                 regexec_real = Everything + 0x1A8F60;
+                support = true;
+            }
+            else if (ipc_version.build == 1020) {
+                regcomp_p3_14_real = Everything + 0x175A0;
+                regcomp_p2_14_real = Everything + 0x5CEB0;
+                regcomp_real = Everything + 0x1A8E80;
+                regexec_real = Everything + 0x1A8F60;
+                support = true;
             }
         }
         
@@ -940,13 +1031,26 @@ PinyinSearchPcre::PinyinSearchPcre() {
                 regexec_real = Everything + 0x348900;
                 support = true;
             }
+            else if (ipc_version.build == 1318) {
+                regcomp_p3_15_real = Everything + 0x319C0;
+                regcomp_p2_15_real = Everything + 0xC1F00;
+                regcomp_real = Everything + 0x35AA30;
+                regexec_real = Everything + 0x35AB10;
+                support = true;
+            }
         }
 
         if (!support)
             support = try_match_signatures(5);
 
         if (support) {
-            IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+            if (ipc_version.revision == 0 && ipc_version.build < 1318) {
+                IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+            }
+            else {
+                IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_0_1318_detour);
+            }
+            
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         }
     }
