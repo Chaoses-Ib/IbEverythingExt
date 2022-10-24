@@ -7,7 +7,6 @@
 * [安装](#安装)
 * [拼音搜索](#拼音搜索)
   * [第三方程序支持](#第三方程序支持)
-    * [→预览](docs/third_party/README.md)
   * [配置](#配置)
 * [快速选择](#快速选择)
   * [热键](#热键)
@@ -46,17 +45,20 @@
   * `;py`：小写字母只匹配拼音
   * `;np`：禁用拼音搜索
 
-![](docs/pinyin_search.png)
+<img src="docs/pinyin_search.png" height="400"/>
 
-### 第三方程序支持
+### [第三方程序支持](docs/third_party/README.md)
 拼音搜索对调用 Everything 进行搜索的第三方程序同样生效，例如：
-* [stnkl/EverythingToolbar](https://github.com/stnkl/EverythingToolbar)
-* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Everything 插件](https://github.com/Flow-Launcher/Flow.Launcher.Plugin.Everything)
-* [火柴（火萤酱）](https://www.huochaipro.com/)本地搜索
-* [uTools](https://u.tools) 本地搜索
+* [EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
+  <img src="docs/third_party/EverythingToolbar.png" height="300"/>
+* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Everything 插件](https://github.com/Flow-Launcher/Flow.Launcher.Plugin.Everything)  
+  <img src="docs/third_party/FlowLauncher.png" height="200"/>
+* [PowerToys Run](https://learn.microsoft.com/windows/powertoys/run) 的 [Everything 插件](https://github.com/lin-ycv/EverythingPowerToys)  
+  <img src="docs/third_party/PowerToys.png" height="200"/>
+* [uTools](https://u.tools) 本地搜索  
+  <img src="docs/third_party/uTools.png" height="300"/>
 * [Wox](https://github.com/Wox-launcher/Wox) 的 Everything 插件
-
-预览见 [第三方程序](docs/third_party/README.md)。
+* [火柴（火萤酱）](https://www.huochaipro.com/)本地搜索
 
 如果使用的是 Everything 1.5 预览版，因为预览版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
 
