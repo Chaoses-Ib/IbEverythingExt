@@ -17,6 +17,8 @@
   * [硬盘占用分析](#硬盘占用分析)
   * [检查更新](#检查更新)
 * [→开发](docs/development.md)
+* [致谢](#致谢)
+* [相关链接](#相关链接)
 
 ## 安装
 1. 安装 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版或便携版（不支持其它架构和精简版）  
@@ -219,3 +221,16 @@ update:
 --- | --- | ---
 2023-04-28 | Xudong.He@CN |
 2024-07-09 | 田昊 \| JLL仲量联行 |
+
+## 相关链接
+群组：
+- [Telegram 文件管理交流群](https://t.me/IbDirectoryOpusGroup)
+
+库：
+- [IbPinyinLib: 一个高性能 Rust 拼音匹配库，支持 C、AHK2](https://github.com/Chaoses-Ib/IbPinyinLib)
+- [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
+- [IbEverythingLib: A C++17 library for voidtool's Everything.](https://github.com/Chaoses-Ib/IbEverythingLib)
+
+项目：
+- [DirectoryOpus: 一款上手简单、系统集成度高、功能强大的 Windows 文件管理器](https://github.com/Chaoses-Ib/DirectoryOpus)
+- [ObsidianShell: 关联 Markdown 文件到 Obsidian](https://github.com/Chaoses-Ib/ObsidianShell)
