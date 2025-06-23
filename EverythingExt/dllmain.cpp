@@ -140,7 +140,7 @@ HWND WINAPI CreateWindowExW_detour(
                 static bool created = false;
                 if (created) {
                     wchar_t cmd_line[] = L"--quiet";
-                    STARTUPINFOW startup_info{ sizeof STARTUPINFOW };
+                    STARTUPINFOW startup_info{ sizeof(STARTUPINFOW) };
                     PROCESS_INFORMATION process_info{};
 
                     if (CreateProcessW(config.update.update_path.c_str(), cmd_line, nullptr, nullptr, false, 0, nullptr, nullptr, &startup_info, &process_info)) {

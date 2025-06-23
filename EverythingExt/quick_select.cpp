@@ -308,7 +308,7 @@ LRESULT CALLBACK keyboard_proc(
                     };
                     if (quick_select.close_everything)
                         close_when_killfocus = true;
-                    SendInput(std::size(inputs), inputs, sizeof INPUT);
+                    SendInput(std::size(inputs), inputs, sizeof(INPUT));
                 }
                 else if (ctrl && !shift) /* Alt+Ctrl */ {
                     static INPUT inputs[]{
@@ -320,7 +320,7 @@ LRESULT CALLBACK keyboard_proc(
                     };
                     if (quick_select.close_everything)
                         close_when_killfocus = true;
-                    SendInput(std::size(inputs), inputs, sizeof INPUT);
+                    SendInput(std::size(inputs), inputs, sizeof(INPUT));
                 }
                 else if (!ctrl && shift) /* Alt+Shift */ {
                     SendMessageW(list, WM_CONTEXTMENU, (WPARAM)list, -1);
@@ -433,7 +433,7 @@ LRESULT CALLBACK keyboard_proc(
                         .list = list,
                         .wParam = wParam
                     };
-                    SendInput(std::size(inputs), inputs, sizeof INPUT);
+                    SendInput(std::size(inputs), inputs, sizeof(INPUT));
                     
                     break;
                 }
