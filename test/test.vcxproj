@@ -29,7 +29,7 @@
     <ClCompile Include="v1.5a.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\external\build\_deps\ibeverything-build\IbEverything.vcxproj">
+    <ProjectReference Include="..\external\build\_deps\ibeverything-build\everything-cpp\IbEverything.vcxproj">
       <Project>{1dbb8594-6baf-34c0-9998-6aa359588998}</Project>
     </ProjectReference>
     <ProjectReference Include="..\external\build\_deps\ibpinyin-build\IbPinyin.vcxproj">
@@ -115,7 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -131,7 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -164,7 +164,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>

@@ -5,7 +5,7 @@ project(external)
 include(FetchContent)
 FetchContent_Declare(IbWinCpp
     GIT_REPOSITORY https://github.com/Chaoses-Ib/IbWinCppLib.git
-    GIT_TAG        a29ac95537f403ac5ae221cb744d3e82076efbf7
+    GIT_TAG        f630f0e3a2c757652298c626fcd52469e5d5bc81
 )
 FetchContent_Declare(IbDllHijack
     GIT_REPOSITORY https://github.com/Chaoses-Ib/IbDllHijackLib.git
@@ -13,7 +13,7 @@ FetchContent_Declare(IbDllHijack
 )
 FetchContent_Declare(IbEverything
     GIT_REPOSITORY https://github.com/Chaoses-Ib/IbEverythingLib.git
-    GIT_TAG        0fda1b6a2db79112b08ebdfb1443a84959ddc042
+    GIT_TAG        f3fb2a5481aedbbe7b0dc063374690320a5193c2
 )
 FetchContent_Declare(IbPinyin
     GIT_REPOSITORY https://github.com/Chaoses-Ib/IbPinyinLib.git

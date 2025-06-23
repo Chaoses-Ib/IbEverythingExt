@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IbWinCpp", "external\build\_deps\ibwincpp-build\IbWinCpp.vcxproj", "{81A0272A-5EF3-30A8-9154-3A5A8DF9AA70}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IbEverything", "external\build\_deps\ibeverything-build\IbEverything.vcxproj", "{1DBB8594-6BAF-34C0-9998-6AA359588998}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IbEverything", "external\build\_deps\ibeverything-build\everything-cpp\IbEverything.vcxproj", "{1DBB8594-6BAF-34C0-9998-6AA359588998}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IbPinyin", "external\build\_deps\ibpinyin-build\IbPinyin.vcxproj", "{169D9787-0F47-3EE4-9056-C52DFC6E922A}"
 EndProject

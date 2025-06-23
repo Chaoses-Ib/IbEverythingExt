@@ -101,7 +101,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -120,7 +120,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,7 +140,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -159,7 +159,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -211,7 +211,7 @@
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\external\build\_deps\ibeverything-build\IbEverything.vcxproj">
+    <ProjectReference Include="..\external\build\_deps\ibeverything-build\everything-cpp\IbEverything.vcxproj">
       <Project>{1dbb8594-6baf-34c0-9998-6aa359588998}</Project>
     </ProjectReference>
     <ProjectReference Include="..\external\build\_deps\ibpinyin-build\IbPinyin.vcxproj">
