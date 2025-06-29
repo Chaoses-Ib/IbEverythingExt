@@ -484,7 +484,7 @@ BOOL WINAPI SetWindowTextW_detour(
                 return true;
             }
 
-            auto iter = content_map.find<std::wstring>(lpString);
+            auto iter = content_map.find(lpString);
             if (iter != content_map.end())
                 return SetWindowTextW_real(hWnd, iter->second.c_str());
         }

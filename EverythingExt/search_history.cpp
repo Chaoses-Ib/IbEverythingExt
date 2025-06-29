@@ -92,7 +92,7 @@ BOOL WINAPI MoveFileExW_detour(
                     search_u16.resize(MultiByteToWideChar(CP_UTF8, 0, search.data(), search.size(), search_u16.data(), search_u16.size()));
 
                     // processed content -> content
-                    auto iter = content_map.find<std::wstring>(search_u16);
+                    auto iter = content_map.find(search_u16);
                     if (iter != content_map.end()) {
                         // content to content_u8
                         std::string content_u8(iter->second.size() * 3, '\0');
@@ -124,7 +124,7 @@ BOOL WINAPI MoveFileExW_detour(
                 }
                 j--;
                 uint32_t count = std::atoi(&history[i]);  // (i, j - i)
-                auto iter = search_map.find<std::string>(search);
+                auto iter = search_map.find(search);
                 if (iter == search_map.end()) {
                     search_map[search] = count;
                 } else {
@@ -195,7 +195,7 @@ BOOL WINAPI TextOutW_detour(_In_ HDC hdc, _In_ int x, _In_ int y, _In_reads_(c) 
             sv = std::wstring_view(lpString);  // #TODO: is it always zero-terminated?
         }
 
-        auto iter = content_map.find<std::wstring>(std::wstring(sv));  // #TODO: directly use sv
+        auto iter = content_map.find(std::wstring(sv));  // #TODO: directly use sv
         if (iter != content_map.end()) {
             return TextOutW_real(hdc, x, y, iter->second.c_str(), iter->second.size());
         }
