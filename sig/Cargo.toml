@@ -1,0 +1,13 @@
+[package]
+name = "sig"
+version = "0.1.0"
+edition = "2024"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+bon = "3.6.4"
+pelite = "0.10.0"
