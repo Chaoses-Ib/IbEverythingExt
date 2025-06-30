@@ -51,15 +51,15 @@ uint64_t regcomp_p3_15_detour(void* a1) {
     if (!global_regex)
         *regex = 1;
     */
-
-    regcomp_p3_common(ib::Addr(a1).offset<uint64_t>(406)[0], ib::Addr(a1).offset<uint64_t>(408)[0]);
+    
+    regcomp_p3_common(ib::Addr(a1)[PinyinSearchPcre::offsets.regcomp_p3_search], ib::Addr(a1)[PinyinSearchPcre::offsets.regcomp_p3_filter]);
     return regcomp_p3_15_real(a1);
 }
 
-uint64_t regcomp_p3_15_0_1318_detour(void* a1) {
-    regcomp_p3_common(ib::Addr(a1).offset<uint64_t>(393)[0], ib::Addr(a1).offset<uint64_t>(395)[0]);
-    return regcomp_p3_15_real(a1);
-}
+// uint64_t regcomp_p3_15_0_1318_detour(void* a1) {
+//     regcomp_p3_common(ib::Addr(a1).offset<uint64_t>(393)[0], ib::Addr(a1).offset<uint64_t>(395)[0]);
+//     return regcomp_p3_15_real(a1);
+// }
 
 #pragma endregion
 
@@ -185,11 +185,11 @@ bool regcomp_p2_14_detour(void* a1, regcomp_p2_14* a2) {
 
 bool (*regcomp_p2_15_real)(void** a1);
 bool regcomp_p2_15_detour(void** a1) {
-    char8_t* termtext = ib::Addr(a1[1]) + 288;
-    size_t* termtext_len = ib::Addr(a1[1]) + 256;
+    char8_t* termtext = ib::Addr(a1[1]) + PinyinSearchPcre::offsets.regcomp_p2_termtext_1;
+    size_t* termtext_len = ib::Addr(a1[1]) + PinyinSearchPcre::offsets.regcomp_p2_termtext_0;
     assert(termtext[*termtext_len] == u8'\0');
 
-    regcomp_p2_common(ib::Addr(a1[1]) + 280, termtext, termtext_len);
+    regcomp_p2_common(ib::Addr(a1[1]) + PinyinSearchPcre::offsets.regcomp_p2_modifiers, termtext, termtext_len);
     termtext[*termtext_len] = u8'\0';
     return regcomp_p2_15_real(a1);
 }
@@ -955,8 +955,22 @@ regexec_real = Everything + 0x{:X};
 
 
 PinyinSearchPcre::PinyinSearchPcre() {
-    bool support = false;
+    if constexpr (debug)
+        DebugOStream() << "PinyinSearchPcre()\n";
+
     ib::Addr Everything = ib::ModuleFactory::current_process().base;
+
+    offsets = get_everything_exe_offsets();
+    regcomp_p3_14_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p3 : nullptr;
+    regcomp_p3_15_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p3 : nullptr;
+    regcomp_p2_14_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p2 : nullptr;
+    regcomp_p2_15_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p2 : nullptr;
+    regcomp_real = offsets.regcomp_p3 ? Everything + offsets.regcomp : nullptr;
+    regexec_real = offsets.regcomp_p3 ? Everything + offsets.regexec : nullptr;
+
+    bool support = regcomp_p3_14_real && regcomp_p2_14_real && regcomp_real && regexec_real;
+    if constexpr (debug)
+        DebugOStream() << "support: " << support;
 
     if (ipc_version.major == 1 && ipc_version.minor == 4) {
         if (ipc_version.revision == 1) {
@@ -1000,7 +1014,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
                 support = true;
             }
         }
-        
+
         if (!support)
             support = try_match_signatures(4);
 
@@ -1044,12 +1058,13 @@ PinyinSearchPcre::PinyinSearchPcre() {
             support = try_match_signatures(5);
 
         if (support) {
-            if (ipc_version.revision == 0 && ipc_version.build < 1318) {
-                IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
-            }
-            else {
-                IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_0_1318_detour);
-            }
+            //if (ipc_version.revision == 0 && ipc_version.build < 1318) {
+            //    IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+            //}
+            //else {
+            //    IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_0_1318_detour);
+            //}
+            IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
             
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         }

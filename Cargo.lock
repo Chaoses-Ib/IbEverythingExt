@@ -62,6 +62,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.98"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
+
+[[package]]
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -509,7 +515,7 @@ dependencies = [
 [[package]]
 name = "everything-plugin"
 version = "0.1.2"
-source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=77e30619575a525dfeb32bb63173aed26ef3e2c4#77e30619575a525dfeb32bb63173aed26ef3e2c4"
+source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=e6a2f5dce64c486ebe668b5cce71109cbb228191#e6a2f5dce64c486ebe668b5cce71109cbb228191"
 dependencies = [
  "anstream",
  "bon",
@@ -520,6 +526,7 @@ dependencies = [
  "tracing",
  "tracing-panic",
  "tracing-subscriber",
+ "widestring",
  "windows-sys 0.59.0",
  "winio",
 ]
@@ -1044,6 +1051,7 @@ version = "0.7.0"
 dependencies = [
  "everything-plugin",
  "serde",
+ "sig",
  "vcpkg",
 ]
 
@@ -1329,6 +1337,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 name = "sig"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bon",
  "pelite",
 ]

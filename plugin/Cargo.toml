@@ -14,8 +14,9 @@ name = "IbEverythingExt"
 crate-type = ["cdylib"]
 
 [dependencies]
-everything-plugin = { version = "0.1.2", git = "https://github.com/Chaoses-Ib/IbEverythingLib", rev = "77e30619575a525dfeb32bb63173aed26ef3e2c4" }
+everything-plugin = { version = "0.1.2", git = "https://github.com/Chaoses-Ib/IbEverythingLib", rev = "e6a2f5dce64c486ebe668b5cce71109cbb228191" }
 serde = "1"
+sig.workspace = true
 
 [build-dependencies]
 vcpkg = "0.2.15"

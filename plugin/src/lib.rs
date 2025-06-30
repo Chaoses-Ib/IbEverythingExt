@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
 
 use everything_plugin::{
-    PluginApp, PluginHandler, plugin_main,
+    PluginApp, PluginHandler,
+    log::{debug, error},
+    plugin_main,
     serde::{Deserialize, Serialize},
     ui::{self, OptionsPage},
 };
@@ -16,16 +18,45 @@ pub struct Config {
 
 pub struct App {
     config: Config,
+    offsets: Option<sig::EverythingExeOffsets>,
 }
 
 impl PluginApp for App {
     type Config = Config;
 
     fn new(config: Option<Self::Config>) -> Self {
-        unsafe { ffi::start(0 as _) };
         Self {
             config: config.unwrap_or_default(),
+            offsets: match sig::EverythingExeOffsets::from_current_exe() {
+                Ok(offsets) => {
+                    debug!(?offsets);
+                    Some(offsets)
+                }
+                Err(e) => {
+                    error!(%e, "Failed to get offsets from current exe");
+                    None
+                }
+            },
         }
+    }
+
+    fn start(&self) {
+        let instance_name = HANDLER
+            .instance_name()
+            .unwrap_or_default()
+            .encode_utf16()
+            .chain([0, 0])
+            .collect::<Vec<_>>();
+        let args = ffi::StartArgs {
+            config: self.config.s.as_ptr() as *const _,
+            ipc_window: HANDLER
+                .host()
+                .ipc_window_from_main_thread()
+                .map(|w| w.hwnd())
+                .unwrap_or_default(),
+            instance_name: instance_name.as_ptr(),
+        };
+        unsafe { ffi::start(&args) };
     }
 
     fn config(&self) -> &Self::Config {

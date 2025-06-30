@@ -173,6 +173,7 @@
   <ItemGroup>
     <ClInclude Include="common.hpp" />
     <ClInclude Include="config.hpp" />
+    <ClInclude Include="ffi.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="helper.hpp" />
     <ClInclude Include="ipc.hpp" />

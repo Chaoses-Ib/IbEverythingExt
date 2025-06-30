@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{ops::Range, path::Path};
 
 use bon::bon;
 use pelite::{
@@ -400,6 +400,48 @@ impl<'a> EverythingExe<'a> {
             Skip(1),
             Byte(0x0C),
         ])
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+#[repr(C)]
+pub struct EverythingExeOffsets {
+    pub regcomp_p3: Option<Rva>,
+    pub regcomp_p3_search: Option<usize>,
+    pub regcomp_p3_filter: Option<usize>,
+    pub regcomp_p: Option<Rva>,
+    pub regcomp_p2: Option<Rva>,
+    pub regcomp_p2_termtext: Option<(usize, usize)>,
+    pub regcomp_p2_modifiers: Option<usize>,
+    pub regcomp: Option<Rva>,
+    pub regexec: Option<Rva>,
+}
+
+impl EverythingExe<'_> {
+    pub fn offsets(&self) -> EverythingExeOffsets {
+        EverythingExeOffsets {
+            regcomp_p3: self.regcomp_p3(),
+            regcomp_p3_search: self.regcomp_p3_search(),
+            regcomp_p3_filter: self.regcomp_p3_filter(),
+            regcomp_p: self.regcomp_p(),
+            regcomp_p2: self.regcomp_p2(),
+            regcomp_p2_termtext: self.regcomp_p2_termtext(),
+            regcomp_p2_modifiers: self.regcomp_p2_modifiers(),
+            regcomp: self.regcomp(),
+            regexec: self.regexec(),
+        }
+    }
+}
+
+impl EverythingExeOffsets {
+    pub fn from_path(path: &Path) -> Result<Self, anyhow::Error> {
+        let map = pelite::FileMap::open(path)?;
+        let exe = EverythingExe::from_bytes(map.as_ref())?;
+        Ok(exe.offsets())
+    }
+
+    pub fn from_current_exe() -> Result<Self, anyhow::Error> {
+        Self::from_path(&std::env::current_exe()?)
     }
 }
 

@@ -9,5 +9,6 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
+anyhow = "1.0.98"
 bon = "3.6.4"
 pelite = "0.10.0"

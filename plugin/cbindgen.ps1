@@ -1,0 +1,1 @@
+﻿cbindgen > ../EverythingExt/ffi.h

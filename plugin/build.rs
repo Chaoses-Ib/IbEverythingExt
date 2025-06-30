@@ -7,6 +7,8 @@ fn main() {
         _ => "Debug",
     };
     println!("cargo::rustc-link-lib=x64/{config}/EverythingExt");
+    println!("cargo::rerun-if-changed=x64/{config}/EverythingExt.lib");
+
     println!("cargo::rustc-link-lib=external/build/_deps/ibwincpp-build/{config}/IbWinCpp");
     println!("cargo::rustc-link-lib=external/build/_deps/ibpinyin-build/{config}/IbPinyin");
     println!(

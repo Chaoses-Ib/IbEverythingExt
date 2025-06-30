@@ -82,6 +82,23 @@ LONG_PTR WINAPI SetWindowLongPtrW_detour(
     return SetWindowLongPtrW_real(hWnd, nIndex, dwNewLong);
 }
 
+void on_ipc_window_created(HWND ipc_window) {
+    ipc_init(instance_name);
+
+    if (config.pinyin_search.enable) {
+        try {
+            pinyin_search = make_pinyin_search(config.pinyin_search.mode, instance_name, ipc_window);
+        }
+        catch (std::runtime_error& e) {
+            config.pinyin_search.enable = false;
+            MessageBoxW(0, L"拼音搜索 PCRE 模式不支持当前 Everything 版本，请更换至受支持的版本或禁用拼音搜索", L"IbEverythingExt", MB_ICONERROR);
+        }
+    }
+                
+    if (config.quick_select.enable)
+        quick::init();
+}
+
 auto CreateWindowExW_real = CreateWindowExW;
 HWND WINAPI CreateWindowExW_detour(
     _In_ DWORD dwExStyle,
@@ -179,20 +196,7 @@ HWND WINAPI CreateWindowExW_detour(
                 }
             }
         } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
-            ipc_init(instance_name);
-
-            if (config.pinyin_search.enable) {
-                try {
-                    pinyin_search = make_pinyin_search(config.pinyin_search.mode, instance_name, wnd);
-                }
-                catch (std::runtime_error& e) {
-                    config.pinyin_search.enable = false;
-                    MessageBoxW(0, L"拼音搜索 PCRE 模式不支持当前 Everything 版本，请更换至受支持的版本或禁用拼音搜索", L"IbEverythingExt", MB_ICONERROR);
-                }
-            }
-                
-            if (config.quick_select.enable)
-                quick::init();
+            on_ipc_window_created(wnd);
         }
     }
     return wnd;
@@ -221,9 +225,14 @@ BOOL CALLBACK enum_window_proc(
 }
 */
 
-extern "C" bool start(const char* yaml) {
+extern "C" bool start(const StartArgs* args) {
     if (!config_init())
         return false;
+
+    if (args) {
+        instance_name = (const wchar_t*)args->instance_name;
+        on_ipc_window_created((HWND)args->ipc_window);
+    }
 
     IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
     if (config.quick_select.enable)
