@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
 
 project(external)
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 include(FetchContent)
 FetchContent_Declare(IbWinCpp

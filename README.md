@@ -23,11 +23,13 @@
 ## 安装
 1. 安装 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版或便携版（不支持其它架构和精简版）  
   如果你能接受英文界面，也可以选择安装 [Everything 1.5 预览版](https://www.voidtools.com/forum/viewtopic.php?f=12&t=9787#download)。
+<!--
 2. 安装 [VC++ 2022 x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)  
    （[PowerToys](https://github.com/microsoft/PowerToys) 在安装时会同时安装 VC++ 2022 运行库，如果你安装了 PowerToys 就可以跳过这一步）
-3. 从 [Releases](../../releases) 下载压缩包
-4. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）
-5. 重启 Everything
+-->
+2. 从 [Releases](../../releases) 下载压缩包
+3. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）
+4. 重启 Everything
 
 ## 拼音搜索
 允许用拼音在 Everything 中搜索文件。

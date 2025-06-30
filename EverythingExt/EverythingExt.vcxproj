@@ -87,21 +87,22 @@
     <TargetName>WindowsCodecs</TargetName>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <VcpkgTriplet>x64-windows-static-md</VcpkgTriplet>
+    <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <VcpkgTriplet>x64-windows-static-md</VcpkgTriplet>
+    <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IB_DEBUG;WIN32;_DEBUG;EVERYTHINGEXT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IB_DEBUG;WIN32;EVERYTHINGEXT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -121,6 +122,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,12 +137,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IB_DEBUG;_DEBUG;EVERYTHINGEXT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IB_DEBUG;EVERYTHINGEXT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,6 +163,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)external\build\_deps\ibwincpp-src\include;$(SolutionDir)external\build\_deps\ibeverything-src\everything-cpp\include;$(SolutionDir)external\build\_deps\ibpinyin-src\include;$(SolutionDir)external\build\_deps\sigmatch-src\include;$(SolutionDir)external\build\_deps\ibdllhijack-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
