@@ -1,0 +1,21 @@
+[package]
+name = "plugin"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[lib]
+name = "IbEverythingExt"
+crate-type = ["cdylib"]
+
+[dependencies]
+everything-plugin = { version = "0.1.2", git = "https://github.com/Chaoses-Ib/IbEverythingLib", rev = "77e30619575a525dfeb32bb63173aed26ef3e2c4" }
+serde = "1"
+
+[build-dependencies]
+vcpkg = "0.2.15"

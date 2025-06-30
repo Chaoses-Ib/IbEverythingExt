@@ -221,7 +221,36 @@ BOOL CALLBACK enum_window_proc(
 }
 */
 
-#include <IbDllHijack/dlls/WindowsCodecs.h>
+extern "C" bool start(const char* yaml) {
+    if (!config_init())
+        return false;
+
+    IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
+    if (config.quick_select.enable)
+        IbDetourAttach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
+    return true;
+}
+
+extern "C" void stop() {
+    if (!config.enable)
+        return;
+
+    if (config.quick_select.enable)
+        quick::destroy();
+    if (config.pinyin_search.enable)
+        pinyin_search.reset();
+        
+    ipc_destroy();
+
+    if (config.quick_select.enable)
+        IbDetourDetach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
+    IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
+
+    config_destroy();
+}
+
+// 14 KiB
+// #include <IbDllHijack/dlls/WindowsCodecs.h>
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -234,12 +263,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_ATTACH\n";
 
-        if (!config_init())
-            break;
-
-        IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
-        if (config.quick_select.enable)
-            IbDetourAttach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
+        // start(nullptr);
 
         // may be loaded after creating windows? it seems that only netutil.dll does
         //EnumWindows(enum_window_proc, GetCurrentThreadId());
@@ -252,21 +276,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         if constexpr (debug)
             DebugOStream() << L"DLL_PROCESS_DETACH\n";
 
-        if (!config.enable)
-            break;
+        // stop();
 
-        if (config.quick_select.enable)
-            quick::destroy();
-        if (config.pinyin_search.enable)
-            pinyin_search.reset();
-        
-        ipc_destroy();
-
-        if (config.quick_select.enable)
-            IbDetourDetach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);
-        IbDetourDetach(&CreateWindowExW_real, CreateWindowExW_detour);
-
-        config_destroy();
         break;
     }
     return TRUE;
