@@ -38,5 +38,5 @@ struct Config {
 };
 extern Config config;
 
-bool config_init();
+bool config_init(const char* yaml);
 void config_destroy();

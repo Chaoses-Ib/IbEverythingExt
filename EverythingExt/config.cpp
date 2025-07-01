@@ -17,7 +17,7 @@ std::wstring u8_to_u16(const std::string& u8) {
     return u16;
 }
 
-bool config_init() {
+bool config_init(const char* yaml) {
     using namespace std::literals;
 
     config.enable = false;
@@ -26,18 +26,24 @@ bool config_init() {
     GetModuleFileNameW(nullptr, root_path, std::size(root_path));
     PathRemoveFileSpecW(root_path);
     PathAppendW(root_path, LR"(IbEverythingExt\)");
-    
-    wchar_t config_path[MAX_PATH];
-    wcscpy_s(config_path, root_path);
-    PathAppendW(config_path, LR"(config.yaml)");
 
-    std::ifstream in(config_path);
-    if (!in) {
-        MessageBoxW(nullptr, L"配置文件 config.yaml 不存在！", L"IbEverythingExt", MB_ICONERROR);
-        return false;
-    }
     try {
-        YAML::Node root = YAML::Load(in);
+        YAML::Node root;
+        if (yaml) {
+            root = YAML::Load(yaml);
+        } else {
+            wchar_t config_path[MAX_PATH];
+            wcscpy_s(config_path, root_path);
+            PathAppendW(config_path, LR"(config.yaml)");
+
+            std::ifstream in(config_path);
+            if (!in) {
+                MessageBoxW(nullptr, L"配置文件 config.yaml 不存在！", L"IbEverythingExt", MB_ICONERROR);
+                return false;
+            }
+
+            root = YAML::Load(in);
+        }
 
         {
             YAML::Node node = root["pinyin_search"];

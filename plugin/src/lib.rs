@@ -5,15 +5,24 @@ use everything_plugin::{
     log::{debug, error},
     plugin_main,
     serde::{Deserialize, Serialize},
-    ui::{self, OptionsPage},
+    ui::{OptionsPage, winio::spawn},
 };
 
-// mod options;
+use crate::{home::UpdateConfig, pinyin::PinyinSearchConfig, quick_select::QuickSelectConfig};
+
 mod ffi;
+mod home;
+mod pinyin;
+mod quick_select;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
-    s: String,
+    /// 拼音搜索
+    pub pinyin_search: PinyinSearchConfig,
+    /// 快速选择
+    pub quick_select: QuickSelectConfig,
+    /// 更新
+    pub update: UpdateConfig,
 }
 
 pub struct App {
@@ -41,6 +50,23 @@ impl PluginApp for App {
     }
 
     fn start(&self) {
+        use pinyin::PinyinSearchMode;
+
+        // Dirty fixes
+        let mut config = self.config.clone();
+        config.pinyin_search.mode = match self.config.pinyin_search.mode {
+            PinyinSearchMode::Auto => PinyinSearchMode::Pcre,
+            PinyinSearchMode::Pcre => PinyinSearchMode::Pcre,
+            PinyinSearchMode::Edit => PinyinSearchMode::Edit,
+        };
+        config.quick_select.result_list.terminal = self
+            .config
+            .quick_select
+            .result_list
+            .terminal_command()
+            .into();
+        let config = serde_json::to_string(&config).unwrap();
+
         let instance_name = HANDLER
             .instance_name()
             .unwrap_or_default()
@@ -48,7 +74,7 @@ impl PluginApp for App {
             .chain([0, 0])
             .collect::<Vec<_>>();
         let args = ffi::StartArgs {
-            config: self.config.s.as_ptr() as *const _,
+            config: config.as_ptr() as *const _,
             ipc_window: HANDLER
                 .host()
                 .ipc_window_from_main_thread()
@@ -82,11 +108,18 @@ plugin_main!(App, {
         .version(env!("CARGO_PKG_VERSION"))
         .link(env!("CARGO_PKG_HOMEPAGE"))
         .options_pages(vec![
-            // TODO
-            // OptionsPage::builder()
-            //     .name("Test Plugin")
-            //     .load(ui::winio::spawn::<options::MainModel>)
-            //     .build(),
+            OptionsPage::builder()
+                .name("IbEverythingExt")
+                .load(spawn::<home::options::MainModel>)
+                .build(),
+            OptionsPage::builder()
+                .name("拼音搜索")
+                .load(spawn::<pinyin::options::MainModel>)
+                .build(),
+            OptionsPage::builder()
+                .name("快速选择")
+                .load(spawn::<quick_select::options::MainModel>)
+                .build(),
         ])
         .build()
 });

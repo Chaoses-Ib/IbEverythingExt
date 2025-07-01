@@ -226,12 +226,15 @@ BOOL CALLBACK enum_window_proc(
 */
 
 extern "C" bool start(const StartArgs* args) {
-    if (!config_init())
-        return false;
-
     if (args) {
+        if (!config_init(args->config))
+            return false;
+
         instance_name = (const wchar_t*)args->instance_name;
         on_ipc_window_created((HWND)args->ipc_window);
+    } else {
+        if (!config_init(nullptr))
+            return false;
     }
 
     IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
