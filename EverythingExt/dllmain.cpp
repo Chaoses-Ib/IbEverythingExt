@@ -231,6 +231,9 @@ extern "C" bool start(const StartArgs* args) {
             return false;
 
         instance_name = (const wchar_t*)args->instance_name;
+        if (!instance_name.empty()) {
+            class_everything = L"EVERYTHING_(" + instance_name + L")";
+        }
         on_ipc_window_created((HWND)args->ipc_window);
     } else {
         if (!config_init(nullptr))
