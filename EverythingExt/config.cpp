@@ -25,7 +25,7 @@ bool config_init(const char* yaml) {
     wchar_t root_path[MAX_PATH];
     GetModuleFileNameW(nullptr, root_path, std::size(root_path));
     PathRemoveFileSpecW(root_path);
-    PathAppendW(root_path, LR"(IbEverythingExt\)");
+    PathAppendW(root_path, LR"(plugins\IbEverythingExt\)");
 
     try {
         YAML::Node root;

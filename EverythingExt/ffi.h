@@ -5,6 +5,7 @@
 #include <new>
 
 struct StartArgs {
+  bool host;
   const char *config;
   const void *ipc_window;
   const uint16_t *instance_name;
@@ -25,9 +26,13 @@ struct EverythingExeOffsets {
 
 extern "C" {
 
-extern bool start(const StartArgs *yaml);
+extern bool start(const StartArgs *args);
 
 extern void stop();
+
+void plugin_start();
+
+void plugin_stop();
 
 EverythingExeOffsets get_everything_exe_offsets();
 

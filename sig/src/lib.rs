@@ -314,6 +314,10 @@ impl<'a> EverythingExe<'a> {
     pub fn regcomp_p2_termtext(&self) -> Option<(usize, usize)> {
         let mut save = [0, 0];
         self.match_first_with_save(&[
+            // v1.4.1.1026_x64
+            // 4C 8D 47 30           lea     r8, [rdi+48]
+            // 48 8D 15 DD DF 19 00  lea     rdx, aTermtextS ; "termtext %s\n"
+
             // v1.5.0.1315_x64
             // 4C 8B 8F 00 01 00 00  mov     r9, [rdi+256]
             // 4C 8D 87 20 01 00 00  lea     r8, [rdi+288]
@@ -322,7 +326,6 @@ impl<'a> EverythingExe<'a> {
             // 4C 8B 8F 00 01 00 00  mov     r9, [rdi+256]
             // 4C 8D 87 28 01 00 00  lea     r8, [rdi+296]
             // 48 8D 15 22 B5 41 00  lea     rdx, aTermtextT ; "termtext %t\n"
-            // "termtext %t\n"
             Byte(0x4C),
             Byte(0x8B),
             Byte(0x8F),
@@ -335,6 +338,7 @@ impl<'a> EverythingExe<'a> {
             Byte(0x8D),
             Byte(0x15),
             Jump4,
+            // "termtext %t\n"
             Byte(b't'),
             Byte(b'e'),
             Byte(b'r'),

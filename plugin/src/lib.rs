@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use everything_plugin::{
-    PluginApp, PluginHandler,
+    PluginApp, PluginHandler, PluginHost,
     log::{debug, error},
     plugin_main,
     serde::{Deserialize, Serialize},
@@ -52,6 +52,8 @@ impl PluginApp for App {
     fn start(&self) {
         use pinyin::PinyinSearchMode;
 
+        let host = HANDLER.get_host().is_some();
+
         // Dirty fixes
         let mut config = self.config.clone();
         config.pinyin_search.mode = match self.config.pinyin_search.mode {
@@ -73,11 +75,15 @@ impl PluginApp for App {
             .encode_utf16()
             .chain([0, 0])
             .collect::<Vec<_>>();
+
         let args = ffi::StartArgs {
-            config: config.as_ptr() as *const _,
-            ipc_window: HANDLER
-                .host()
-                .ipc_window_from_main_thread()
+            host,
+            config: if host {
+                config.as_ptr() as *const _
+            } else {
+                0 as _
+            },
+            ipc_window: PluginHost::ipc_window_from_main_thread()
                 .map(|w| w.hwnd())
                 .unwrap_or_default(),
             instance_name: instance_name.as_ptr(),

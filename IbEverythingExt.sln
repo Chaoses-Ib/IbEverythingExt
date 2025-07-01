@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Updater\Updater.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "github_api", "external\build\_deps\github_api-build\github_api.vcxproj", "{9A48DEA3-C71B-30FC-AC03-8929973872CE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "loader", "loader\loader.vcxproj", "{68C7980D-9570-470A-8732-B04717AB5CC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -159,6 +161,22 @@ Global
 		{9A48DEA3-C71B-30FC-AC03-8929973872CE}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
 		{9A48DEA3-C71B-30FC-AC03-8929973872CE}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|x64
 		{9A48DEA3-C71B-30FC-AC03-8929973872CE}.RelWithDebInfo|x86.Build.0 = RelWithDebInfo|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Debug|x64.ActiveCfg = Debug|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Debug|x64.Build.0 = Debug|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Debug|x86.ActiveCfg = Debug|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Debug|x86.Build.0 = Debug|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.MinSizeRel|x64.ActiveCfg = Release|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.MinSizeRel|x64.Build.0 = Release|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.MinSizeRel|x86.ActiveCfg = Release|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.MinSizeRel|x86.Build.0 = Release|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Release|x64.ActiveCfg = Release|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Release|x64.Build.0 = Release|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Release|x86.ActiveCfg = Release|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.Release|x86.Build.0 = Release|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.RelWithDebInfo|x64.ActiveCfg = Debug|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.RelWithDebInfo|x64.Build.0 = Debug|x64
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.RelWithDebInfo|x86.ActiveCfg = Debug|Win32
+		{68C7980D-9570-470A-8732-B04717AB5CC6}.RelWithDebInfo|x86.Build.0 = Debug|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

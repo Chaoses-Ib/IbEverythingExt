@@ -2,8 +2,19 @@ use std::ffi::{c_char, c_void};
 
 use crate::HANDLER;
 
+#[unsafe(no_mangle)]
+extern "C" fn plugin_start() {
+    HANDLER.init_start();
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn plugin_stop() {
+    HANDLER.stop_kill();
+}
+
 #[repr(C)]
 pub struct StartArgs {
+    pub host: bool,
     pub config: *const c_char,
     pub ipc_window: *const c_void,
     pub instance_name: *const u16,
@@ -28,10 +39,8 @@ pub struct EverythingExeOffsets {
     pub regexec: u32,
 }
 
-#[unsafe(no_mangle)]
-extern "C" fn get_everything_exe_offsets() -> EverythingExeOffsets {
-    HANDLER.with_app(|a| {
-        let offsets = a.offsets.as_ref();
+impl From<Option<&sig::EverythingExeOffsets>> for EverythingExeOffsets {
+    fn from(offsets: Option<&sig::EverythingExeOffsets>) -> Self {
         EverythingExeOffsets {
             regcomp_p3: offsets.and_then(|o| o.regcomp_p3).unwrap_or_default(),
             regcomp_p3_search: offsets
@@ -56,5 +65,17 @@ extern "C" fn get_everything_exe_offsets() -> EverythingExeOffsets {
             regcomp: offsets.and_then(|o| o.regcomp).unwrap_or_default(),
             regexec: offsets.and_then(|o| o.regexec).unwrap_or_default(),
         }
-    })
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn get_everything_exe_offsets() -> EverythingExeOffsets {
+    // match LazyLock::get(&HANDLER) {
+    //     Some(handler) => handler.with_app(|a| a.offsets.as_ref().into()),
+    //     None => sig::EverythingExeOffsets::from_current_exe()
+    //         .ok()
+    //         .as_ref()
+    //         .into(),
+    // }
+    HANDLER.with_app(|a| a.offsets.as_ref().into())
 }
