@@ -280,7 +280,7 @@ impl Component for MainModel {
             self.terminal_kind_label => { column: 0, row: 0, width: 120.0, margin: m_label, valign: VAlign::Center },
             self.terminal_kind => { column: 1, row: 0, margin: m },
             self.terminal_label => { column: 0, row: 1, width: 120.0, margin: m_label, valign: VAlign::Center },
-            self.terminal => { column: 1, row: 1, margin: m },
+            self.terminal => { column: 1, row: 1, height: 32.0, margin: m },
         };
 
         let mut result_list_layout = layout! {
