@@ -22,6 +22,9 @@ wget http://www.voidtools.com/Everything-Server-$everythingServerVersion.x64.zip
 Expand-Archive Everything-Server-$everythingServerVersion.x64.zip -DestinationPath Everything/Plugins
 
 $v = Get-Content v
-zip -r "Everything v${version}_IbEverythingExt_v$v.zip" Everything
+$zip = "Everything.v${version}_IbEverythingExt_v$v.zip"
+zip -r $zip Everything
+
+"- [Everything v1.5 便携整合包](https://github.com/Chaoses-Ib/IbEverythingExt/releases/download/v$v/$zip)（[国内加速](https://gh-proxy.com/github.com/Chaoses-Ib/IbEverythingExt/releases/download/v$v/$zip)）" >> release.md
 
 popd
