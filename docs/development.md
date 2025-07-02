@@ -1,5 +1,7 @@
 # 开发
 ## 构建
+[Rust](https://rustup.rs/)
+
 [vcpkg](https://github.com/microsoft/vcpkg)：
 ```cmd
 vcpkg install fmt detours yaml-cpp curl --triplet=x64-windows-static
@@ -10,6 +12,8 @@ cd IbEverythingExt
 cd external
 cmake -B build -DCMAKE_TOOLCHAIN_FILE="C:\...\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static
 ```
+
+After building projects in VS, run `cargo build -p plugin` to build the plugin.
 
 对于 test 还需要：
 ```
