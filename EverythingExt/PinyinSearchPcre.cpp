@@ -963,10 +963,10 @@ PinyinSearchPcre::PinyinSearchPcre() {
     offsets = get_everything_exe_offsets();
     regcomp_p3_14_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p3 : nullptr;
     regcomp_p3_15_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p3 : nullptr;
-    regcomp_p2_14_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p2 : nullptr;
-    regcomp_p2_15_real = offsets.regcomp_p3 ? Everything + offsets.regcomp_p2 : nullptr;
-    regcomp_real = offsets.regcomp_p3 ? Everything + offsets.regcomp : nullptr;
-    regexec_real = offsets.regcomp_p3 ? Everything + offsets.regexec : nullptr;
+    regcomp_p2_14_real = offsets.regcomp_p2 ? Everything + offsets.regcomp_p2 : nullptr;
+    regcomp_p2_15_real = offsets.regcomp_p2 ? Everything + offsets.regcomp_p2 : nullptr;
+    regcomp_real = offsets.regcomp ? Everything + offsets.regcomp : nullptr;
+    regexec_real = offsets.regexec ? Everything + offsets.regexec : nullptr;
 
     bool support = regcomp_p3_14_real && regcomp_p2_14_real && regcomp_real && regexec_real;
     if constexpr (debug)
