@@ -1,16 +1,31 @@
 # 开发
 ## 构建
-1. 将以下库放入 `C:\L\C++\packages`（其它位置需要修改 .vcxproj 文件）：
-    * [IbDllHijackLib](https://github.com/Chaoses-Ib/IbDllHijackLib/tree/master/DllHijackLib/IbDllHijackLib)
-    * [IbEverythingLib](https://github.com/Chaoses-Ib/IbEverythingLib/tree/master/Cpp/IbEverythingLib)
-    * [IbPinyinLib](https://github.com/Chaoses-Ib/IbPinyinLib)
-    * [IbWinCppLib](https://github.com/Chaoses-Ib/IbWinCppLib/tree/master/WinCppLib/IbWinCppLib)
-2. [vcpkg](https://github.com/microsoft/vcpkg)
-    ```
-    set VCPKG_DEFAULT_TRIPLET=x64-windows-static-md
-    vcpkg install detours yaml-cpp
-    ```
-3. Test 还需要：
-    ```
-    vcpkg install boost-test pcre pcre2
-    ```
+[Rust](https://rustup.rs/)
+
+[vcpkg](https://github.com/microsoft/vcpkg)：
+```cmd
+vcpkg install fmt detours yaml-cpp curl --triplet=x64-windows-static
+```
+[CMake](https://cliutils.gitlab.io/modern-cmake/)：
+```cmd
+cd IbEverythingExt
+cd external
+cmake -B build -DCMAKE_TOOLCHAIN_FILE="C:\...\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static
+```
+
+After building projects in VS, run `cargo build -p plugin` to build the plugin.
+
+对于 test 还需要：
+```
+vcpkg install boost-test pcre pcre2 --triplet=x64-windows-static
+```
+
+## CRT
+All projects use static release CRT:
+- Everything uses static CRT
+- Rust uses release CRT
+
+## Bump version
+- [Cargo.toml](../Cargo.toml)
+- ~~EverythingExt\resource.rc~~
+- [Updater\updater.cpp](../Updater/updater.cpp)

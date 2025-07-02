@@ -1,0 +1,16 @@
+[workspace]
+members = ["plugin", "sig"]
+resolver = "3"
+
+[workspace.package]
+version = "0.7.0"
+edition = "2024"
+description = "Everything 拼音搜索、快速选择扩展"
+authors = ["Chaoses-Ib"]
+homepage = "https://github.com/Chaoses-Ib/IbEverythingExt"
+repository = "https://github.com/Chaoses-Ib/IbEverythingExt"
+license = "MIT"
+keywords = ["everything", "voidtools", "plugin", "pinyin", "cjk"]
+
+[workspace.dependencies]
+sig = { path = "sig" }
