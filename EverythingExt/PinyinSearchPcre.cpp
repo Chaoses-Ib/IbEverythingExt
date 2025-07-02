@@ -505,7 +505,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
 
             int error;
             int rc;
-            if (modifiers & Modifier::RegEx) {
+            if (modifiers & Modifier::RegEx || ((uintptr_t)preg->re_pcre & 1) == 0) {
                 string -= start;
                 error = regexec_real(preg, string, nmatch, pmatch, eflags);
                 rc = 1 + preg->re_nsub;
@@ -534,7 +534,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         } while (false);
     }
 
-    if (modifiers & Modifier::RegEx) {
+    if (modifiers & Modifier::RegEx || ((uintptr_t)preg->re_pcre & 1) == 0) {
         return regexec_real(preg, string, nmatch, pmatch, eflags);
     }
 
