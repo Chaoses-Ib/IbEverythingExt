@@ -22,5 +22,6 @@ All projects use static release CRT:
 - Rust uses release CRT
 
 ## Bump version
-- EverythingExt\resource.rc
-- Updater\updater.cpp
+- [Cargo.toml](../Cargo.toml)
+- ~~EverythingExt\resource.rc~~
+- [Updater\updater.cpp](../Updater/updater.cpp)

@@ -19,4 +19,9 @@ fn main() {
     vcpkg::find_package("fmt").unwrap();
     vcpkg::find_package("detours").unwrap();
     vcpkg::find_package("yaml-cpp").unwrap();
+
+    if cfg!(target_os = "windows") {
+        let res = winres::WindowsResource::new();
+        res.compile().unwrap();
+    }
 }

@@ -22,3 +22,4 @@ sig.workspace = true
 
 [build-dependencies]
 vcpkg = "0.2.15"
+winres = "0.1"
