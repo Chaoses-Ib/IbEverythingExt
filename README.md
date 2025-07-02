@@ -26,6 +26,7 @@
   - 除了 IbEverythingExt，还内置了 HTTP 服务器、ETP/FTP 服务器、Everything 服务器插件
   - 内置语言包，不过界面中仍有部分英文未汉化
   - 默认关闭[命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)，便于第三方程序调用，如有需要可删除 `No_Alpha_Instance` 文件来还原
+  - 如果插件未自动加载，请在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
 - Everything v1.4 便携整合包
   - 完整汉化
   - 不含插件配置界面，需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 配置文件
@@ -41,6 +42,7 @@
 2. 从 [Releases](https://github.com/Chaoses-Ib/IbEverythingExt/releases) 单独下载 IbEverythingExt 压缩包
 3. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）
 4. 重启 Everything
+5. Everything v1.5 用户：在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
 
 ## 拼音搜索
 允许用拼音在 Everything 中搜索文件。
