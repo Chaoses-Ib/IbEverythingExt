@@ -68,7 +68,7 @@
 拼音搜索对调用 Everything 进行搜索的第三方程序同样生效，例如：
 * [EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
   <img src="docs/third_party/EverythingToolbar.png" height="300"/>
-* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Everything 插件](https://github.com/Flow-Launcher/Flow.Launcher.Plugin.Everything)  
+* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Explorer 插件](https://www.flowlauncher.com/docs/#/plugin-explorer?id=everything-setting-tab)
   <img src="docs/third_party/FlowLauncher.png" height="200"/>
 * [PowerToys Run](https://learn.microsoft.com/windows/powertoys/run) 的 [Everything 插件](https://github.com/lin-ycv/EverythingPowerToys)  
   <img src="docs/third_party/PowerToys.png" height="200"/>
