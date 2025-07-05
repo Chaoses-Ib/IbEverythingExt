@@ -116,13 +116,13 @@ version = "3.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40d1dad34aa19bf02295382f08d9bc40651585bd497266831d40ee6296fb49ca"
 dependencies = [
- "darling",
+ "darling 0.20.11",
  "ident_case",
  "prettyplease",
  "proc-macro2",
  "quote",
  "rustversion",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -409,12 +409,36 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "darling"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a01d95850c592940db9b8194bc39f4bc0e89dee5c4265e4b1807c34a9aba453c"
+dependencies = [
+ "darling_core 0.13.4",
+ "darling_macro 0.13.4",
+]
+
+[[package]]
+name = "darling"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7f46116c46ff9ab3eb1597a45688b6715c6e628b5c133e288e709a29bcb4ee"
 dependencies = [
- "darling_core",
- "darling_macro",
+ "darling_core 0.20.11",
+ "darling_macro 0.20.11",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "859d65a907b6852c9361e3185c862aae7fafd2887876799fa55f5f99dc40d610"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim 0.10.0",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -427,8 +451,19 @@ dependencies = [
  "ident_case",
  "proc-macro2",
  "quote",
- "strsim",
- "syn",
+ "strsim 0.11.1",
+ "syn 2.0.104",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c972679f83bdf9c42bd905396b6c3588a843a17f0f16dfcfa3e2c5d57441835"
+dependencies = [
+ "darling_core 0.13.4",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -437,9 +472,9 @@ version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc34b93ccb385b40dc71c6fceac4b2ad23662c7eeb248cf10d529b7e055b6ead"
 dependencies = [
- "darling_core",
+ "darling_core 0.20.11",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -482,7 +517,7 @@ dependencies = [
  "cc",
  "memchr",
  "rustc_version",
- "toml",
+ "toml 0.8.23",
  "vswhom",
  "winreg",
 ]
@@ -514,8 +549,9 @@ dependencies = [
 
 [[package]]
 name = "everything-plugin"
-version = "0.1.2"
-source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=e6a2f5dce64c486ebe668b5cce71109cbb228191#e6a2f5dce64c486ebe668b5cce71109cbb228191"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab4eea32b7909fb095674d116f49c71c8ac2d0b1fd3948e54a54187296947e5f"
 dependencies = [
  "anstream",
  "bon",
@@ -572,7 +608,7 @@ checksum = "162ee34ebcb7c64a8abebc059ce0fee27c2262618d7b60ed8faf72fef13c3650"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -685,6 +721,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "inherit-methods-macro"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "831739f8836b05db933f3a84783a5af48bd605915dcd10c7435bc74e7947a030"
+dependencies = [
+ "darling 0.13.4",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "io-uring"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -745,6 +793,17 @@ name = "linux-raw-sys"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
+
+[[package]]
+name = "local-sync"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3865cc3ed16dd99f3b89098478647a558a5a2f6dc5f0b45d7867d75da80050ef"
+dependencies = [
+ "futures-core",
+ "futures-sink",
+ "futures-util",
+]
 
 [[package]]
 name = "lock_api"
@@ -1047,12 +1106,15 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "plugin"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "everything-plugin",
  "serde",
+ "serde_json",
+ "serde_repr",
  "sig",
  "vcpkg",
+ "winres",
 ]
 
 [[package]]
@@ -1086,7 +1148,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "061c1221631e079b26479d25bbf2275bfe5917ae8419cd7e34f13bfc2aa7539a"
 dependencies = [
  "proc-macro2",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1294,7 +1356,7 @@ checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1307,6 +1369,17 @@ dependencies = [
  "memchr",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_repr"
+version = "0.1.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "175ee3e80ae9982737ca543e96133087cbd9a485eecc3bc4de9c1a37b47ea59c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1384,6 +1457,12 @@ dependencies = [
 
 [[package]]
 name = "strsim"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
@@ -1393,6 +1472,17 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "syn"
+version = "1.0.109"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
 
 [[package]]
 name = "syn"
@@ -1434,7 +1524,7 @@ checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1460,6 +1550,15 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "toml"
+version = "0.5.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "toml"
@@ -1521,7 +1620,7 @@ checksum = "81383ab64e72a7a8b8e13130c49e3dab29def6d0c7d76a03087b3cf71c5c6903"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1667,7 +1766,7 @@ dependencies = [
  "log",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
  "wasm-bindgen-shared",
 ]
 
@@ -1689,7 +1788,7 @@ checksum = "8ae87ea40c9f689fc23f209965b6fb8a99ad69aeeb0231408be24920604395de"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -1795,7 +1894,7 @@ checksum = "a47fddd13af08290e67f4acabf4b459f647552718f683a7b415d290ac744a836"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -1806,7 +1905,7 @@ checksum = "bd9211b69f8dcdfa817bfd14bf1c97c9188afa36f4750130fcdf3f400eca9fa8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
@@ -2009,20 +2108,100 @@ checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
 
 [[package]]
 name = "winio"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bb42831210762687c75c71a5d9b03c738c94a02078b01db4309bfe1b05bc91e"
+checksum = "370858ee776a5044aff42a378a8608fd8b82ab5faffc9e81fa5618ebed3e8538"
 dependencies = [
- "block2",
  "cfg-if",
  "compio",
  "compio-log",
- "embed-resource",
- "euclid",
- "futures-channel",
  "futures-util",
  "image",
- "libc",
+ "inherit-methods-macro",
+ "winio-elm",
+ "winio-handle",
+ "winio-layout",
+ "winio-primitive",
+ "winio-ui-app-kit",
+ "winio-ui-win32",
+]
+
+[[package]]
+name = "winio-callback"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4e1d71e5e7fe651ed7ef6909dcaef026c9f9397f66b661a7a5122ed2a8944cd"
+
+[[package]]
+name = "winio-elm"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "547ace27bbb326a8aa830664ee1064e419578899ae90dead162e62305b7ad9ac"
+dependencies = [
+ "futures-util",
+ "inherit-methods-macro",
+ "paste",
+ "smallvec",
+ "winio-handle",
+ "winio-layout",
+ "winio-primitive",
+]
+
+[[package]]
+name = "winio-handle"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01b442ee90eb0e4c74ca3beecfee08a7e09bce2bd80076958162f799ea26bba0"
+dependencies = [
+ "cfg-if",
+ "objc2",
+ "objc2-app-kit",
+ "windows-sys 0.60.2",
+]
+
+[[package]]
+name = "winio-layout"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12055ced01c04a1eaf2202014f4b71a690f67e0e636cefd0289dbb5a581c41f0"
+dependencies = [
+ "paste",
+ "taffy",
+ "winio-primitive",
+]
+
+[[package]]
+name = "winio-pollable"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b880b8b8f6a096d50a4879f812d38e0f2bd0d54b0ee7f6c403893ef2d6c9b14b"
+dependencies = [
+ "compio",
+ "rustix",
+]
+
+[[package]]
+name = "winio-primitive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ce012137aff5017ba5c80e04f06357ad714804352d33bdc091fdb4858e7ef5d"
+dependencies = [
+ "bitflags",
+ "euclid",
+ "rgb",
+]
+
+[[package]]
+name = "winio-ui-app-kit"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60f1e035ee74d5ebbff792b7bedf466f5315fdde1f66a8602e934c265188d927"
+dependencies = [
+ "block2",
+ "compio",
+ "image",
+ "inherit-methods-macro",
+ "local-sync",
  "objc2",
  "objc2-app-kit",
  "objc2-core-foundation",
@@ -2030,16 +2209,35 @@ dependencies = [
  "objc2-foundation",
  "objc2-quartz-core",
  "objc2-uniform-type-identifiers",
- "once_cell",
- "paste",
- "rgb",
+ "scoped-tls",
+ "winio-callback",
+ "winio-handle",
+ "winio-pollable",
+ "winio-primitive",
+]
+
+[[package]]
+name = "winio-ui-win32"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0aae222b5574169567b2cb42ba338ef7d02d3fc8804c1d5db66f2cdf03c669c1"
+dependencies = [
+ "cfg-if",
+ "compio",
+ "compio-log",
+ "embed-resource",
+ "futures-util",
+ "image",
+ "inherit-methods-macro",
  "scoped-tls",
  "slab",
- "taffy",
  "widestring",
  "windows",
  "windows-numerics",
  "windows-sys 0.60.2",
+ "winio-handle",
+ "winio-pollable",
+ "winio-primitive",
 ]
 
 [[package]]
@@ -2059,6 +2257,15 @@ checksum = "cb5a765337c50e9ec252c2069be9bf91c7df47afb103b642ba3a53bf8101be97"
 dependencies = [
  "cfg-if",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "winres"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b68db261ef59e9e52806f688020631e987592bd83619edccda9c47d42cde4f6c"
+dependencies = [
+ "toml 0.5.11",
 ]
 
 [[package]]
@@ -2087,7 +2294,7 @@ checksum = "9ecf5b4cc5364572d7f4c329661bcc82724222973f2cab6f050a4e5c22f75181"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.104",
 ]
 
 [[package]]
