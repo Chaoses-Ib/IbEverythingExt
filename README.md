@@ -44,6 +44,8 @@
 4. 重启 Everything
 5. Everything v1.5 用户：在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
 
+Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases)（`KexSetup_Release_*.exe`），并在 `Everything64.exe` / `Everything.exe` 文件属性中启用 VxKex。详见 [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889)。
+
 ## 拼音搜索
 允许用拼音在 Everything 中搜索文件。
 
