@@ -3,7 +3,7 @@ members = ["plugin", "sig"]
 resolver = "3"
 
 [workspace.package]
-version = "0.7.1"
+version = "0.8.0-alpha"
 edition = "2024"
 description = "Everything 拼音搜索、快速选择扩展"
 authors = ["Chaoses-Ib"]
