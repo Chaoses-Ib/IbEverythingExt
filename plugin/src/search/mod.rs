@@ -1,3 +1,5 @@
+//! https://www.pcre.org/original/doc/html/pcreposix.html
+
 use core::str;
 use std::{
     borrow::Cow,
@@ -43,10 +45,14 @@ extern "C" fn search_exec(
     let haystack = if cfg!(debug_assertions) {
         buf = String::from_utf8_lossy(haystack);
         if let Cow::Owned(_) = &buf {
-            error!(?haystack, "haystack invalid utf8");
+            error!(?haystack, ?buf, "haystack invalid utf8");
         }
         buf.as_ref()
     } else {
+        // TODO: Optimization
+        // buf = String::from_utf8_lossy(haystack);
+        // buf.as_ref()
+
         unsafe { str::from_utf8_unchecked(haystack) }
     };
 
@@ -113,4 +119,13 @@ extern "C" fn search_exec(
     // ac
     // found 2 files with 24 threads in 0.025432 seconds
     // found 0 folders with 24 threads in 0.003713 seconds
+
+    // REG_STARTEND
+    // found 2 files with 24 threads in 0.014172 seconds
+    // found 0 folders with 24 threads in 0.001881 seconds
+    // found 2 files with 24 threads in 0.013749 seconds
+    // found 0 folders with 24 threads in 0.001856 seconds
+    // np:
+    // found 1 files with 24 threads in 0.008721 seconds
+    // found 0 folders with 24 threads in 0.001185 seconds
 }

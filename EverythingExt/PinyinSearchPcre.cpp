@@ -473,7 +473,7 @@ int PCRE_CALL_CONVENTION
 regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
     regmatch_t pmatch[], int eflags)
 {
-    auto do_exec = [&](int length) {
+    auto do_exec = [&](const char* string, int length) {
         const void* matcher = (const void*)((uintptr_t)preg->re_pcre & ~1);
         if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) {
             return search_exec(matcher, string, length, nmatch, pmatch, eflags);
@@ -527,11 +527,18 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
                 rc = 1 + preg->re_nsub;
             }
             else {
-                rc = do_exec(length);
+                rc = do_exec(string, length);
                 if (rc == -1)
                     error = REG_NOMATCH;
                 else
                     error = 0;
+
+                if (eflags & REG_STARTEND) {
+                    for (int i = 0; i < rc; i++) {
+                        pmatch[i].rm_so += start;
+                        pmatch[i].rm_eo += start;
+                    }
+                }
             }
             dout << rc;
             if (error == REG_NOMATCH) {
@@ -562,22 +569,46 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         length = strlen(string);
     }
 
-    int rc = do_exec(length);
+    int rc = do_exec(string, length);
     if (rc == -1) {
         return REG_NOMATCH;
     }
 
-    // Everything removes this characteristic from PCRE regexec
-    /*
+    // `regexec()` conforms to `REG_STARTEND` after v1.5.0.1359
     if (eflags & REG_STARTEND) {
         for (int i = 0; i < rc; i++) {
             pmatch[i].rm_so += start;
             pmatch[i].rm_eo += start;
         }
     }
-    */
 
     return 0;
+}
+
+int PCRE_CALL_CONVENTION
+regexec_15_0_1359_detour(const regex_t* preg, const char* string, size_t nmatch,
+    regmatch_t pmatch[], int eflags)
+{
+    if (modifiers & Modifier::RegEx || ((uintptr_t)preg->re_pcre & 1) == 0) {
+        return regexec_real(preg, string, nmatch, pmatch, eflags);
+    }
+
+    int start = 0;
+    if (eflags & REG_STARTEND) {
+        start = pmatch[0].rm_so;
+    }
+    int r = regexec_detour(preg, string, nmatch, pmatch, eflags);
+
+    // Everything removes this characteristic from PCRE regexec
+    if (r == 0 && eflags & REG_STARTEND) {
+        int rc = 1 + preg->re_nsub;
+        for (int i = 0; i < rc; i++) {
+            pmatch[i].rm_so -= start;
+            pmatch[i].rm_eo -= start;
+        }
+    }
+
+    return r;
 }
 
 #pragma endregion
@@ -1033,6 +1064,8 @@ PinyinSearchPcre::PinyinSearchPcre() {
         if (support) {
             IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
             IbDetourAttach(&regcomp_p2_14_real, regcomp_p2_14_detour);
+
+            IbDetourAttach(&regexec_real, regexec_15_0_1359_detour);
         }
     } else if (ipc_version.major == 1 && ipc_version.minor >= 5) {
         if (ipc_version.minor == 5 && ipc_version.revision == 0) {
@@ -1079,15 +1112,21 @@ PinyinSearchPcre::PinyinSearchPcre() {
             IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
             
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
+
+            if (ipc_version.minor == 5 && ipc_version.revision == 0 && ipc_version.build <= 1359) {
+                IbDetourAttach(&regexec_real, regexec_15_0_1359_detour);
+            } else {
+                IbDetourAttach(&regexec_real, regexec_detour);
+            }
         }
     }
     if (!support)
         throw std::runtime_error("Unsupported Everything version");
-        
+
     IbDetourAttach(&regcomp_real, regcomp_detour);
     //IbDetourAttach(&pcre_compile2_real, pcre_compile2_detour);
     //IbDetourAttach(&pcre_fullinfo_real, pcre_fullinfo_detour);
-    IbDetourAttach(&regexec_real, regexec_detour);
+    //IbDetourAttach(&regexec_real, regexec_detour);
     //IbDetourAttach(&pcre_exec_real, pcre_exec_detour);
     //IbDetourAttach(&regex_free_real, regex_free_detour);
     IbDetourAttach(&HeapFree_real, HeapFree_detour);
@@ -1097,16 +1136,24 @@ PinyinSearchPcre::~PinyinSearchPcre() {
     IbDetourDetach(&HeapFree_real, HeapFree_detour);
     //IbDetourDetach(&regex_free_real, regex_free_detour);
     //IbDetourDetach(&pcre_exec_real, pcre_exec_detour);
-    IbDetourDetach(&regexec_real, regexec_detour);
+    //IbDetourDetach(&regexec_real, regexec_detour);
     //IbDetourDetach(&pcre_fullinfo_real, pcre_fullinfo_detour);
     //IbDetourDetach(&pcre_compile2_real, pcre_compile2_detour);
     IbDetourDetach(&regcomp_real, regcomp_detour);
     if (ipc_version.major == 1 && ipc_version.minor == 4) {
         IbDetourDetach(&regcomp_p2_14_real, regcomp_p2_14_detour);
         IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
+
+        IbDetourAttach(&regexec_real, regexec_15_0_1359_detour);
     }
     else if (ipc_version.major == 1 && ipc_version.minor >= 5) {
         IbDetourDetach(&regcomp_p2_15_real, regcomp_p2_15_detour);
         IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
+
+        if (ipc_version.minor == 5 && ipc_version.revision == 0 && ipc_version.build <= 1359) {
+            IbDetourDetach(&regexec_real, regexec_15_0_1359_detour);
+        } else {
+            IbDetourDetach(&regexec_real, regexec_detour);
+        }
     }
 }

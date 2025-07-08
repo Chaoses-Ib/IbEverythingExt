@@ -690,5 +690,8 @@ mod tests {
         assert_eq!(everything_exe("v1.5.0.1305_x64").regexec(), Some(0x336960));
         assert_eq!(everything_exe("v1.5.0.1315_x64").regexec(), Some(0x348900));
         assert_eq!(everything_exe("v1.5.0.1318_x64").regexec(), Some(0x35AB10));
+        assert_eq!(everything_exe("v1.5.0.1346_x64").regexec(), Some(0x3A1310));
+        assert_eq!(everything_exe("v1.5.0.1367_x64").regexec(), Some(0x3D3590));
+        assert_eq!(everything_exe("v1.5.0.1384_x64").regexec(), Some(0x42AB70));
     }
 }
