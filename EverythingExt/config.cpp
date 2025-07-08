@@ -53,6 +53,8 @@ bool config_init(const char* yaml) {
                     auto mode = node["mode"].as<std::string>();
                     if (mode == "Pcre")
                         return PinyinSearchMode::Pcre;
+                    else if (mode == "Pcre2" || mode == "Auto")
+                        return PinyinSearchMode::Pcre2;
                     else if (mode == "Edit")
                         return PinyinSearchMode::Edit;
                     throw YAML::Exception(YAML::Mark::null_mark(), "Invalid pinyin_search.mode");

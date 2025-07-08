@@ -24,6 +24,13 @@ struct EverythingExeOffsets {
   uint32_t regexec;
 };
 
+using regoff_t = int32_t;
+
+struct regmatch_t {
+  regoff_t rm_so;
+  regoff_t rm_eo;
+};
+
 extern "C" {
 
 extern bool start(const StartArgs *args);
@@ -35,5 +42,14 @@ void plugin_start();
 void plugin_stop();
 
 EverythingExeOffsets get_everything_exe_offsets();
+
+const void *search_compile(const char *pattern, uint32_t cflags, uint32_t modifiers);
+
+int32_t search_exec(const void *matcher,
+                    const char *haystack,
+                    uint32_t length,
+                    uintptr_t nmatch,
+                    regmatch_t *pmatch,
+                    uint32_t eflags);
 
 }  // extern "C"

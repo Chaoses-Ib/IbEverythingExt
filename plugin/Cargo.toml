@@ -24,6 +24,11 @@ version = "0.2.0"
 # git = "https://github.com/Chaoses-Ib/IbEverythingLib"
 # rev = "735970bbda9b2ee2dcb6787efeb97432efc2b069"
 
+[dependencies.ib-pinyin]
+version = "0.2.8"
+git = "https://github.com/Chaoses-Ib/IbPinyinLib"
+rev = "54f5da735daf4bb78ff18069e91412f501de46d7"
+
 [build-dependencies]
 vcpkg = "0.2.15"
 winres = "0.1"

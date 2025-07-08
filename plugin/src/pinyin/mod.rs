@@ -2,11 +2,14 @@ use serde::{Deserialize, Serialize};
 
 pub mod options;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
 pub enum PinyinSearchMode {
     #[default]
     Auto,
     /// 默认模式
+    Pcre2,
+    /// - 不支持忽略 Unicode 大小写
+    /// - 存在部分拼音匹配 bug (#56,#69,#77)
     Pcre,
     /// 版本兼容性好，但只支持简拼搜索，性能较低，且存在许多 bug
     Edit,

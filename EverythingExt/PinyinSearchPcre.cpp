@@ -247,12 +247,12 @@ struct regex_t {
 
 /* The structure in which a captured offset is returned. */
 
-using regoff_t = int;
-
-struct regmatch_t {
-    regoff_t rm_so;
-    regoff_t rm_eo;
-};
+//using regoff_t = int;
+//
+//struct regmatch_t {
+//    regoff_t rm_so;
+//    regoff_t rm_eo;
+//};
 
 
 /*************************************************
@@ -288,11 +288,16 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
 
     const_cast<char*>(pattern)[0] = termtext_initial;
     
-    Pattern* compiled_pattern = compile((const char8_t*)pattern, {
-        .match_at_start = bool(modifiers & Modifier::WholeFilename),
-        .match_at_end = bool(modifiers & Modifier::WholeFilename)
-        }, &config.pinyin_search.flags);
-    preg->re_pcre = (void*)((uintptr_t)compiled_pattern | 1);
+    if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) {
+        const void* matcher = search_compile(pattern, cflags, modifiers);
+        preg->re_pcre = (void*)((uintptr_t)matcher | 1);
+    } else {
+        Pattern* compiled_pattern = compile((const char8_t*)pattern, {
+            .match_at_start = bool(modifiers & Modifier::WholeFilename),
+            .match_at_end = bool(modifiers & Modifier::WholeFilename)
+            }, &config.pinyin_search.flags);
+        preg->re_pcre = (void*)((uintptr_t)compiled_pattern | 1);
+    }
 
     preg->re_nsub = 0;
     preg->re_erroffset = (size_t)-1;
@@ -468,6 +473,17 @@ int PCRE_CALL_CONVENTION
 regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
     regmatch_t pmatch[], int eflags)
 {
+    auto do_exec = [&](int length) {
+        const void* matcher = (const void*)((uintptr_t)preg->re_pcre & ~1);
+        if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) {
+            return search_exec(matcher, string, length, nmatch, pmatch, eflags);
+        } else {
+            return exec((Pattern*)matcher, (const char8_t*)string, length, nmatch, (int*)pmatch, {
+                .not_begin_of_line = bool(eflags & REG_NOTBOL)
+                });
+        }
+    };  
+
     if constexpr (debug) {
         do {
             thread_local const regex_t* last_preg = nullptr;
@@ -511,9 +527,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
                 rc = 1 + preg->re_nsub;
             }
             else {
-                rc = exec((Pattern*)((uintptr_t)preg->re_pcre & ~1), (const char8_t*)string, length, nmatch, (int*)pmatch, {
-                    .not_begin_of_line = bool(eflags & REG_NOTBOL)
-                    });
+                rc = do_exec(length);
                 if (rc == -1)
                     error = REG_NOMATCH;
                 else
@@ -548,9 +562,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         length = strlen(string);
     }
 
-    int rc = exec((Pattern*)((uintptr_t)preg->re_pcre & ~1), (const char8_t*)string, length, nmatch, (int*)pmatch, {
-        .not_begin_of_line = bool(eflags & REG_NOTBOL)
-        });
+    int rc = do_exec(length);
     if (rc == -1) {
         return REG_NOMATCH;
     }

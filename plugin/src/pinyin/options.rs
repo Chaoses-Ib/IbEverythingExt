@@ -58,8 +58,9 @@ impl Component for MainModel {
         mode_label.set_text("模式：");
         let mut mode = Child::<ComboBox>::init(&window);
         mode.insert(0, "自动");
-        mode.insert(1, "PCRE（默认）");
-        mode.insert(2, "Edit（兼容）");
+        mode.insert(1, "PCRE 2（默认）");
+        mode.insert(2, "PCRE");
+        mode.insert(3, "Edit（兼容）");
 
         // 拼音模式选项标签
         let mut options_label = Child::<Label>::init(&window);
@@ -100,8 +101,9 @@ impl Component for MainModel {
 
             mode.set_selection(Some(match config.mode {
                 PinyinSearchMode::Auto => 0,
-                PinyinSearchMode::Pcre => 1,
-                PinyinSearchMode::Edit => 2,
+                PinyinSearchMode::Pcre2 => 1,
+                PinyinSearchMode::Pcre => 2,
+                PinyinSearchMode::Edit => 3,
             }));
 
             initial_letter.set_checked(config.initial_letter);
@@ -194,8 +196,9 @@ impl Component for MainModel {
                             enable: self.enabled.is_checked(),
                             mode: match self.mode.selection() {
                                 Some(0) => PinyinSearchMode::Auto,
-                                Some(1) => PinyinSearchMode::Pcre,
-                                Some(2) => PinyinSearchMode::Edit,
+                                Some(1) => PinyinSearchMode::Pcre2,
+                                Some(2) => PinyinSearchMode::Pcre,
+                                Some(3) => PinyinSearchMode::Edit,
                                 _ => Default::default(),
                             },
                             initial_letter: self.initial_letter.is_checked(),

@@ -7,6 +7,7 @@
 std::unique_ptr<PinyinSearch> make_pinyin_search(PinyinSearchMode mode, std::wstring& instance_name, HWND ipc_window) {
     switch (mode) {
     case PinyinSearchMode::Pcre:
+    case PinyinSearchMode::Pcre2:
         return std::make_unique<PinyinSearchPcre>();
     case PinyinSearchMode::Edit:
         return std::make_unique<PinyinSearchEdit>(instance_name, ipc_window);

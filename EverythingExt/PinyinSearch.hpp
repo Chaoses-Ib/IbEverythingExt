@@ -9,6 +9,7 @@
 
 enum class PinyinSearchMode {
     Pcre,
+    Pcre2,
     Edit
 };
 

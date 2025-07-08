@@ -7,9 +7,11 @@ pinyin_search:
   enable: true
 
   # 模式
-  # Pcre：默认模式
+  # Auto：自动
+  # Pcre2：默认模式
+  # Pcre：不支持忽略 Unicode 大小写，存在部分拼音匹配 bug (#56,#69,#77)
   # Edit：版本兼容性好，但只支持简拼搜索，性能较低，且存在许多 bug
-  mode: Pcre
+  mode: Auto
 
   initial_letter: true  # 简拼
   pinyin_ascii: true  # 全拼

@@ -14,6 +14,7 @@ mod ffi;
 mod home;
 mod pinyin;
 mod quick_select;
+pub mod search;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
@@ -57,9 +58,8 @@ impl PluginApp for App {
         // Dirty fixes
         let mut config = self.config.clone();
         config.pinyin_search.mode = match self.config.pinyin_search.mode {
-            PinyinSearchMode::Auto => PinyinSearchMode::Pcre,
-            PinyinSearchMode::Pcre => PinyinSearchMode::Pcre,
-            PinyinSearchMode::Edit => PinyinSearchMode::Edit,
+            PinyinSearchMode::Auto => PinyinSearchMode::Pcre2,
+            mode => mode,
         };
         config.quick_select.result_list.terminal = self
             .config
