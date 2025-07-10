@@ -712,9 +712,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
-name = "ib-pinyin"
-version = "0.2.8"
-source = "git+https://github.com/Chaoses-Ib/IbPinyinLib?rev=54f5da735daf4bb78ff18069e91412f501de46d7#54f5da735daf4bb78ff18069e91412f501de46d7"
+name = "ib-matcher"
+version = "0.3.0"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=e500385a89ab5e0ed888b6bdbd8a697ca07d72cf#e500385a89ab5e0ed888b6bdbd8a697ca07d72cf"
 dependencies = [
  "aho-corasick",
  "arraystring",
@@ -1148,7 +1148,7 @@ name = "plugin"
 version = "0.8.0-alpha"
 dependencies = [
  "everything-plugin",
- "ib-pinyin",
+ "ib-matcher",
  "serde",
  "serde_json",
  "serde_repr",

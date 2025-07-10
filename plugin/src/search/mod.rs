@@ -8,13 +8,13 @@ use std::{
 };
 
 use everything_plugin::log::*;
-use ib_pinyin::matcher::PinyinMatcher;
+use ib_matcher::matcher::IbMatcher;
 
 #[unsafe(no_mangle)]
 extern "C" fn search_compile(pattern: *const c_char, cflags: u32, modifiers: u32) -> *const c_void {
     let pattern = unsafe { CStr::from_ptr(pattern) }.to_string_lossy();
-    debug!(?pattern, cflags, modifiers, "Compiling PinyinMatcher");
-    let r = Box::new(PinyinMatcher::builder(pattern.as_ref()).analyze().build());
+    debug!(?pattern, cflags, modifiers, "Compiling IbMatcher");
+    let r = Box::new(IbMatcher::builder(pattern.as_ref()).analyze(true).build());
     Box::leak(r) as *const _ as _
 }
 
@@ -38,7 +38,7 @@ extern "C" fn search_exec(
     pmatch: *mut regmatch_t,
     eflags: u32,
 ) -> i32 {
-    let matcher = unsafe { &*(matcher as *const PinyinMatcher) };
+    let matcher = unsafe { &*(matcher as *const IbMatcher) };
 
     let haystack = unsafe { slice::from_raw_parts(haystack as _, length as usize) };
     let buf;
