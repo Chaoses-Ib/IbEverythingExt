@@ -1,3 +1,5 @@
+//! i.e. PCRE 2 mode
+//!
 //! https://www.pcre.org/original/doc/html/pcreposix.html
 
 use core::str;
@@ -8,13 +10,26 @@ use std::{
 };
 
 use everything_plugin::log::*;
-use ib_matcher::matcher::IbMatcher;
+use ib_matcher::matcher::{IbMatcher, PinyinMatchConfig};
+
+use crate::HANDLER;
 
 #[unsafe(no_mangle)]
 extern "C" fn search_compile(pattern: *const c_char, cflags: u32, modifiers: u32) -> *const c_void {
     let pattern = unsafe { CStr::from_ptr(pattern) }.to_string_lossy();
     debug!(?pattern, cflags, modifiers, "Compiling IbMatcher");
-    let r = Box::new(IbMatcher::builder(pattern.as_ref()).analyze(true).build());
+    let app = unsafe { HANDLER.app() };
+    let matcher = IbMatcher::builder(pattern.as_ref())
+        .pinyin(
+            PinyinMatchConfig::builder(app.config.pinyin_search.notations())
+                .data(&app.pinyin_data)
+                // TODO
+                // .case_insensitive(app.config.pinyin_search.)
+                .build(),
+        )
+        .analyze(true)
+        .build();
+    let r = Box::new(matcher);
     Box::into_raw(r) as _
 }
 

@@ -7,6 +7,7 @@ use everything_plugin::{
     serde::{Deserialize, Serialize},
     ui::{OptionsPage, winio::spawn},
 };
+use ib_matcher::pinyin::PinyinData;
 
 use crate::{home::UpdateConfig, pinyin::PinyinSearchConfig, quick_select::QuickSelectConfig};
 
@@ -29,14 +30,17 @@ pub struct Config {
 pub struct App {
     config: Config,
     offsets: Option<sig::EverythingExeOffsets>,
+    pinyin_data: PinyinData,
 }
 
 impl PluginApp for App {
     type Config = Config;
 
     fn new(config: Option<Self::Config>) -> Self {
+        let config = config.unwrap_or_default();
         Self {
-            config: config.unwrap_or_default(),
+            pinyin_data: PinyinData::new(config.pinyin_search.notations()),
+            config,
             offsets: match sig::EverythingExeOffsets::from_current_exe() {
                 Ok(offsets) => {
                     debug!(?offsets);

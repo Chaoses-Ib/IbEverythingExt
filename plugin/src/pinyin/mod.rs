@@ -1,3 +1,4 @@
+use ib_matcher::pinyin::PinyinNotation;
 use serde::{Deserialize, Serialize};
 
 pub mod options;
@@ -56,5 +57,39 @@ impl Default for PinyinSearchConfig {
             double_pinyin_xiaohe: false,
             double_pinyin_zrm: false,
         }
+    }
+}
+
+impl PinyinSearchConfig {
+    pub fn notations(&self) -> PinyinNotation {
+        let mut notations = PinyinNotation::empty();
+        if self.initial_letter {
+            notations |= PinyinNotation::AsciiFirstLetter;
+        }
+        if self.pinyin_ascii {
+            notations |= PinyinNotation::Ascii;
+        }
+        if self.pinyin_ascii_digit {
+            notations |= PinyinNotation::AsciiTone;
+        }
+        if self.double_pinyin_abc {
+            notations |= PinyinNotation::DiletterAbc;
+        }
+        if self.double_pinyin_jiajia {
+            notations |= PinyinNotation::DiletterJiajia;
+        }
+        if self.double_pinyin_microsoft {
+            notations |= PinyinNotation::DiletterMicrosoft;
+        }
+        if self.double_pinyin_thunisoft {
+            notations |= PinyinNotation::DiletterThunisoft;
+        }
+        if self.double_pinyin_xiaohe {
+            notations |= PinyinNotation::DiletterXiaohe;
+        }
+        if self.double_pinyin_zrm {
+            notations |= PinyinNotation::DiletterZrm;
+        }
+        notations
     }
 }
