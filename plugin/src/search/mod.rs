@@ -15,7 +15,7 @@ extern "C" fn search_compile(pattern: *const c_char, cflags: u32, modifiers: u32
     let pattern = unsafe { CStr::from_ptr(pattern) }.to_string_lossy();
     debug!(?pattern, cflags, modifiers, "Compiling IbMatcher");
     let r = Box::new(IbMatcher::builder(pattern.as_ref()).analyze(true).build());
-    Box::leak(r) as *const _ as _
+    Box::into_raw(r) as _
 }
 
 #[allow(non_camel_case_types)]
@@ -128,4 +128,9 @@ extern "C" fn search_exec(
     // np:
     // found 1 files with 24 threads in 0.008721 seconds
     // found 0 folders with 24 threads in 0.001185 seconds
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn search_free(matcher: *mut c_void) {
+    drop(unsafe { Box::from_raw(matcher as *mut IbMatcher) });
 }

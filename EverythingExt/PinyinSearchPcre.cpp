@@ -733,7 +733,12 @@ _Success_(return != FALSE) BOOL WINAPI HeapFree_detour(
     if ((uintptr_t)lpMem & 1) {
         if constexpr (debug)
             DebugOStream() << L"HeapFree(" << lpMem << L")\n";
-        delete (Pattern*)((uintptr_t)lpMem & ~1);
+        auto ptr = (uintptr_t)lpMem & ~1;
+        if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) {
+            search_free((void*)ptr);
+        } else {
+            delete (Pattern*)ptr;
+        }
         return true;
     }
 

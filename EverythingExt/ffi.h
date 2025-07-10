@@ -26,6 +26,7 @@ struct EverythingExeOffsets {
 
 using regoff_t = int32_t;
 
+/// The structure in which a captured offset is returned.
 struct regmatch_t {
   regoff_t rm_so;
   regoff_t rm_eo;
@@ -51,5 +52,7 @@ int32_t search_exec(const void *matcher,
                     uintptr_t nmatch,
                     regmatch_t *pmatch,
                     uint32_t eflags);
+
+void search_free(void *matcher);
 
 }  // extern "C"
