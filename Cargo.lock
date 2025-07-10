@@ -567,9 +567,8 @@ dependencies = [
 
 [[package]]
 name = "everything-plugin"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab4eea32b7909fb095674d116f49c71c8ac2d0b1fd3948e54a54187296947e5f"
+version = "0.2.1"
+source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=c9f0747ed34e58049a6087d06464c0b2f56697ba#c9f0747ed34e58049a6087d06464c0b2f56697ba"
 dependencies = [
  "anstream",
  "bon",
@@ -1152,6 +1151,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
+ "serde_yaml_ng",
  "sig",
  "vcpkg",
  "winres",
@@ -1429,6 +1429,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "serde_yaml_ng"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b4db627b98b36d4203a7b458cf3573730f2bb591b28871d916dfa9efabfd41f"
+dependencies = [
+ "indexmap",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
 ]
 
 [[package]]
@@ -1719,6 +1732,12 @@ name = "unicode-ident"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
+
+[[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
 name = "untrusted"

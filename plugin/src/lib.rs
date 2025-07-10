@@ -132,8 +132,25 @@ plugin_main!(App, {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test() {
         assert_eq!(env!("CARGO_CRATE_NAME"), "IbEverythingExt");
+    }
+
+    #[test]
+    fn yaml() {
+        let yaml = include_str!("../../publish/IbEverythingExt/config.yaml");
+        let config: Config = serde_yaml_ng::from_str(yaml).unwrap();
+        assert_eq!(
+            format!("{:?}", config),
+            format!("{:?}", {
+                let mut config = Config::default();
+                config.quick_select.result_list.terminal = "wt -d ${fileDirname}".into();
+                config.update.prerelease = Some(false);
+                config
+            })
+        );
     }
 }

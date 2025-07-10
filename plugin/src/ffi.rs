@@ -1,10 +1,24 @@
-use std::ffi::{c_char, c_void};
+use std::{
+    ffi::{c_char, c_void},
+    fs,
+};
 
 use crate::HANDLER;
 
 #[unsafe(no_mangle)]
 extern "C" fn plugin_start() {
-    HANDLER.init_start();
+    let config = std::env::current_exe()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("plugins/IbEverythingExt/config.yaml");
+    match fs::read_to_string(config)
+        .ok()
+        .and_then(|yaml| serde_yaml_ng::from_str(&yaml).ok())
+    {
+        Some(config) => HANDLER.init_start_with_config(config),
+        None => HANDLER.init_start(),
+    }
 }
 
 #[unsafe(no_mangle)]

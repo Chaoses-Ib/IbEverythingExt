@@ -71,6 +71,7 @@ pub struct ResultListConfig {
     pub alt: AltKind,
     /// `[0-9A-Z]` 选中项目
     pub select: bool,
+    #[serde(default)]
     pub terminal_kind: TerminalKind,
     /// 终端 (v1.5a)
     /// - Windows Terminal："wt -d ${fileDirname}"

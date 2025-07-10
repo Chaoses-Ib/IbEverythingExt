@@ -17,12 +17,13 @@ crate-type = ["cdylib"]
 serde = "1"
 serde_json = "1"
 serde_repr = "0.1"
+serde_yaml_ng = "0.10"
 sig.workspace = true
 
 [dependencies.everything-plugin]
-version = "0.2.0"
-# git = "https://github.com/Chaoses-Ib/IbEverythingLib"
-# rev = "735970bbda9b2ee2dcb6787efeb97432efc2b069"
+version = "0.2"
+git = "https://github.com/Chaoses-Ib/IbEverythingLib"
+rev = "c9f0747ed34e58049a6087d06464c0b2f56697ba"
 
 [dependencies.ib-matcher]
 version = "0.3"
