@@ -20,13 +20,17 @@ extern "C" fn search_compile(pattern: *const c_char, cflags: u32, modifiers: u32
     debug!(?pattern, cflags, modifiers, "Compiling IbMatcher");
     let app = unsafe { HANDLER.app() };
     let matcher = IbMatcher::builder(pattern.as_ref())
+        // TODO
+        .is_pattern_partial(true)
         .pinyin(
             PinyinMatchConfig::builder(app.config.pinyin_search.notations())
                 .data(&app.pinyin_data)
                 // TODO
                 // .case_insensitive(app.config.pinyin_search.)
+                .allow_partial_pattern(false)
                 .build(),
         )
+        .maybe_romaji(app.romaji.clone())
         .analyze(true)
         .build();
     let r = Box::new(matcher);

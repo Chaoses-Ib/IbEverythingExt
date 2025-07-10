@@ -7,20 +7,26 @@ use everything_plugin::{
     serde::{Deserialize, Serialize},
     ui::{OptionsPage, winio::spawn},
 };
-use ib_matcher::pinyin::PinyinData;
+use ib_matcher::{matcher::RomajiMatchConfig, pinyin::PinyinData};
 
-use crate::{home::UpdateConfig, pinyin::PinyinSearchConfig, quick_select::QuickSelectConfig};
+use crate::{
+    home::UpdateConfig, pinyin::PinyinSearchConfig, quick_select::QuickSelectConfig,
+    romaji::RomajiSearchConfig,
+};
 
 mod ffi;
 mod home;
 mod pinyin;
 mod quick_select;
+pub mod romaji;
 pub mod search;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
     /// 拼音搜索
     pub pinyin_search: PinyinSearchConfig,
+    #[serde(default)]
+    pub romaji_search: RomajiSearchConfig,
     /// 快速选择
     pub quick_select: QuickSelectConfig,
     /// 更新
@@ -31,6 +37,7 @@ pub struct App {
     config: Config,
     offsets: Option<sig::EverythingExeOffsets>,
     pinyin_data: PinyinData,
+    romaji: Option<RomajiMatchConfig<'static>>,
 }
 
 impl PluginApp for App {
@@ -38,8 +45,21 @@ impl PluginApp for App {
 
     fn new(config: Option<Self::Config>) -> Self {
         let config = config.unwrap_or_default();
+
+        let romaji = &config.romaji_search;
+        let romaji = if romaji.enable {
+            Some(
+                RomajiMatchConfig::builder()
+                    .allow_partial_pattern(romaji.allow_partial_match)
+                    .build(),
+            )
+        } else {
+            None
+        };
+
         Self {
             pinyin_data: PinyinData::new(config.pinyin_search.notations()),
+            romaji,
             config,
             offsets: match sig::EverythingExeOffsets::from_current_exe() {
                 Ok(offsets) => {
@@ -125,6 +145,10 @@ plugin_main!(App, {
             OptionsPage::builder()
                 .name("拼音搜索")
                 .load(spawn::<pinyin::options::MainModel>)
+                .build(),
+            OptionsPage::builder()
+                .name("ローマ字検索")
+                .load(spawn::<romaji::options::MainModel>)
                 .build(),
             OptionsPage::builder()
                 .name("快速选择")

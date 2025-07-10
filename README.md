@@ -1,13 +1,16 @@
 ﻿# IbEverythingExt
-[Everything](https://www.voidtools.com/) 拼音搜索、快速选择扩展。 
+[Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、快速选择扩展。 
 
 ![](docs/preview.png)
+
+![](docs/images/romaji.png)
 
 ## 目录
 * [安装](#安装)
 * [拼音搜索](#拼音搜索)
   * [第三方程序支持](#第三方程序支持)
   * [配置](#配置)
+* [ローマ字検索](#ローマ字検索)
 * [快速选择](#快速选择)
   * [热键](#热键)
   * [键列表](#键列表)
@@ -111,6 +114,15 @@ pinyin_search:
   double_pinyin_zrm: false  # 自然码双拼
 ```
 Edit 模式详见 [Edit 模式](docs/pinyin_search/edit_mode.md)。
+
+## ローマ字検索
+日语罗马字搜索。默认关闭。
+
+![](docs/images/romaji.png)
+
+Everything v1.5 用户可在选项中调整配置。
+
+Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 文件。
 
 ## 快速选择
 在 Everything 结果列表的左侧插入一个显示 0\~9、A\~Z 的键列表，并允许在搜索编辑框和结果列表中通过热键快速打开对应文件。

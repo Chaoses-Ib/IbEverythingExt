@@ -27,8 +27,9 @@ rev = "c9f0747ed34e58049a6087d06464c0b2f56697ba"
 
 [dependencies.ib-matcher]
 version = "0.3"
+features = ["romaji"]
 git = "https://github.com/Chaoses-Ib/ib-matcher"
-rev = "e500385a89ab5e0ed888b6bdbd8a697ca07d72cf"
+rev = "cf322a1bc465d304b38dbef6be296815a9ad13f8"
 
 [build-dependencies]
 vcpkg = "0.2.15"

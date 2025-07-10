@@ -23,6 +23,12 @@ pinyin_search:
   double_pinyin_xiaohe: false  # 小鹤双拼
   double_pinyin_zrm: false  # 自然码双拼
 
+# ローマ字検索
+romaji_search:
+  enable: false
+
+  allow_partial_match: true
+
 # 快速选择
 quick_select:
   # true：开启，false：关闭
