@@ -14,3 +14,7 @@ keywords = ["everything", "voidtools", "plugin", "pinyin", "cjk"]
 
 [workspace.dependencies]
 sig = { path = "sig" }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1

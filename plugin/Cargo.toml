@@ -14,6 +14,7 @@ name = "IbEverythingExt"
 crate-type = ["cdylib"]
 
 [dependencies]
+bitflags = "2"
 serde = "1"
 serde_json = "1"
 serde_repr = "0.1"
@@ -27,9 +28,9 @@ rev = "c9f0747ed34e58049a6087d06464c0b2f56697ba"
 
 [dependencies.ib-matcher]
 version = "0.3"
-features = ["romaji"]
+features = ["pinyin", "romaji"]
 git = "https://github.com/Chaoses-Ib/ib-matcher"
-rev = "cf322a1bc465d304b38dbef6be296815a9ad13f8"
+rev = "823c261eace5a3530889a9cb6eca57e91951e08d"
 
 [build-dependencies]
 vcpkg = "0.2.15"

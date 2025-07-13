@@ -9,17 +9,113 @@ use std::{
     slice,
 };
 
+use bitflags::bitflags;
 use everything_plugin::log::*;
-use ib_matcher::matcher::{IbMatcher, PinyinMatchConfig};
+use ib_matcher::matcher::{IbMatcher, PinyinMatchConfig, input::Input};
 
 use crate::HANDLER;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct Modifiers(u32);
+bitflags! {
+    impl Modifiers: u32 {
+        /// "Match Case" or `case:`
+        const Case = 0x1;
+
+        /// "Match Whole Word", `wholeword:` or `ww:`
+        const WholeWord = 0x2;
+
+        /// "Match Path" or `path:`
+        const Path = 0x4;
+
+        /// "Match Diacritics" or `diacritics:`
+        const Diacritics = 0x8;
+
+        /// `file:`
+        const File = 0x10;
+        /// `folder:`
+        const Folder = 0x20;
+
+        // /// `ascii:` (`utf8:` to disable)
+        // const FastAsciiSearch = 0x40;
+        /// `startwith:`
+        ///
+        /// Even `StartWith` and `EndWith` are both used, `WholeWord` won't be set.
+        const StartWith = 0x40;
+        /// `endwith:`
+        ///
+        /// Even `StartWith` and `EndWith` are both used, `WholeWord` won't be set.
+        const EndWith = 0x80;
+
+        /// `wholefilename:` or `wfn:`
+        const WholeFilename = 0x200;
+
+        /// "Enable Regex" or `regex:`
+        const RegEx = 0x800;
+        /// "Match whole filename when using wildcards"
+        const WildcardWholeFilename = 0x1000;
+        const Alphanumeric = 0x2000;
+        /// `wildcards:`
+        const WildcardEx = 0x4000;
+
+        /// "Match Prefix" or `prefix:`
+        ///
+        /// If `Prefix` and `Suffix` are both used, only `WholeWord` will be set.
+        const Prefix = 0x20000;
+        /// "Match Suffix" or `suffix:`
+        ///
+        /// If `Prefix` and `Suffix` are both used, only `WholeWord` will be set.
+        const Suffix = 0x40000;
+    }
+}
+
+/// See https://www.pcre.org/original/doc/html/pcre_compile.html
+///
+/// Usually 0x441
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct PcreFlags(u32);
+bitflags! {
+    impl PcreFlags: u32 {
+        /// Maps to PCRE_CASELESS
+        const REG_ICASE = 0x0001;
+        /// Maps to PCRE_MULTILINE
+        const REG_NEWLINE = 0x0002;
+        /// Maps to PCRE_NOTBOL
+        const REG_NOTBOL = 0x0004;
+        /// Maps to PCRE_NOTEOL
+        const REG_NOTEOL = 0x0008;
+        /// NOT defined by POSIX; maps to PCRE_DOTALL
+        const REG_DOTALL = 0x0010;
+        /// Maps to PCRE_NO_AUTO_CAPTURE
+        const REG_NOSUB = 0x0020;
+        /// NOT defined by POSIX; maps to PCRE_UTF8
+        const REG_UTF8 = 0x0040;
+        /// BSD feature: pass subject string by so,eo
+        const REG_STARTEND = 0x0080;
+        /// NOT defined by POSIX; maps to PCRE_NOTEMPTY
+        const REG_NOTEMPTY = 0x0100;
+        /// NOT defined by POSIX; maps to PCRE_UNGREEDY
+        const REG_UNGREEDY = 0x0200;
+        /// NOT defined by POSIX; maps to PCRE_UCP
+        const REG_UCP = 0x0400;
+    }
+}
+
 #[unsafe(no_mangle)]
-extern "C" fn search_compile(pattern: *const c_char, cflags: u32, modifiers: u32) -> *const c_void {
+extern "C" fn search_compile(
+    pattern: *const c_char,
+    cflags: PcreFlags,
+    modifiers: Modifiers,
+) -> *const c_void {
     let pattern = unsafe { CStr::from_ptr(pattern) }.to_string_lossy();
-    debug!(?pattern, cflags, modifiers, "Compiling IbMatcher");
+    debug!(?pattern, ?cflags, ?modifiers, "Compiling IbMatcher");
     let app = unsafe { HANDLER.app() };
     let matcher = IbMatcher::builder(pattern.as_ref())
+        .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
+        .starts_with(modifiers.intersects(Modifiers::StartWith | Modifiers::WholeFilename))
+        .ends_with(modifiers.intersects(Modifiers::EndWith | Modifiers::WholeFilename))
         // TODO
         .is_pattern_partial(true)
         .pinyin(
@@ -55,7 +151,7 @@ extern "C" fn search_exec(
     length: u32,
     nmatch: usize,
     pmatch: *mut regmatch_t,
-    eflags: u32,
+    eflags: PcreFlags,
 ) -> i32 {
     let matcher = unsafe { &*(matcher as *const IbMatcher) };
 
@@ -75,7 +171,11 @@ extern "C" fn search_exec(
         unsafe { str::from_utf8_unchecked(haystack) }
     };
 
-    if let Some(m) = matcher.find(haystack) {
+    if let Some(m) = matcher.find(
+        Input::builder(haystack)
+            .no_start(eflags.contains(PcreFlags::REG_NOTBOL))
+            .build(),
+    ) {
         if nmatch > 0 {
             unsafe {
                 (*pmatch).rm_so = m.start() as _;
