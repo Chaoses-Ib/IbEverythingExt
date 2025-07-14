@@ -30,7 +30,7 @@ rev = "faaf0aa420a3d6fb90529475fc3cfda3298276e6"
 version = "0.3"
 features = ["pinyin", "romaji"]
 git = "https://github.com/Chaoses-Ib/ib-matcher"
-rev = "7a62e389e343590a6a2eec3eac6f73713eb0b7b9"
+rev = "9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139"
 
 [build-dependencies]
 vcpkg = "0.2.15"
