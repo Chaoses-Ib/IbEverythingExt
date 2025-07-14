@@ -88,7 +88,8 @@ impl Component for MainModel {
                 let is_enabled = self.check.is_checked();
 
                 // 启用/禁用预览版选项
-                self.prerelease.set_enabled(is_enabled);
+                self.prerelease
+                    .set_enabled(env!("CARGO_PKG_VERSION_PRE").is_empty() && is_enabled);
 
                 false
             }

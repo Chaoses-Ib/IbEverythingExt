@@ -48,7 +48,10 @@ impl PluginApp for App {
     type Config = Config;
 
     fn new(config: Option<Self::Config>) -> Self {
-        let config = config.unwrap_or_default();
+        let mut config = config.unwrap_or_default();
+        if !env!("CARGO_PKG_VERSION_PRE").is_empty() {
+            config.update.prerelease = Some(true);
+        }
 
         let ipc = match PluginHost::ipc_window_from_main_thread() {
             Some(ipc) => {
