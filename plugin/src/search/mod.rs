@@ -12,7 +12,7 @@ use std::{
 
 use bitflags::bitflags;
 use everything_plugin::{ipc::Version, log::*};
-use ib_matcher::matcher::{IbMatcher, PinyinMatchConfig, input::Input};
+use ib_matcher::matcher::{IbMatcher, input::Input};
 
 use crate::HANDLER;
 
@@ -132,15 +132,8 @@ extern "C" fn search_compile(
         .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
         // TODO
         .is_pattern_partial(true)
-        .pinyin(
-            PinyinMatchConfig::builder(app.config.pinyin_search.notations())
-                .data(&app.pinyin_data)
-                // TODO
-                // .case_insensitive(app.config.pinyin_search.)
-                .allow_partial_pattern(false)
-                .build(),
-        )
-        .maybe_romaji(app.romaji.clone())
+        .maybe_pinyin(app.pinyin.as_ref().map(|v| v.shallow_clone()))
+        .maybe_romaji(app.romaji.as_ref().map(|v| v.shallow_clone()))
         .analyze(true)
         .build();
     let r = Box::new(matcher);

@@ -10,7 +10,7 @@ use everything_plugin::{
     serde::{Deserialize, Serialize},
     ui::{OptionsPage, winio::spawn},
 };
-use ib_matcher::{matcher::RomajiMatchConfig, pinyin::PinyinData};
+use ib_matcher::matcher::{PinyinMatchConfig, RomajiMatchConfig};
 
 use crate::{
     home::UpdateConfig, pinyin::PinyinSearchConfig, quick_select::QuickSelectConfig,
@@ -40,7 +40,7 @@ pub struct App {
     config: Config,
     ipc: OnceLock<(IpcWindow, Version)>,
     offsets: Option<sig::EverythingExeOffsets>,
-    pinyin_data: PinyinData,
+    pinyin: Option<PinyinMatchConfig<'static>>,
     romaji: Option<RomajiMatchConfig<'static>>,
 }
 
@@ -59,6 +59,20 @@ impl PluginApp for App {
             None => OnceLock::new(),
         };
 
+        let pinyin = &config.pinyin_search;
+        let pinyin = if pinyin.enable {
+            Some(
+                PinyinMatchConfig::builder(pinyin.notations())
+                    // .data(&app.pinyin_data)
+                    // TODO
+                    // .case_insensitive(app.config.pinyin_search.)
+                    .allow_partial_pattern(false)
+                    .build(),
+            )
+        } else {
+            None
+        };
+
         let romaji = &config.romaji_search;
         let romaji = if romaji.enable {
             Some(
@@ -72,7 +86,7 @@ impl PluginApp for App {
 
         Self {
             ipc,
-            pinyin_data: PinyinData::new(config.pinyin_search.notations()),
+            pinyin,
             romaji,
             config,
             offsets: match sig::EverythingExeOffsets::from_current_exe() {
@@ -95,6 +109,7 @@ impl PluginApp for App {
 
         // Dirty fixes
         let mut config = self.config.clone();
+        config.pinyin_search.enable |= config.romaji_search.enable;
         config.pinyin_search.mode = match self.config.pinyin_search.mode {
             PinyinSearchMode::Auto => PinyinSearchMode::Pcre2,
             mode => mode,
