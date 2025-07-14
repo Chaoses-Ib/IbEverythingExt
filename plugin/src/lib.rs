@@ -1,7 +1,10 @@
 #![allow(non_snake_case)]
 
+use std::sync::OnceLock;
+
 use everything_plugin::{
     PluginApp, PluginHandler, PluginHost,
+    ipc::{IpcWindow, Version},
     log::{debug, error},
     plugin_main,
     serde::{Deserialize, Serialize},
@@ -35,6 +38,7 @@ pub struct Config {
 
 pub struct App {
     config: Config,
+    ipc: OnceLock<(IpcWindow, Version)>,
     offsets: Option<sig::EverythingExeOffsets>,
     pinyin_data: PinyinData,
     romaji: Option<RomajiMatchConfig<'static>>,
@@ -45,6 +49,15 @@ impl PluginApp for App {
 
     fn new(config: Option<Self::Config>) -> Self {
         let config = config.unwrap_or_default();
+
+        let ipc = match PluginHost::ipc_window_from_main_thread() {
+            Some(ipc) => {
+                let version = ipc.get_version();
+                debug!(ipc_version = ?version);
+                (ipc, version).into()
+            }
+            None => OnceLock::new(),
+        };
 
         let romaji = &config.romaji_search;
         let romaji = if romaji.enable {
@@ -58,6 +71,7 @@ impl PluginApp for App {
         };
 
         Self {
+            ipc,
             pinyin_data: PinyinData::new(config.pinyin_search.notations()),
             romaji,
             config,
@@ -107,9 +121,7 @@ impl PluginApp for App {
             } else {
                 0 as _
             },
-            ipc_window: PluginHost::ipc_window_from_main_thread()
-                .map(|w| w.hwnd())
-                .unwrap_or_default(),
+            ipc_window: self.ipc.get().map(|w| w.0.hwnd()).unwrap_or_default(),
             instance_name: instance_name.as_ptr(),
         };
         unsafe { ffi::start(&args) };
@@ -121,6 +133,15 @@ impl PluginApp for App {
 
     fn into_config(self) -> Self::Config {
         self.config.clone()
+    }
+}
+
+impl App {
+    /// Avaliable after:
+    /// - v1.4: `on_ipc_window_created()`
+    /// - v1.5: `new()`
+    pub fn version(&self) -> Version {
+        unsafe { self.ipc.get().unwrap_unchecked() }.1
     }
 }
 

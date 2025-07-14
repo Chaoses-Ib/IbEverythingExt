@@ -572,12 +572,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "everything-ipc"
+version = "0.1.0"
+source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=faaf0aa420a3d6fb90529475fc3cfda3298276e6#faaf0aa420a3d6fb90529475fc3cfda3298276e6"
+dependencies = [
+ "tracing",
+ "widestring",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
 name = "everything-plugin"
 version = "0.2.1"
-source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=c9f0747ed34e58049a6087d06464c0b2f56697ba#c9f0747ed34e58049a6087d06464c0b2f56697ba"
+source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=faaf0aa420a3d6fb90529475fc3cfda3298276e6#faaf0aa420a3d6fb90529475fc3cfda3298276e6"
 dependencies = [
  "anstream",
  "bon",
+ "everything-ipc",
  "futures-channel",
  "futures-util",
  "serde",
@@ -585,7 +596,6 @@ dependencies = [
  "tracing",
  "tracing-panic",
  "tracing-subscriber",
- "widestring",
  "windows-sys 0.59.0",
  "winio",
 ]
@@ -719,7 +729,7 @@ checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 [[package]]
 name = "ib-matcher"
 version = "0.3.0"
-source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=823c261eace5a3530889a9cb6eca57e91951e08d#823c261eace5a3530889a9cb6eca57e91951e08d"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=7a62e389e343590a6a2eec3eac6f73713eb0b7b9#7a62e389e343590a6a2eec3eac6f73713eb0b7b9"
 dependencies = [
  "aho-corasick",
  "arraystring",
@@ -733,7 +743,7 @@ dependencies = [
 [[package]]
 name = "ib-romaji"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=823c261eace5a3530889a9cb6eca57e91951e08d#823c261eace5a3530889a9cb6eca57e91951e08d"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=7a62e389e343590a6a2eec3eac6f73713eb0b7b9#7a62e389e343590a6a2eec3eac6f73713eb0b7b9"
 dependencies = [
  "bon",
  "daachorse",
@@ -743,7 +753,7 @@ dependencies = [
 [[package]]
 name = "ib-unicode"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=823c261eace5a3530889a9cb6eca57e91951e08d#823c261eace5a3530889a9cb6eca57e91951e08d"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=7a62e389e343590a6a2eec3eac6f73713eb0b7b9#7a62e389e343590a6a2eec3eac6f73713eb0b7b9"
 
 [[package]]
 name = "ident_case"

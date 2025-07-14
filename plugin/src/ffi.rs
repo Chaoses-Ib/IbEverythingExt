@@ -3,6 +3,8 @@ use std::{
     fs,
 };
 
+use everything_plugin::{ipc::IpcWindow, log::debug};
+
 use crate::HANDLER;
 
 #[unsafe(no_mangle)]
@@ -37,6 +39,18 @@ pub struct StartArgs {
 unsafe extern "C" {
     pub fn start(args: *const StartArgs) -> bool;
     pub fn stop();
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn on_ipc_window_created() {
+    HANDLER.with_app(|a| {
+        a.ipc.get_or_init(|| {
+            let ipc = IpcWindow::from_current_thread().unwrap();
+            let version = ipc.get_version();
+            debug!(ipc_version = ?version);
+            (ipc, version)
+        });
+    });
 }
 
 #[repr(C)]

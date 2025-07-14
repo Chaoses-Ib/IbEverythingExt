@@ -290,6 +290,9 @@ regcomp_detour(regex_t* preg, const char* pattern, int cflags)
     
     if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) {
         const void* matcher = search_compile(pattern, cflags, modifiers);
+        if (!matcher) {
+            return regcomp_real(preg, pattern, cflags);
+        }
         preg->re_pcre = (void*)((uintptr_t)matcher | 1);
     } else {
         Pattern* compiled_pattern = compile((const char8_t*)pattern, {

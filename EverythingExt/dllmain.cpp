@@ -82,7 +82,9 @@ LONG_PTR WINAPI SetWindowLongPtrW_detour(
     return SetWindowLongPtrW_real(hWnd, nIndex, dwNewLong);
 }
 
-void on_ipc_window_created(HWND ipc_window) {
+void on_ipc_window_created_internal(HWND ipc_window) {
+    on_ipc_window_created();
+
     ipc_init(instance_name);
 
     if (config.pinyin_search.enable) {
@@ -196,7 +198,7 @@ HWND WINAPI CreateWindowExW_detour(
                 }
             }
         } else if (class_name.starts_with(L"EVERYTHING_TASKBAR_NOTIFICATION"sv)) {
-            on_ipc_window_created(wnd);
+            on_ipc_window_created_internal(wnd);
         }
     }
     return wnd;
@@ -235,7 +237,7 @@ extern "C" bool start(const StartArgs* args) {
             class_everything = L"EVERYTHING_(" + instance_name + L")";
         }
         if (args->ipc_window) {
-            on_ipc_window_created((HWND)args->ipc_window);
+            on_ipc_window_created_internal((HWND)args->ipc_window);
         }
     } else {
         if (!config_init(nullptr))

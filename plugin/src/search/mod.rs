@@ -6,17 +6,18 @@ use core::str;
 use std::{
     borrow::Cow,
     ffi::{CStr, c_char, c_void},
+    fmt::Debug,
     slice,
 };
 
 use bitflags::bitflags;
-use everything_plugin::log::*;
+use everything_plugin::{ipc::Version, log::*};
 use ib_matcher::matcher::{IbMatcher, PinyinMatchConfig, input::Input};
 
 use crate::HANDLER;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(C)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[repr(transparent)]
 pub struct Modifiers(u32);
 bitflags! {
     impl Modifiers: u32 {
@@ -37,16 +38,20 @@ bitflags! {
         /// `folder:`
         const Folder = 0x20;
 
-        // /// `ascii:` (`utf8:` to disable)
-        // const FastAsciiSearch = 0x40;
+        /// `ascii:` (`utf8:` to disable)
+        const v4_FastAsciiSearch = 0x40;
         /// `startwith:`
         ///
-        /// Even `StartWith` and `EndWith` are both used, `WholeWord` won't be set.
-        const StartWith = 0x40;
+        /// Even `StartWith` and `EndWith` are both used, `WholeFilename` won't be set.
+        ///
+        /// v1.4 just doesn't go through `regcomp_p2`.
+        const v5_StartWith = 0x40;
         /// `endwith:`
         ///
-        /// Even `StartWith` and `EndWith` are both used, `WholeWord` won't be set.
-        const EndWith = 0x80;
+        /// Even `StartWith` and `EndWith` are both used, `WholeFilename` won't be set.
+        ///
+        /// v1.4 just doesn't go through `regcomp_p2`.
+        const v5_EndWith = 0x80;
 
         /// `wholefilename:` or `wfn:`
         const WholeFilename = 0x200;
@@ -70,11 +75,17 @@ bitflags! {
     }
 }
 
+impl Debug for Modifiers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "0x{:x}", self.0)
+    }
+}
+
 /// See https://www.pcre.org/original/doc/html/pcre_compile.html
 ///
 /// Usually 0x441
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(C)]
+#[repr(transparent)]
 pub struct PcreFlags(u32);
 bitflags! {
     impl PcreFlags: u32 {
@@ -107,15 +118,18 @@ bitflags! {
 extern "C" fn search_compile(
     pattern: *const c_char,
     cflags: PcreFlags,
-    modifiers: Modifiers,
+    mut modifiers: Modifiers,
 ) -> *const c_void {
     let pattern = unsafe { CStr::from_ptr(pattern) }.to_string_lossy();
     debug!(?pattern, ?cflags, ?modifiers, "Compiling IbMatcher");
     let app = unsafe { HANDLER.app() };
+    if app.version() < Version::new(1, 5, 0, 0) {
+        modifiers.remove(Modifiers::v5_StartWith | Modifiers::v5_EndWith);
+    }
     let matcher = IbMatcher::builder(pattern.as_ref())
         .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
-        .starts_with(modifiers.intersects(Modifiers::StartWith | Modifiers::WholeFilename))
-        .ends_with(modifiers.intersects(Modifiers::EndWith | Modifiers::WholeFilename))
+        .starts_with(modifiers.intersects(Modifiers::v5_StartWith | Modifiers::WholeFilename))
+        .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
         // TODO
         .is_pattern_partial(true)
         .pinyin(

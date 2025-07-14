@@ -24,13 +24,13 @@ sig.workspace = true
 [dependencies.everything-plugin]
 version = "0.2"
 git = "https://github.com/Chaoses-Ib/IbEverythingLib"
-rev = "c9f0747ed34e58049a6087d06464c0b2f56697ba"
+rev = "faaf0aa420a3d6fb90529475fc3cfda3298276e6"
 
 [dependencies.ib-matcher]
 version = "0.3"
 features = ["pinyin", "romaji"]
 git = "https://github.com/Chaoses-Ib/ib-matcher"
-rev = "823c261eace5a3530889a9cb6eca57e91951e08d"
+rev = "7a62e389e343590a6a2eec3eac6f73713eb0b7b9"
 
 [build-dependencies]
 vcpkg = "0.2.15"
