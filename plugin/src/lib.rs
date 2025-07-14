@@ -48,7 +48,8 @@ impl PluginApp for App {
     type Config = Config;
 
     fn new(config: Option<Self::Config>) -> Self {
-        let mut config = config.unwrap_or_default();
+        // Read config.yaml as default
+        let mut config = config.unwrap_or_else(|| ffi::read_config(true).unwrap_or_default());
         if !env!("CARGO_PKG_VERSION_PRE").is_empty() {
             config.update.prerelease = Some(true);
         }

@@ -11,7 +11,7 @@ use everything_plugin::{
 
 use crate::{Config, HANDLER};
 
-fn read_config() -> Option<Config> {
+pub fn read_config(default_if_nonexist: bool) -> Option<Config> {
     let config = std::env::current_exe()
         .unwrap()
         .parent()
@@ -35,6 +35,7 @@ fn read_config() -> Option<Config> {
                 None
             }
         },
+        Err(_) if default_if_nonexist => Some(Config::default()),
         Err(_) => {
             // Without thread it will deadlock
             thread::spawn(|| {
@@ -54,7 +55,7 @@ fn read_config() -> Option<Config> {
 
 #[unsafe(no_mangle)]
 extern "C" fn plugin_start() {
-    match read_config() {
+    match read_config(false) {
         Some(config) => HANDLER.init_start_with_config(config),
         None => {
             // HANDLER.init_start()
