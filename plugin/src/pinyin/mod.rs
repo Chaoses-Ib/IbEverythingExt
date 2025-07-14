@@ -22,6 +22,8 @@ pub struct PinyinSearchConfig {
 
     pub mode: PinyinSearchMode,
 
+    pub allow_partial_match: Option<bool>,
+
     /// 简拼
     pub initial_letter: bool,
     /// 全拼
@@ -47,6 +49,7 @@ impl Default for PinyinSearchConfig {
         Self {
             enable: true,
             mode: Default::default(),
+            allow_partial_match: None,
             initial_letter: true,
             pinyin_ascii: true,
             pinyin_ascii_digit: false,

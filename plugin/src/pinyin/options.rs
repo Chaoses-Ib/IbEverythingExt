@@ -10,6 +10,7 @@ pub struct MainModel {
     enabled: Child<CheckBox>,
     mode_label: Child<Label>,
     mode: Child<ComboBox>,
+    allow_partial_match: Child<CheckBox>,
 
     // 拼音编码选项
     notation_label: Child<Label>,
@@ -62,6 +63,9 @@ impl Component for MainModel {
         mode.insert(2, "PCRE");
         mode.insert(3, "Edit（兼容）");
 
+        let mut allow_partial_match = Child::<CheckBox>::init(&window);
+        allow_partial_match.set_text("允许关键词末尾拼音部分匹配");
+
         // 拼音模式选项标签
         let mut options_label = Child::<Label>::init(&window);
         options_label.set_text("拼音编码：");
@@ -106,6 +110,8 @@ impl Component for MainModel {
                 PinyinSearchMode::Edit => 3,
             }));
 
+            allow_partial_match.set_checked(config.allow_partial_match.unwrap_or(false));
+
             initial_letter.set_checked(config.initial_letter);
             pinyin_ascii.set_checked(config.pinyin_ascii);
             pinyin_ascii_digit.set_checked(config.pinyin_ascii_digit);
@@ -126,6 +132,7 @@ impl Component for MainModel {
             enabled,
             mode_label,
             mode,
+            allow_partial_match,
             notation_label: options_label,
             initial_letter,
             pinyin_ascii,
@@ -149,6 +156,7 @@ impl Component for MainModel {
             self.enabled => {
                 CheckBoxEvent::Click => MainMessage::EnabledClick
             },
+            self.allow_partial_match => {},
             self.initial_letter => {},
             self.pinyin_ascii => {},
             self.pinyin_ascii_digit => {},
@@ -175,6 +183,7 @@ impl Component for MainModel {
 
                 // 启用/禁用所有子控件
                 self.mode.set_enabled(is_enabled);
+                self.allow_partial_match.set_enabled(is_enabled);
                 self.initial_letter.set_enabled(is_enabled);
                 self.pinyin_ascii.set_enabled(is_enabled);
                 self.pinyin_ascii_digit.set_enabled(is_enabled);
@@ -201,6 +210,7 @@ impl Component for MainModel {
                                 Some(3) => PinyinSearchMode::Edit,
                                 _ => Default::default(),
                             },
+                            allow_partial_match: Some(self.allow_partial_match.is_checked()),
                             initial_letter: self.initial_letter.is_checked(),
                             pinyin_ascii: self.pinyin_ascii.is_checked(),
                             pinyin_ascii_digit: self.pinyin_ascii_digit.is_checked(),
@@ -236,19 +246,20 @@ impl Component for MainModel {
 
         // 主布局
         let mut root_layout = layout! {
-            Grid::from_str("1*", "auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,1*").unwrap(),
+            Grid::from_str("1*", "auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,1*").unwrap(),
             self.enabled => { column: 0, row: 0, margin: m },
             mode_layout => { column: 0, row: 1, margin: m },
-            self.notation_label => { column: 0, row: 2, margin: m },
-            self.initial_letter => { column: 0, row: 3, margin: m },
-            self.pinyin_ascii => { column: 0, row: 4, margin: m },
-            self.pinyin_ascii_digit => { column: 0, row: 5, margin: m },
-            self.double_pinyin_abc => { column: 0, row: 7, margin: m },
-            self.double_pinyin_jiajia => { column: 0, row: 8, margin: m },
-            self.double_pinyin_microsoft => { column: 0, row: 9, margin: m },
-            self.double_pinyin_thunisoft => { column: 0, row: 10, margin: m },
-            self.double_pinyin_xiaohe => { column: 0, row: 11, margin: m },
-            self.double_pinyin_zrm => { column: 0, row: 12, margin: m },
+            self.allow_partial_match => { column: 0, row: 2, margin: m },
+            self.notation_label => { column: 0, row: 3, margin: m },
+            self.initial_letter => { column: 0, row: 4, margin: m },
+            self.pinyin_ascii => { column: 0, row: 5, margin: m },
+            self.pinyin_ascii_digit => { column: 0, row: 6, margin: m },
+            self.double_pinyin_abc => { column: 0, row: 8, margin: m },
+            self.double_pinyin_jiajia => { column: 0, row: 9, margin: m },
+            self.double_pinyin_microsoft => { column: 0, row: 10, margin: m },
+            self.double_pinyin_thunisoft => { column: 0, row: 11, margin: m },
+            self.double_pinyin_xiaohe => { column: 0, row: 12, margin: m },
+            self.double_pinyin_zrm => { column: 0, row: 13, margin: m },
         };
 
         root_layout.set_size(csize);

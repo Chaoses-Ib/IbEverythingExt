@@ -42,7 +42,7 @@ impl Component for MainModel {
         enabled.set_text("ローマ字検索を有効にする");
 
         let mut allow_partial_match = Child::<CheckBox>::init(&window);
-        allow_partial_match.set_text("部分一致検索");
+        allow_partial_match.set_text("キーワード部分一致検索");
 
         let mut options_label = Child::<Label>::init(&window);
         options_label.set_text("ローマ字の種別：");

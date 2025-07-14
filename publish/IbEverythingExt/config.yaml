@@ -13,6 +13,9 @@ pinyin_search:
   # Edit：版本兼容性好，但只支持简拼搜索，性能较低，且存在许多 bug
   mode: Auto
 
+  # 允许关键词末尾拼音部分匹配
+  allow_partial_match: false
+
   initial_letter: true  # 简拼
   pinyin_ascii: true  # 全拼
   pinyin_ascii_digit: false  # 带声调全拼

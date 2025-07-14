@@ -66,7 +66,7 @@ impl PluginApp for App {
                     // .data(&app.pinyin_data)
                     // TODO
                     // .case_insensitive(app.config.pinyin_search.)
-                    .allow_partial_pattern(false)
+                    .allow_partial_pattern(pinyin.allow_partial_match.unwrap_or(false))
                     .build(),
             )
         } else {

@@ -103,6 +103,9 @@ pinyin_search:
   # Edit：版本兼容性好，但只支持简拼搜索，性能较低，且存在许多 bug
   mode: Auto
 
+  # 允许关键词末尾拼音部分匹配
+  allow_partial_match: false
+
   initial_letter: true  # 简拼
   pinyin_ascii: true  # 全拼
   pinyin_ascii_digit: false  # 带声调全拼
@@ -268,9 +271,9 @@ update:
 - [Telegram 文件管理交流群](https://t.me/IbDirectoryOpusGroup)
 
 库：
-- [IbPinyinLib: 一个高性能 Rust 拼音匹配库，支持 C、AHK2](https://github.com/Chaoses-Ib/IbPinyinLib)
+- [ib-matcher: A multilingual and fast string matcher, supports 拼音匹配 and ローマ字検索](https://github.com/Chaoses-Ib/ib-matcher)
+- [IbEverythingLib: Rust/C++ bindings for voidtool's Everything](https://github.com/Chaoses-Ib/IbEverythingLib)
 - [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
-- [IbEverythingLib: A C++17 library for voidtool's Everything.](https://github.com/Chaoses-Ib/IbEverythingLib)
 
 项目：
 - [DirectoryOpus: 一款上手简单、系统集成度高、功能强大的 Windows 文件管理器](https://github.com/Chaoses-Ib/DirectoryOpus)
