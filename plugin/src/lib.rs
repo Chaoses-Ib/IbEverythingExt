@@ -116,11 +116,7 @@ impl PluginApp for App {
 
         let args = ffi::StartArgs {
             host,
-            config: if host {
-                config.as_ptr() as *const _
-            } else {
-                0 as _
-            },
+            config: config.as_ptr() as _,
             ipc_window: self.ipc.get().map(|w| w.0.hwnd()).unwrap_or_default(),
             instance_name: instance_name.as_ptr(),
         };

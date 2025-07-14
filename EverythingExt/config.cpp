@@ -31,7 +31,7 @@ bool config_init(const char* yaml) {
         YAML::Node root;
         if (yaml) {
             root = YAML::Load(yaml);
-        } else {
+        } else if constexpr (false) {
             wchar_t config_path[MAX_PATH];
             wcscpy_s(config_path, root_path);
             PathAppendW(config_path, LR"(config.yaml)");

@@ -1,25 +1,64 @@
 use std::{
     ffi::{c_char, c_void},
-    fs,
+    fs, thread,
 };
 
-use everything_plugin::{ipc::IpcWindow, log::debug};
+use everything_plugin::{
+    ipc::IpcWindow,
+    log::debug,
+    ui::winio::{prelude::*, winio::compio},
+};
 
-use crate::HANDLER;
+use crate::{Config, HANDLER};
 
-#[unsafe(no_mangle)]
-extern "C" fn plugin_start() {
+fn read_config() -> Option<Config> {
     let config = std::env::current_exe()
         .unwrap()
         .parent()
         .unwrap()
-        .join("plugins/IbEverythingExt/config.yaml");
-    match fs::read_to_string(config)
-        .ok()
-        .and_then(|yaml| serde_yaml_ng::from_str(&yaml).ok())
-    {
+        .join("Plugins/IbEverythingExt/config.yaml");
+    match fs::read_to_string(config) {
+        Ok(yaml) => match serde_yaml_ng::from_str(&yaml) {
+            Ok(config) => Some(config),
+            Err(e) => {
+                // Without thread it will deadlock
+                thread::spawn(move || {
+                    compio::runtime::Runtime::new().unwrap().block_on(
+                        MessageBox::new()
+                            .title("IbEverythingExt")
+                            .instruction("config.yaml 配置文件格式错误")
+                            .message(format!("{:?}\n\nIbEverythingExt 将不会被启用", e))
+                            .style(MessageBoxStyle::Error)
+                            .show(()),
+                    )
+                });
+                None
+            }
+        },
+        Err(_) => {
+            // Without thread it will deadlock
+            thread::spawn(|| {
+                compio::runtime::Runtime::new().unwrap().block_on(
+                    MessageBox::new()
+                        .title("IbEverythingExt")
+                        .instruction(r"配置文件 Plugins\IbEverythingExt\config.yaml 不存在")
+                        .message("IbEverythingExt 将不会被启用")
+                        .style(MessageBoxStyle::Error)
+                        .show(()),
+                )
+            });
+            None
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn plugin_start() {
+    match read_config() {
         Some(config) => HANDLER.init_start_with_config(config),
-        None => HANDLER.init_start(),
+        None => {
+            // HANDLER.init_start()
+        }
     }
 }
 
