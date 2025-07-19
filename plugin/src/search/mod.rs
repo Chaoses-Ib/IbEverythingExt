@@ -11,10 +11,12 @@ use std::{
 };
 
 use bitflags::bitflags;
-use everything_plugin::{ipc::Version, log::*};
+use everything_plugin::{PluginApp, ipc::Version, log::*};
 use ib_matcher::matcher::{IbMatcher, input::Input};
 
 use crate::HANDLER;
+
+pub mod config;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
@@ -132,6 +134,7 @@ extern "C" fn search_compile(
         .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
         // TODO
         .is_pattern_partial(true)
+        .mix_lang(app.config().search.mix_lang)
         .maybe_pinyin(app.pinyin.as_ref().map(|v| v.shallow_clone()))
         .maybe_romaji(app.romaji.as_ref().map(|v| v.shallow_clone()))
         .analyze(true)

@@ -26,6 +26,7 @@ pub mod search;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
+    pub search: search::config::SearchConfig,
     /// 拼音搜索
     pub pinyin_search: PinyinSearchConfig,
     #[serde(default)]
