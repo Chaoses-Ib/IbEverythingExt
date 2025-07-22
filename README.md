@@ -1,4 +1,4 @@
-﻿# IbEverythingExt
+# IbEverythingExt
 [Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、快速选择扩展。 
 
 ![](docs/preview.png)
@@ -77,6 +77,8 @@ Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/r
   <img src="docs/third_party/FlowLauncher.png" height="200"/>
 * [PowerToys Run](https://learn.microsoft.com/windows/powertoys/run) 的 [Everything 插件](https://github.com/lin-ycv/EverythingPowerToys)  
   <img src="docs/third_party/PowerToys.png" height="200"/>
+* [PowerToys 命令面板（Command Palette）](https://learn.microsoft.com/windows/powertoys/command-palette/overview) 的 [EverythingCommandPalette 插件](https://github.com/lin-ycv/EverythingCommandPalette)  
+  <img src="docs/third_party/PowerToys-CmdPal.png" height="300" />
 * [uTools](https://u.tools) 本地搜索  
   <img src="docs/third_party/uTools.png" height="300"/>
 * [Wox](https://github.com/Wox-launcher/Wox) 的 Everything 插件

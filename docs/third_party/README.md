@@ -14,6 +14,13 @@
 [Everything 插件](https://github.com/lin-ycv/EverythingPowerToys)：  
 <img src="PowerToys.png"/>
 
+## [PowerToys 命令面板（Command Palette）](https://learn.microsoft.com/windows/powertoys/command-palette/overview)
+[EverythingCommandPalette 插件](https://github.com/lin-ycv/EverythingCommandPalette)：
+
+<img src="PowerToys-CmdPal.png" />
+
+支持 ECP 和 ECP3。
+
 ## [uTools](https://u.tools)
 > 新一代效率工具平台  
 > 自由组合丰富插件，打造随手可取的终极神器
