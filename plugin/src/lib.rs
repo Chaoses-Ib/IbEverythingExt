@@ -17,6 +17,11 @@ use crate::{
     romaji::RomajiSearchConfig,
 };
 
+#[macro_use]
+extern crate rust_i18n;
+
+i18n!();
+
 mod ffi;
 mod home;
 mod pinyin;
@@ -171,7 +176,7 @@ impl Drop for App {
 plugin_main!(App, {
     PluginHandler::builder()
         .name(env!("CARGO_CRATE_NAME"))
-        .description(env!("CARGO_PKG_DESCRIPTION"))
+        .description(t!("description"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .link(env!("CARGO_PKG_HOMEPAGE"))
@@ -181,15 +186,15 @@ plugin_main!(App, {
                 .load(spawn::<home::options::MainModel>)
                 .build(),
             OptionsPage::builder()
-                .name("拼音搜索")
+                .name(t!("pinyin-search"))
                 .load(spawn::<pinyin::options::MainModel>)
                 .build(),
             OptionsPage::builder()
-                .name("ローマ字検索")
+                .name(t!("romaji-search"))
                 .load(spawn::<romaji::options::MainModel>)
                 .build(),
             OptionsPage::builder()
-                .name("快速选择")
+                .name(t!("quick-select"))
                 .load(spawn::<quick_select::options::MainModel>)
                 .build(),
         ])
