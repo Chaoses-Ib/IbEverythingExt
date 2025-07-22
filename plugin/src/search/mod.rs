@@ -12,7 +12,7 @@ use std::{
 
 use bitflags::bitflags;
 use everything_plugin::{PluginApp, ipc::Version, log::*};
-use ib_matcher::matcher::{IbMatcher, input::Input};
+use ib_matcher::matcher::{IbMatcher, input::Input, pattern::Pattern};
 
 use crate::HANDLER;
 
@@ -128,7 +128,14 @@ extern "C" fn search_compile(
     if app.version() < Version::new(1, 5, 0, 0) {
         modifiers.remove(Modifiers::v5_StartWith | Modifiers::v5_EndWith);
     }
-    let matcher = IbMatcher::builder(pattern.as_ref())
+    #[cfg_attr(rustfmt, rustfmt_skip)]
+    let matcher = IbMatcher::builder(
+        Pattern::parse_ev(&pattern)
+            .postmodifier_en(true)
+            .postmodifier_py(app.pinyin.is_some())
+            .postmodifier_rm(app.romaji.is_some())
+            .call(),
+        )
         .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
         .starts_with(modifiers.intersects(Modifiers::v5_StartWith | Modifiers::WholeFilename))
         .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))

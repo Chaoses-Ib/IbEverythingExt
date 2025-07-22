@@ -28,9 +28,9 @@ rev = "faaf0aa420a3d6fb90529475fc3cfda3298276e6"
 
 [dependencies.ib-matcher]
 version = "0.3"
-features = ["pinyin", "romaji"]
+features = ["pinyin", "romaji", "syntax"]
 git = "https://github.com/Chaoses-Ib/ib-matcher"
-rev = "9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139"
+rev = "e4f81c13039b0a00528850e848a50cd16a270daf"
 
 [build-dependencies]
 vcpkg = "0.2.15"

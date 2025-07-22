@@ -728,8 +728,8 @@ checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
 name = "ib-matcher"
-version = "0.3.0"
-source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139#9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139"
+version = "0.3.1"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=e4f81c13039b0a00528850e848a50cd16a270daf#e4f81c13039b0a00528850e848a50cd16a270daf"
 dependencies = [
  "aho-corasick",
  "arraystring",
@@ -742,8 +742,8 @@ dependencies = [
 
 [[package]]
 name = "ib-romaji"
-version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139#9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139"
+version = "0.1.1"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=e4f81c13039b0a00528850e848a50cd16a270daf#e4f81c13039b0a00528850e848a50cd16a270daf"
 dependencies = [
  "bon",
  "daachorse",
@@ -753,7 +753,7 @@ dependencies = [
 [[package]]
 name = "ib-unicode"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139#9dfb5c3ab5d41efbe98cabf2c730dc38bd7ec139"
+source = "git+https://github.com/Chaoses-Ib/ib-matcher?rev=e4f81c13039b0a00528850e848a50cd16a270daf#e4f81c13039b0a00528850e848a50cd16a270daf"
 
 [[package]]
 name = "ident_case"
@@ -1177,7 +1177,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "plugin"
-version = "0.8.0-beta.2"
+version = "0.8.0-beta.3"
 dependencies = [
  "bitflags",
  "everything-plugin",

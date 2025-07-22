@@ -26,6 +26,7 @@ pub mod search;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
+    #[serde(default)]
     pub search: search::config::SearchConfig,
     /// 拼音搜索
     pub pinyin_search: PinyinSearchConfig,
@@ -212,6 +213,7 @@ mod tests {
             format!("{:?}", config),
             format!("{:?}", {
                 let mut config = Config::default();
+                config.pinyin_search.allow_partial_match = Some(false);
                 config.quick_select.result_list.terminal = "wt -d ${fileDirname}".into();
                 config.update.prerelease = Some(false);
                 config
