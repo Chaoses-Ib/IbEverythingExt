@@ -11,6 +11,8 @@ pub struct MainModel {
     prerelease: Child<CheckBox>,
 
     search_mix_lang: Child<CheckBox>,
+
+    search_syntax: Child<TextBox>,
 }
 
 #[derive(Debug)]
@@ -35,7 +37,7 @@ impl Component for MainModel {
 
     fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Self {
         let mut window = init.window(sender);
-        window.set_size(Size::new(400.0, 200.0));
+        // window.set_size(Size::new(400.0, 200.0));
 
         // 更新设置
         let mut check = Child::<CheckBox>::init(&window);
@@ -46,6 +48,10 @@ impl Component for MainModel {
 
         let mut search_mix_lang = Child::<CheckBox>::init(&window);
         search_mix_lang.set_text("允许混合匹配拼音和ローマ字（开启简拼时误匹配率较高）");
+
+        let mut search_syntax = Child::<TextBox>::init(&window);
+        search_syntax.set_text(t!("search.syntax"));
+        // TODO: Readonly
 
         // 加载当前配置
         HANDLER.with_app(|a| {
@@ -67,6 +73,7 @@ impl Component for MainModel {
             check,
             prerelease,
             search_mix_lang,
+            search_syntax,
         }
     }
 
@@ -136,11 +143,12 @@ impl Component for MainModel {
         let mut search_layout = layout! {
             Grid::from_str("1*", "auto,1*").unwrap(),
             self.search_mix_lang => { column: 0, row: 0, margin: m },
+            self.search_syntax => { column: 0, row: 1, margin: m },
         };
 
         // 主布局
         let mut root_layout = layout! {
-            Grid::from_str("1*", "auto,auto,auto,1*").unwrap(),
+            Grid::from_str("1*", "auto,auto,1*").unwrap(),
             self.check => { column: 0, row: 0, margin: m },
             self.prerelease => { column: 0, row: 1, margin: m },
             search_layout => { column: 0, row: 2, margin: m },

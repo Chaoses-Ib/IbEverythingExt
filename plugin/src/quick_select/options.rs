@@ -7,6 +7,7 @@ pub struct MainModel {
     window: Child<Window>,
 
     enabled: Child<CheckBox>,
+    description: Child<TextBox>,
     close_everything: Child<CheckBox>,
     search_edit_label: Child<Label>,
     search_edit_alt_label: Child<Label>,
@@ -46,11 +47,14 @@ impl Component for MainModel {
 
     fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Self {
         let mut window = init.window(sender);
-        window.set_size(Size::new(500.0, 600.0));
+        // window.set_size(Size::new(500.0, 600.0));
 
         // 基本设置
         let mut enabled = Child::<CheckBox>::init(&window);
         enabled.set_text("启用快速选择");
+
+        let mut description = Child::<TextBox>::init(&window);
+        description.set_text(t!("quick.description"));
 
         let mut close_everything = Child::<CheckBox>::init(&window);
         close_everything.set_text("打开或定位文件后关闭窗口");
@@ -140,6 +144,7 @@ impl Component for MainModel {
         Self {
             window,
             enabled,
+            description,
             close_everything,
             search_edit_label,
             search_edit_alt_label,
@@ -188,6 +193,7 @@ impl Component for MainModel {
                 let is_enabled = self.enabled.is_checked();
 
                 // 启用/禁用所有子控件
+                self.description.set_enabled(is_enabled);
                 self.close_everything.set_enabled(is_enabled);
                 self.search_edit_alt.set_enabled(is_enabled);
                 self.result_list_alt.set_enabled(is_enabled);
@@ -299,18 +305,23 @@ impl Component for MainModel {
 
         // 主布局
         let mut root_layout = layout! {
-            Grid::from_str("1*", "auto,auto,auto,auto,auto,auto,auto,1*").unwrap(),
+            Grid::from_str("1*", "auto,auto,auto,auto,auto,auto,auto,auto,1*").unwrap(),
             self.enabled => { column: 0, row: 0, margin: m },
 
-            self.search_edit_label => { column: 0, row: 1, margin: m },
-            search_edit_layout => { column: 0, row: 2, margin: m_group },
+            // self.description => { column: 0, row: 1, margin: m, height: 100.0 },
 
-            self.result_list_label => { column: 0, row: 3, margin: m },
-            result_list_layout => { column: 0, row: 4, margin: m_group },
+            self.search_edit_label => { column: 0, row: 2, margin: m },
+            search_edit_layout => { column: 0, row: 3, margin: m_group },
 
-            self.close_everything => { column: 0, row: 5, margin: m },
+            self.result_list_label => { column: 0, row: 4, margin: m },
+            result_list_layout => { column: 0, row: 5, margin: m_group },
 
-            input_mode_layout => { column: 0, row: 6, margin: m },
+            self.close_everything => { column: 0, row: 6, margin: m },
+
+            input_mode_layout => { column: 0, row: 7, margin: m },
+
+            // This should be put after enabled, but Winio sets its min size too large
+            self.description => { column: 0, row: 8, margin: m },
         };
         root_layout.set_size(csize);
     }

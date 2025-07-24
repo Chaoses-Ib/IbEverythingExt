@@ -36,7 +36,7 @@ impl Component for MainModel {
 
     fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Self {
         let mut window = init.window(sender);
-        window.set_size(Size::new(500.0, 600.0));
+        // window.set_size(Size::new(500.0, 600.0));
 
         let mut enabled = Child::<CheckBox>::init(&window);
         enabled.set_text("ローマ字検索を有効にする");

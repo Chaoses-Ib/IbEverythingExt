@@ -20,7 +20,7 @@ use crate::{
 #[macro_use]
 extern crate rust_i18n;
 
-i18n!();
+i18n!(fallback = "en");
 
 mod ffi;
 mod home;

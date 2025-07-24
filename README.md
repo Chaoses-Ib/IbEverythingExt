@@ -6,22 +6,21 @@
 ![](docs/images/romaji.png)
 
 ## 目录
-* [安装](#安装)
-* [拼音搜索](#拼音搜索)
-  * [第三方程序支持](#第三方程序支持)
-  * [配置](#配置)
-* [ローマ字検索](#ローマ字検索)
-* [快速选择](#快速选择)
-  * [热键](#热键)
-  * [键列表](#键列表)
-  * [配置](#配置-1)
-* [其它](#其它)
-  * [快速启动器](#快速启动器)
-  * [硬盘占用分析](#硬盘占用分析)
-  * [检查更新](#检查更新)
-* [→开发](docs/development.md)
-* [致谢](#致谢)
-* [相关链接](#相关链接)
+- [安装](#安装)
+- [搜索增强](#搜索增强)
+  - [拼音搜索](#拼音搜索)
+  - [ローマ字検索](#ローマ字検索)
+  - [第三方程序支持](#第三方程序支持)
+- [快速选择](#快速选择)
+  - [热键](#热键)
+  - [键列表](#键列表)
+- [其它](#其它)
+  - [快速启动器](#快速启动器)
+  - [硬盘占用分析](#硬盘占用分析)
+  - [检查更新](#检查更新)
+- [→开发](docs/development.md)
+- [致谢](#致谢)
+- [相关链接](#相关链接)
 
 ## 安装
 [便携整合包](https://github.com/Chaoses-Ib/IbEverythingExt/releases)：
@@ -49,7 +48,8 @@
 
 Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases)（`KexSetup_Release_*.exe`），并在 `Everything64.exe` / `Everything.exe` 文件属性中启用 VxKex。详见 [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889)。
 
-## 拼音搜索
+## 搜索增强
+### 拼音搜索
 允许用拼音在 Everything 中搜索文件。
 
 * 默认小写字母匹配拼音或字母，大写字母只匹配字母。
@@ -63,35 +63,22 @@ Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/r
     * 华宇双拼（紫光双拼） 
   
   支持多音字和 Unicode 辅助平面汉字。
-* 后置修饰符：
-  * `;py`：小写字母只匹配拼音
-  * `;np`：禁用拼音搜索
+- 后置修饰符：
+  - `;py`：小写字母只匹配拼音（例如 `pysseve;py`）
+  - `;en`：禁用拼音匹配
+  - `;np`：强制使用 Everything 内置匹配算法
 
 <img src="docs/pinyin_search.png" height="400"/>
 
-### [第三方程序支持](docs/third_party/README.md)
-拼音搜索对调用 Everything 进行搜索的第三方程序同样生效，例如：
-* [EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
-  <img src="docs/third_party/EverythingToolbar.png" height="300"/>
-* [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Explorer 插件](https://www.flowlauncher.com/docs/#/plugin-explorer?id=everything-setting-tab)  
-  <img src="docs/third_party/FlowLauncher.png" height="200"/>
-* [PowerToys Run](https://learn.microsoft.com/windows/powertoys/run) 的 [Everything 插件](https://github.com/lin-ycv/EverythingPowerToys)  
-  <img src="docs/third_party/PowerToys.png" height="200"/>
-* [PowerToys 命令面板（Command Palette）](https://learn.microsoft.com/windows/powertoys/command-palette/overview) 的 [EverythingCommandPalette 插件](https://github.com/lin-ycv/EverythingCommandPalette)  
-  <img src="docs/third_party/PowerToys-CmdPal.png" height="300" />
-* [uTools](https://u.tools) 本地搜索  
-  <img src="docs/third_party/uTools.png" height="300"/>
-* [Wox](https://github.com/Wox-launcher/Wox) 的 Everything 插件
-* [火柴（火萤酱）](https://www.huochaipro.com/)本地搜索
-
-如果使用的是 Everything 1.5 预览版，因为预览版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
-
-### 配置
+#### 配置
 Everything v1.5 用户可在选项中调整配置：
 
 ![](docs/images/pinyin-search-options.png)
 
 Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 文件：
+
+<details>
+
 ```yaml
 # 拼音搜索
 pinyin_search:
@@ -120,14 +107,39 @@ pinyin_search:
 ```
 Edit 模式详见 [Edit 模式](docs/pinyin_search/edit_mode.md)。
 
-## ローマ字検索
+</details>
+
+### ローマ字検索
 日语罗马字搜索。默认关闭。
+
+- 默认小写字母匹配罗马字或字母，大写字母只匹配字母。
+- 后置修饰符：
+  - `;rm`：小写字母只匹配罗马字（例如 `konosuba;rm`）
+  - `;en`：禁用罗马字匹配
+  - `;np`：强制使用 Everything 内置匹配算法
 
 ![](docs/images/romaji.png)
 
 Everything v1.5 用户可在选项中调整配置。
 
 Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 文件。
+
+### [第三方程序支持](docs/third_party/README.md)
+拼音搜索和罗马字搜索对调用 Everything 进行搜索的第三方程序同样生效，例如：
+- [EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
+  <img src="docs/third_party/EverythingToolbar.png" height="300"/>
+- [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Explorer 插件](https://www.flowlauncher.com/docs/#/plugin-explorer?id=everything-setting-tab)  
+  <img src="docs/third_party/FlowLauncher.png" height="200"/>
+- [PowerToys Run](https://learn.microsoft.com/windows/powertoys/run) 的 [Everything 插件](https://github.com/lin-ycv/EverythingPowerToys)  
+  <img src="docs/third_party/PowerToys.png" height="200"/>
+- [PowerToys 命令面板（Command Palette）](https://learn.microsoft.com/windows/powertoys/command-palette/overview) 的 [EverythingCommandPalette 插件](https://github.com/lin-ycv/EverythingCommandPalette)  
+  <img src="docs/third_party/PowerToys-CmdPal.png" height="300" />
+- [uTools](https://u.tools) 本地搜索  
+  <img src="docs/third_party/uTools.png" height="300"/>
+- [Wox](https://github.com/Wox-launcher/Wox) 的 Everything 插件
+- [火柴（火萤酱）](https://www.huochaipro.com/)本地搜索
+
+如果使用的是（非整合包中的）Everything 1.5 预览版，因为预览版默认启用了命名实例，大部分程序都不支持调用，需要[通过配置关闭命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)。
 
 ## 快速选择
 在 Everything 结果列表的左侧插入一个显示 0\~9、A\~Z 的键列表，并允许在搜索编辑框和结果列表中通过热键快速打开对应文件。
@@ -249,6 +261,9 @@ quick_select:
 Everything v1.5 用户可在选项中调整配置。
 
 Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 文件：
+
+<details>
+
 ```yaml
 # 更新
 update:
@@ -258,6 +273,7 @@ update:
   # 包括预览版
   prerelease: false
 ```
+</details>
 
 ## 开发
 见 [开发](docs/development.md)。
@@ -281,3 +297,4 @@ update:
 项目：
 - [DirectoryOpus: 一款上手简单、系统集成度高、功能强大的 Windows 文件管理器](https://github.com/Chaoses-Ib/DirectoryOpus)
 - [ObsidianShell: 关联 Markdown 文件到 Obsidian](https://github.com/Chaoses-Ib/ObsidianShell)
+- [bash-pinyin-completion-rs: Simple completion script for pinyin, written in rust.](https://github.com/AOSC-Dev/bash-pinyin-completion-rs)

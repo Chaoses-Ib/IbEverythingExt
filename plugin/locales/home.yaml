@@ -1,0 +1,18 @@
+_version: 2
+search.syntax:
+  en: |-
+    Lowercase letters can match Chinese pinyin, Japanese romaji, or English letters, while uppercase letters match only English letters by default.
+
+    Postmodifiers:
+    ;py	Lowercase letters match only Chinese pinyin (e.g. pysseve;py)
+    ;rm	Lowercase letters match only Japanese romaji (e.g. konosuba;rm)
+    ;en	Lowercase letters match only English letters (i.e. disable pinyin and romaji match)
+    ;np	Force using Everything's built-in match algorithm (nope/no-pinyin)
+  zh: |-
+    默认小写字母匹配拼音、罗马字或字母，大写字母只匹配字母。
+
+    后置修饰符：
+    ;py	小写字母只匹配拼音（例如 pysseve;py）
+    ;rm	小写字母只匹配罗马字（例如 konosuba;rm）
+    ;en	小写字母只匹配英文（禁用拼音匹配、罗马字匹配）
+    ;np	强制使用 Everything 内置匹配算法（nope/no-pinyin）
