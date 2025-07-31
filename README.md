@@ -183,6 +183,9 @@ Everything v1.5 用户可在选项中调整配置：
 ![](docs/images/quick-select-options.png)
 
 Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 文件：
+
+<details>
+
 ```yaml
 # 快速选择
 quick_select:
@@ -223,6 +226,7 @@ quick_select:
   # SendInput
   input_mode: Auto
 ```
+</details>
 
 ## 其它
 ### 快速启动器

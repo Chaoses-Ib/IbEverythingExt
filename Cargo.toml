@@ -15,6 +15,9 @@ keywords = ["everything", "voidtools", "plugin", "pinyin", "cjk"]
 [workspace.dependencies]
 sig = { path = "sig" }
 
+[patch.crates-io]
+winio = { git = "https://github.com/Chaoses-Ib/winio" }
+
 [profile.release]
 lto = "fat"
 codegen-units = 1

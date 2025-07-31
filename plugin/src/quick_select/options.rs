@@ -8,15 +8,15 @@ pub struct MainModel {
 
     enabled: Child<CheckBox>,
     description: Child<TextBox>,
-    close_everything: Child<CheckBox>,
+    close_everything: Child<ToolTip<CheckBox>>,
     search_edit_label: Child<Label>,
-    search_edit_alt_label: Child<Label>,
+    search_edit_alt_label: Child<ToolTip<Label>>,
     search_edit_alt: Child<ComboBox>,
     result_list_label: Child<Label>,
-    result_list_alt_label: Child<Label>,
+    result_list_alt_label: Child<ToolTip<Label>>,
     result_list_alt: Child<ComboBox>,
     result_list_select: Child<CheckBox>,
-    terminal_kind_label: Child<Label>,
+    terminal_kind_label: Child<ToolTip<Label>>,
     terminal_kind: Child<ComboBox>,
     terminal_label: Child<Label>,
     terminal: Child<Edit>,
@@ -56,14 +56,16 @@ impl Component for MainModel {
         let mut description = Child::<TextBox>::init(&window);
         description.set_text(t!("quick.description"));
 
-        let mut close_everything = Child::<CheckBox>::init(&window);
-        close_everything.set_text("打开或定位文件后关闭窗口");
+        let mut close_everything = Child::<ToolTip<CheckBox>>::init(&window);
+        close_everything.set_text("打开或定位文件后关闭窗口 ⓘ");
+        close_everything.set_tooltip(t!("quick.close_everything.tooltip"));
 
         let mut search_edit_label = Child::<Label>::init(&window);
         search_edit_label.set_text("搜索编辑框：");
 
-        let mut search_edit_alt_label = Child::<Label>::init(&window);
-        search_edit_alt_label.set_text("Alt 组合键范围：");
+        let mut search_edit_alt_label = Child::<ToolTip<Label>>::init(&window);
+        search_edit_alt_label.set_text("Alt 组合键范围：ⓘ");
+        search_edit_alt_label.set_tooltip(t!("quick.alt.tooltip"));
         let mut search_edit_alt = Child::<ComboBox>::init(&window);
         search_edit_alt.insert(0, "禁用");
         search_edit_alt.insert(1, "Alt+0~9");
@@ -72,8 +74,9 @@ impl Component for MainModel {
         let mut result_list_label = Child::<Label>::init(&window);
         result_list_label.set_text("结果列表：");
 
-        let mut result_list_alt_label = Child::<Label>::init(&window);
-        result_list_alt_label.set_text("Alt 组合键范围：");
+        let mut result_list_alt_label = Child::<ToolTip<Label>>::init(&window);
+        result_list_alt_label.set_text("Alt 组合键范围：ⓘ");
+        result_list_alt_label.set_tooltip(t!("quick.alt.tooltip"));
         let mut result_list_alt = Child::<ComboBox>::init(&window);
         result_list_alt.insert(0, "禁用");
         result_list_alt.insert(1, "Alt+0~9");
@@ -82,8 +85,9 @@ impl Component for MainModel {
         let mut result_list_select = Child::<CheckBox>::init(&window);
         result_list_select.set_text("[0-9A-Z] 选中项目");
 
-        let mut terminal_kind_label = Child::<Label>::init(&window);
-        terminal_kind_label.set_text("终端：");
+        let mut terminal_kind_label = Child::<ToolTip<Label>>::init(&window);
+        terminal_kind_label.set_text("终端：ⓘ");
+        terminal_kind_label.set_tooltip(t!("quick.terminal.tooltip"));
         let mut terminal_kind = Child::<ComboBox>::init(&window);
         terminal_kind.insert(0, "禁用");
         terminal_kind.insert(1, "Windows Terminal (wt -d ${fileDirname})");
