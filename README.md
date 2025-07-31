@@ -27,8 +27,8 @@
 - Everything v1.5 便携整合包
   - 除了 IbEverythingExt，还内置了 HTTP 服务器、ETP/FTP 服务器、Everything 服务器插件
   - 内置语言包，不过界面中仍有部分英文未汉化
-  - 默认关闭[命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)，便于第三方程序调用，如有需要可删除 `No_Alpha_Instance` 文件来还原
-  - 如果插件未自动加载，请在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
+  - 初次使用时请在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
+  - 默认关闭[命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)，便于[第三方程序调用](#第三方程序支持)，如有需要可删除 `No_Alpha_Instance` 文件来还原
 - Everything v1.4 便携整合包
   - 完整汉化
   - 不含插件配置界面，需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 配置文件
