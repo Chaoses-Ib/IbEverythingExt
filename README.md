@@ -1,5 +1,5 @@
 # IbEverythingExt
-[Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、快速选择扩展。 
+[Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、通配符、快速选择扩展。 
 
 ![](docs/preview.png)
 
@@ -10,6 +10,7 @@
 - [搜索增强](#搜索增强)
   - [拼音搜索](#拼音搜索)
   - [ローマ字検索](#ローマ字検索)
+  - [通配符搜索](#通配符搜索)
   - [第三方程序支持](#第三方程序支持)
 - [快速选择](#快速选择)
   - [热键](#热键)
@@ -124,8 +125,22 @@ Everything v1.5 用户可在选项中调整配置。
 
 Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 文件。
 
+### 通配符搜索
+通配符 | 语义
+--- | ---
+`*` | 匹配零或多个字符（除了 `\`）
+`**` | 匹配零或多个字符
+`?` | 匹配一个字符（除了 `\`）
+`/` | 匹配多个字符到子路径的文件名开头（等价于 `**\`）。<br/>例如，`xx/7y` 可以匹配到 `学习资料\时间\7月合集`，但 `xx/hj` 不可以。
+`//` | 匹配多个字符到子路径（等价于 `*\**`）。<br/>例如，`xx//hj` 可以匹配到 `学习资料\时间\7月合集`。
+`\\` | 同上
+
+- 通配符支持拼音搜索和罗马字搜索。
+- 使用通配符时不要求匹配完整文件名。
+- `/` 和 `//` 通配符可在选项中开关，默认开启。
+
 ### [第三方程序支持](docs/third_party/README.md)
-拼音搜索和罗马字搜索对调用 Everything 进行搜索的第三方程序同样生效，例如：
+拼音搜索、罗马字搜索、通配符搜索对调用 Everything 进行搜索的第三方程序同样生效，例如：
 - [EverythingToolbar](https://github.com/stnkl/EverythingToolbar)  
   <img src="docs/third_party/EverythingToolbar.png" height="300"/>
 - [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) 的 [Explorer 插件](https://www.flowlauncher.com/docs/#/plugin-explorer?id=everything-setting-tab)  
@@ -294,7 +309,7 @@ update:
 - [Telegram 文件管理交流群](https://t.me/IbDirectoryOpusGroup)
 
 库：
-- [ib-matcher: A multilingual and fast string matcher, supports 拼音匹配 and ローマ字検索](https://github.com/Chaoses-Ib/ib-matcher)
+- [ib-matcher: A multilingual, flexible and fast string and regex matcher, supports 拼音匹配 and ローマ字検索](https://github.com/Chaoses-Ib/ib-matcher)
 - [IbEverythingLib: Rust/C++ bindings for voidtool's Everything](https://github.com/Chaoses-Ib/IbEverythingLib)
 - [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
 

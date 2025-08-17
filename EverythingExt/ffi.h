@@ -57,7 +57,6 @@ const void *search_compile(const char *pattern, PcreFlags cflags, Modifiers modi
 
 int32_t search_exec(const void *matcher,
                     const char *haystack,
-                    uint32_t length,
                     uintptr_t nmatch,
                     regmatch_t *pmatch,
                     PcreFlags eflags);

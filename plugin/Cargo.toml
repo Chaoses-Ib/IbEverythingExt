@@ -30,7 +30,7 @@ rev = "e6b6b5dfe65ca8ee3e405144cc57ffed9548632d"
 
 [dependencies.ib-matcher]
 version = "0.3"
-features = ["pinyin", "romaji", "syntax"]
+features = ["pinyin", "romaji", "syntax", "regex"]
 git = "https://github.com/Chaoses-Ib/ib-matcher"
 rev = "e4f81c13039b0a00528850e848a50cd16a270daf"
 

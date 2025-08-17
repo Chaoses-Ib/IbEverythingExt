@@ -113,33 +113,37 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     }
 
     // return if term is a regex or term is case sensitive
-    if (modifiers & Modifier::RegEx || modifiers & Modifier::Case)
+    // || modifiers & Modifier::Case
+    if (modifiers & Modifier::RegEx)
         return;
 
     // unsupported modifiers
     if (modifiers & Modifier::WildcardEx || modifiers & Modifier::WholeWord)
         return;
 
-    //#TODO: wildcards are not supported
-    if (!(modifiers & Modifier::Alphanumeric) && pattern.find_first_of(u8"*?") != pattern.npos)
-        return;
+    // //#TODO: wildcards are not supported
+    // if (!(modifiers & Modifier::Alphanumeric) && pattern.find_first_of(u8"*?") != pattern.npos)
+    //    return;
 
-
-    // return if no lower letter
-    if (std::find_if(pattern.begin(), pattern.end(), [](char8_t c) {
-        return u8'a' <= c && c <= u8'z';
-        }) == pattern.end())
-    {
-        return;
-    }
-    // could be `CPP;py`, but that's a rare case
+    // // return if no lower letter
+    // if (std::find_if(pattern.begin(), pattern.end(), [](char8_t c) {
+    //     return u8'a' <= c && c <= u8'z';
+    //     }) == pattern.end())
+    // {
+    //     return;
+    // }
+    // // could be `CPP;py`, but that's a rare case
 
     // return if termtext is an absolute path
     if (pattern.size() > 1 && pattern[1] == u8':' && 'A' <= ib::toupper(pattern[0]) && ib::toupper(pattern[0]) <= 'Z')
         return;
     
     // "Match path when a search term contains a path separator"
-    if (!(modifiers & Modifier::Path) && std::find(pattern.begin(), pattern.end(), u8'\\') != pattern.end()) {
+    // v1.4 only?
+    if (!(modifiers & Modifier::Path) &&
+        // std::find(pattern.begin(), pattern.end(), u8'\\') != pattern.end()
+        pattern.find_first_of(u8"\\/") != pattern.npos
+    ) {
         *modifiers_p |= Modifier::Path;
     }
     
@@ -476,14 +480,36 @@ int PCRE_CALL_CONVENTION
 regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
     regmatch_t pmatch[], int eflags)
 {
-    auto do_exec = [&](const char* string, int length) {
+    auto do_exec = [&] {
         const void* matcher = (const void*)((uintptr_t)preg->re_pcre & ~1);
-        if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) {
-            return search_exec(matcher, string, length, nmatch, pmatch, eflags);
+        if (config.pinyin_search.mode == PinyinSearchMode::Pcre2) [[likely]] {
+            return search_exec(matcher, string, nmatch, pmatch, eflags);
         } else {
-            return exec((Pattern*)matcher, (const char8_t*)string, length, nmatch, (int*)pmatch, {
+            int length, start;
+            if (eflags & REG_STARTEND) {
+                // string is not zero-terminated
+                start = pmatch[0].rm_so;
+                string += start;
+                length = pmatch[0].rm_eo - start;
+            } else {
+                length = strlen(string);
+            }
+
+            int rc = exec((Pattern*)matcher, (const char8_t*)string, length, nmatch, (int*)pmatch, {
                 .not_begin_of_line = bool(eflags & REG_NOTBOL)
                 });
+            
+            if (rc == -1) {
+                return -1;
+            }
+
+            // `regexec()` conforms to `REG_STARTEND` after v1.5.0.1359
+            if (eflags & REG_STARTEND) {
+                for (int i = 0; i < rc; i++) {
+                    pmatch[i].rm_so += start;
+                    pmatch[i].rm_eo += start;
+                }
+            }
         }
     };  
 
@@ -506,7 +532,7 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
             if (eflags & REG_STARTEND) {
                 // string is not zero-terminated
                 start = pmatch[0].rm_so;
-                string += start;
+                //string += start;
                 length = pmatch[0].rm_eo - start;
             } else {
                 start = 0;
@@ -525,23 +551,16 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
             int error;
             int rc;
             if (modifiers & Modifier::RegEx || ((uintptr_t)preg->re_pcre & 1) == 0) {
-                string -= start;
+                //string -= start;
                 error = regexec_real(preg, string, nmatch, pmatch, eflags);
                 rc = 1 + preg->re_nsub;
             }
             else {
-                rc = do_exec(string, length);
+                rc = do_exec();
                 if (rc == -1)
                     error = REG_NOMATCH;
                 else
                     error = 0;
-
-                if (eflags & REG_STARTEND) {
-                    for (int i = 0; i < rc; i++) {
-                        pmatch[i].rm_so += start;
-                        pmatch[i].rm_eo += start;
-                    }
-                }
             }
             dout << rc;
             if (error == REG_NOMATCH) {
@@ -562,27 +581,9 @@ regexec_detour(const regex_t* preg, const char* string, size_t nmatch,
         return regexec_real(preg, string, nmatch, pmatch, eflags);
     }
 
-    int length, start;
-    if (eflags & REG_STARTEND) {
-        // string is not zero-terminated
-        start = pmatch[0].rm_so;
-        string += start;
-        length = pmatch[0].rm_eo - start;
-    } else {
-        length = strlen(string);
-    }
-
-    int rc = do_exec(string, length);
+    int rc = do_exec();
     if (rc == -1) {
         return REG_NOMATCH;
-    }
-
-    // `regexec()` conforms to `REG_STARTEND` after v1.5.0.1359
-    if (eflags & REG_STARTEND) {
-        for (int i = 0; i < rc; i++) {
-            pmatch[i].rm_so += start;
-            pmatch[i].rm_eo += start;
-        }
     }
 
     return 0;

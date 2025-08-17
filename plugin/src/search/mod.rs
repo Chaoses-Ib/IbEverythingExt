@@ -12,7 +12,11 @@ use std::{
 
 use bitflags::bitflags;
 use everything_plugin::{PluginApp, ipc::Version, log::*};
-use ib_matcher::matcher::{IbMatcher, input::Input, pattern::Pattern};
+use ib_matcher::{
+    matcher::{MatchConfig, pattern::Pattern},
+    regex::{self, lita::Regex},
+    syntax::glob::{self, GlobExtConfig, GlobStar, PathSeparator},
+};
 
 use crate::HANDLER;
 
@@ -128,24 +132,68 @@ extern "C" fn search_compile(
     if app.version() < Version::new(1, 5, 0, 0) {
         modifiers.remove(Modifiers::v5_StartWith | Modifiers::v5_EndWith);
     }
-    #[cfg_attr(rustfmt, rustfmt_skip)]
-    let matcher = IbMatcher::builder(
-        Pattern::parse_ev(&pattern)
-            .postmodifier_en(true)
-            .postmodifier_py(app.pinyin.is_some())
-            .postmodifier_rm(app.romaji.is_some())
-            .call(),
+    // #[cfg_attr(rustfmt, rustfmt_skip)]
+    // let matcher = IbMatcher::builder(
+    //     Pattern::parse_ev(&pattern)
+    //         .postmodifier_en(true)
+    //         .postmodifier_py(app.pinyin.is_some())
+    //         .postmodifier_rm(app.romaji.is_some())
+    //         .call(),
+    //     )
+    //     .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
+    //     .starts_with(modifiers.intersects(Modifiers::v5_StartWith | Modifiers::WholeFilename))
+    //     .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
+    //     // TODO
+    //     .is_pattern_partial(true)
+    //     .mix_lang(app.config().search.mix_lang)
+    //     .maybe_pinyin(app.pinyin.as_ref().map(|v| v.shallow_clone()))
+    //     .maybe_romaji(app.romaji.as_ref().map(|v| v.shallow_clone()))
+    //     .analyze(true)
+    //     .build();
+    let matcher = Regex::builder()
+        .ib(MatchConfig::builder()
+            .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
+            .starts_with(modifiers.intersects(Modifiers::v5_StartWith | Modifiers::WholeFilename))
+            .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
+            // TODO
+            .is_pattern_partial(true)
+            .mix_lang(app.config().search.mix_lang)
+            .maybe_pinyin(app.pinyin.as_ref().map(|v| v.shallow_clone()))
+            .maybe_romaji(app.romaji.as_ref().map(|v| v.shallow_clone()))
+            .analyze(true)
+            .build())
+        .ib_parser(&mut |pattern| {
+            Pattern::parse_ev(&pattern)
+                .postmodifier_en(true)
+                .postmodifier_py(app.pinyin.is_some())
+                .postmodifier_rm(app.romaji.is_some())
+                .call()
+        })
+        .build_from_hir(
+            glob::parse_wildcard_path()
+                .separator(PathSeparator::Windows)
+                .ext(
+                    GlobExtConfig::builder()
+                        .maybe_two_separator_as_star(
+                            app.config()
+                                .search
+                                .wildcard_two_separator_as_star()
+                                .then_some((PathSeparator::Any, GlobStar::ToChild)),
+                        )
+                        .maybe_separator_as_star(
+                            app.config()
+                                .search
+                                .wildcard_complement_separator_as_star()
+                                .then_some((
+                                    PathSeparator::os_complement(),
+                                    GlobStar::ToChildStart,
+                                )),
+                        )
+                        .build(),
+                )
+                .call(&pattern),
         )
-        .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
-        .starts_with(modifiers.intersects(Modifiers::v5_StartWith | Modifiers::WholeFilename))
-        .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
-        // TODO
-        .is_pattern_partial(true)
-        .mix_lang(app.config().search.mix_lang)
-        .maybe_pinyin(app.pinyin.as_ref().map(|v| v.shallow_clone()))
-        .maybe_romaji(app.romaji.as_ref().map(|v| v.shallow_clone()))
-        .analyze(true)
-        .build();
+        .unwrap();
     let r = Box::new(matcher);
     Box::into_raw(r) as _
 }
@@ -165,14 +213,19 @@ struct regmatch_t {
 extern "C" fn search_exec(
     matcher: *const c_void,
     haystack: *const c_char,
-    length: u32,
     nmatch: usize,
     pmatch: *mut regmatch_t,
     eflags: PcreFlags,
 ) -> i32 {
-    let matcher = unsafe { &*(matcher as *const IbMatcher) };
+    let matcher = unsafe { &*(matcher as *const Regex) };
 
-    let haystack = unsafe { slice::from_raw_parts(haystack as _, length as usize) };
+    let range = if eflags.contains(PcreFlags::REG_STARTEND) {
+        unsafe { (*pmatch).rm_so as usize..(*pmatch).rm_eo as usize }
+    } else {
+        0..unsafe { CStr::from_ptr(haystack).count_bytes() }
+    };
+
+    let haystack = unsafe { slice::from_raw_parts(haystack as _, range.end) };
     let buf;
     let haystack = if cfg!(debug_assertions) {
         buf = String::from_utf8_lossy(haystack);
@@ -188,10 +241,10 @@ extern "C" fn search_exec(
         unsafe { str::from_utf8_unchecked(haystack) }
     };
 
+    debug_assert!(!(eflags.contains(PcreFlags::REG_NOTBOL) && range.start == 0));
     if let Some(m) = matcher.find(
-        Input::builder(haystack)
-            .no_start(eflags.contains(PcreFlags::REG_NOTBOL))
-            .build(),
+        // .no_start(eflags.contains(PcreFlags::REG_NOTBOL)),
+        regex::Input::new(haystack).span(range),
     ) {
         if nmatch > 0 {
             unsafe {
@@ -268,5 +321,5 @@ extern "C" fn search_exec(
 
 #[unsafe(no_mangle)]
 extern "C" fn search_free(matcher: *mut c_void) {
-    drop(unsafe { Box::from_raw(matcher as *mut IbMatcher) });
+    drop(unsafe { Box::from_raw(matcher as *mut Regex) });
 }

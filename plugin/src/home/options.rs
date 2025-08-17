@@ -11,6 +11,8 @@ pub struct MainModel {
     prerelease: Child<CheckBox>,
 
     search_mix_lang: Child<CheckBox>,
+    wildcard_complement_separator_as_star: Child<CheckBox>,
+    wildcard_two_separator_as_star: Child<CheckBox>,
 
     search_syntax: Child<TextBox>,
 }
@@ -49,6 +51,12 @@ impl Component for MainModel {
         let mut search_mix_lang = Child::<CheckBox>::init(&window);
         search_mix_lang.set_text("允许混合匹配拼音和ローマ字（开启简拼时误匹配率较高）");
 
+        let mut wildcard_complement_separator_as_star = Child::<CheckBox>::init(&window);
+        wildcard_complement_separator_as_star.set_text(t!("wildcard_complement_separator_as_star"));
+
+        let mut wildcard_two_separator_as_star = Child::<CheckBox>::init(&window);
+        wildcard_two_separator_as_star.set_text(t!("wildcard_two_separator_as_star"));
+
         let mut search_syntax = Child::<TextBox>::init(&window);
         search_syntax.set_text(t!("search.syntax"));
         // TODO: Readonly
@@ -62,6 +70,9 @@ impl Component for MainModel {
 
             let config = &a.config().search;
             search_mix_lang.set_checked(config.mix_lang);
+            wildcard_complement_separator_as_star
+                .set_checked(config.wildcard_complement_separator_as_star());
+            wildcard_two_separator_as_star.set_checked(config.wildcard_two_separator_as_star());
         });
 
         sender.post(MainMessage::CheckClick);
@@ -73,6 +84,8 @@ impl Component for MainModel {
             check,
             prerelease,
             search_mix_lang,
+            wildcard_complement_separator_as_star,
+            wildcard_two_separator_as_star,
             search_syntax,
         }
     }
@@ -89,6 +102,8 @@ impl Component for MainModel {
             },
             self.prerelease => {},
             self.search_mix_lang => {},
+            self.wildcard_complement_separator_as_star => {},
+            self.wildcard_two_separator_as_star => {},
         }
     }
 
@@ -125,6 +140,12 @@ impl Component for MainModel {
                         };
                         config.search = SearchConfig {
                             mix_lang: self.search_mix_lang.is_checked(),
+                            wildcard_complement_separator_as_star: Some(
+                                self.wildcard_complement_separator_as_star.is_checked(),
+                            ),
+                            wildcard_two_separator_as_star: Some(
+                                self.wildcard_two_separator_as_star.is_checked(),
+                            ),
                         };
                         tx.send(config).unwrap()
                     }
@@ -141,9 +162,11 @@ impl Component for MainModel {
         let m = Margin::new(4., 0., 4., 0.);
 
         let mut search_layout = layout! {
-            Grid::from_str("1*", "auto,1*").unwrap(),
+            Grid::from_str("1*", "auto,auto,auto,1*").unwrap(),
             self.search_mix_lang => { column: 0, row: 0, margin: m },
-            self.search_syntax => { column: 0, row: 1, margin: m },
+            self.wildcard_complement_separator_as_star => { column: 0, row: 1, margin: m },
+            self.wildcard_two_separator_as_star => { column: 0, row: 2, margin: m },
+            self.search_syntax => { column: 0, row: 3, margin: m },
         };
 
         // 主布局

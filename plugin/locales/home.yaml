@@ -8,6 +8,17 @@ search.syntax:
     ;rm	Lowercase letters match only Japanese romaji (e.g. konosuba;rm)
     ;en	Lowercase letters match only English letters (i.e. disable pinyin and romaji match)
     ;np	Force using Everything's built-in match algorithm (nope/no-pinyin)
+
+    Wildcard matching:
+    *	Matches zero or more characters (except \).
+    **	Matches zero or more characters.
+    ?	Matches one character (except \).
+    /	Matches characters to the start of a child (equivalent to **\).
+    	For example, `foo/alice` can match `foo\bar\alice`, but `foo/lice` can't.
+    //	Matches characters to a child (equivalent to *\**).
+    	For example, `foo//lice` can match `foo\bar\alice`.
+    \\	Ditto.
+    Using a wildcard does not require the whole filename to be matched.
   zh: |-
     默认小写字母匹配拼音、罗马字或字母，大写字母只匹配字母。
 
@@ -16,3 +27,21 @@ search.syntax:
     ;rm	小写字母只匹配罗马字（例如 konosuba;rm）
     ;en	小写字母只匹配英文（禁用拼音匹配、罗马字匹配）
     ;np	强制使用 Everything 内置匹配算法（nope/no-pinyin）
+
+    通配符：
+    *	匹配零或多个字符（除了 \）
+    **	匹配零或多个字符
+    ?	匹配一个字符（除了 \）
+    /	匹配多个字符到子路径的文件名开头（等价于 **\）。
+    	例如，xx/7y 可以匹配到 学习资料\时间\7月合集，但 xx/hj 不可以。
+    //	匹配多个字符到子路径（等价于 *\**）。
+    	例如，xx//hj 可以匹配到 学习资料\时间\7月合集。
+    \\	同上
+    使用通配符时不要求匹配完整文件名
+
+wildcard_complement_separator_as_star:
+  en: |-
+    / 通配路径到文件名开头（等效于 **\）
+wildcard_two_separator_as_star:
+  en: |-
+    // 或 \\ 通配路径（等效于 *\**）
