@@ -18,7 +18,9 @@ search.syntax:
     //	Matches characters to a child (equivalent to *\**).
     	For example, `foo//lice` can match `foo\bar\alice`.
     \\	Ditto.
-    Using a wildcard does not require the whole filename to be matched.
+    Using a wildcard does not require the whole filename to be matched, unless it's at the start or the end.
+
+    Please do not enable "Replace forward slashes with backslashes" (which is disabled by default).
   zh: |-
     默认小写字母匹配拼音、罗马字或字母，大写字母只匹配字母。
 
@@ -37,7 +39,9 @@ search.syntax:
     //	匹配多个字符到子路径（等价于 *\**）。
     	例如，xx//hj 可以匹配到 学习资料\时间\7月合集。
     \\	同上
-    使用通配符时不要求匹配完整文件名
+    使用通配符时不要求匹配完整文件名，除非通配符位于开头或末尾。
+
+    请勿开启 "替换正斜杠为反斜杠"（目前错译为 "允许前斜杠作为路径分隔符"）（默认关闭）。
 
 wildcard_complement_separator_as_star:
   en: |-
