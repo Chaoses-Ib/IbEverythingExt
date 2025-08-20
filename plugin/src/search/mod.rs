@@ -169,6 +169,7 @@ extern "C" fn search_compile(
                 .postmodifier_rm(app.romaji.is_some())
                 .call()
         })
+        .thompson(PathSeparator::Windows.look_matcher_config())
         .build_from_hir(
             glob::parse_wildcard_path()
                 .separator(PathSeparator::Windows)

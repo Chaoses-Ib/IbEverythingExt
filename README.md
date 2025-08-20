@@ -136,7 +136,7 @@ Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` �
 `\\` | 同上
 
 - 通配符支持拼音搜索和罗马字搜索。
-- 使用通配符时不要求匹配完整文件名。
+- 使用通配符时不要求匹配完整文件名，除非通配符位于开头或末尾。
 - `/` 和 `//` 通配符可在选项中开关，默认开启。
 
 ### [第三方程序支持](docs/third_party/README.md)
