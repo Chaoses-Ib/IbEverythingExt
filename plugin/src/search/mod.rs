@@ -172,6 +172,7 @@ extern "C" fn search_compile(
         .thompson(PathSeparator::Windows.look_matcher_config())
         .build_from_hir(
             glob::parse_wildcard_path()
+                .pattern_separator(PathSeparator::Any)
                 .separator(PathSeparator::Windows)
                 .ext(
                     GlobExtConfig::builder()
