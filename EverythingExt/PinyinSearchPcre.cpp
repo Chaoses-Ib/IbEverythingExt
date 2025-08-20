@@ -135,7 +135,8 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     // // could be `CPP;py`, but that's a rare case
 
     // return if termtext is an absolute path
-    if (pattern.size() > 1 && pattern[1] == u8':' && 'A' <= ib::toupper(pattern[0]) && ib::toupper(pattern[0]) <= 'Z')
+    // 'A' <= ib::toupper(pattern[0]) && ib::toupper(pattern[0]) <= 'Z'
+    if (pattern.size() > 1 && pattern[1] == u8':' && 'A' <= pattern[0] && pattern[0] <= 'Z')
         return;
     
     // "Match path when a search term contains a path separator"
