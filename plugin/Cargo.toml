@@ -29,10 +29,10 @@ git = "https://github.com/Chaoses-Ib/IbEverythingLib"
 rev = "e6b6b5dfe65ca8ee3e405144cc57ffed9548632d"
 
 [dependencies.ib-matcher]
-version = "0.3"
+version = "0.4"
 features = ["pinyin", "romaji", "syntax", "regex"]
-git = "https://github.com/Chaoses-Ib/ib-matcher"
-rev = "e4f81c13039b0a00528850e848a50cd16a270daf"
+# git = "https://github.com/Chaoses-Ib/ib-matcher"
+# rev = "2fc6298be0fce2ca4f11233c7a929c8e0ba1e2e7"
 
 [build-dependencies]
 vcpkg = "0.2.15"
