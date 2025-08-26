@@ -71,7 +71,7 @@ impl PluginApp for App {
         };
 
         let pinyin = &config.pinyin_search;
-        let pinyin = if pinyin.enable {
+        let pinyin = if pinyin.enable() {
             Some(
                 PinyinMatchConfig::builder(pinyin.notations())
                     // .data(&app.pinyin_data)
@@ -85,7 +85,7 @@ impl PluginApp for App {
         };
 
         let romaji = &config.romaji_search;
-        let romaji = if romaji.enable {
+        let romaji = if romaji.enable() {
             Some(
                 RomajiMatchConfig::builder()
                     .allow_partial_pattern(romaji.allow_partial_match)
@@ -120,7 +120,8 @@ impl PluginApp for App {
 
         // Dirty fixes
         let mut config = self.config.clone();
-        config.pinyin_search.enable |= config.romaji_search.enable;
+        // config.pinyin_search.enable() | config.romaji_search.enable()
+        config.pinyin_search.enable = Some(true);
         config.pinyin_search.mode = match self.config.pinyin_search.mode {
             PinyinSearchMode::Auto => PinyinSearchMode::Pcre2,
             mode => mode,

@@ -57,7 +57,7 @@ impl Component for MainModel {
         HANDLER.with_app(|a| {
             let config = &a.config().romaji_search;
 
-            enabled.set_checked(config.enable);
+            enabled.set_checked(config.enable());
 
             allow_partial_match.set_checked(config.allow_partial_match);
         });
@@ -113,7 +113,7 @@ impl Component for MainModel {
                     OptionsPageMessage::Save(config, tx) => {
                         // 保存拼音搜索配置
                         config.romaji_search = RomajiSearchConfig {
-                            enable: self.enabled.is_checked(),
+                            enable: Some(self.enabled.is_checked()),
                             allow_partial_match: self.allow_partial_match.is_checked(),
                         };
                         tx.send(config).unwrap()

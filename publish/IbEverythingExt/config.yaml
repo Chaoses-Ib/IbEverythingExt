@@ -4,7 +4,7 @@
 # 拼音搜索
 pinyin_search:
   # true：开启，false：关闭
-  enable: true
+  enable: null
 
   # 模式
   # Auto：自动
@@ -28,7 +28,7 @@ pinyin_search:
 
 # ローマ字検索
 romaji_search:
-  enable: false
+  enable: null
 
   allow_partial_match: true
 

@@ -101,7 +101,7 @@ impl Component for MainModel {
         HANDLER.with_app(|a| {
             let config = &a.config().pinyin_search;
 
-            enabled.set_checked(config.enable);
+            enabled.set_checked(config.enable());
 
             mode.set_selection(Some(match config.mode {
                 PinyinSearchMode::Auto => 0,
@@ -202,7 +202,7 @@ impl Component for MainModel {
                     OptionsPageMessage::Save(config, tx) => {
                         // 保存拼音搜索配置
                         config.pinyin_search = PinyinSearchConfig {
-                            enable: self.enabled.is_checked(),
+                            enable: Some(self.enabled.is_checked()),
                             mode: match self.mode.selection() {
                                 Some(0) => PinyinSearchMode::Auto,
                                 Some(1) => PinyinSearchMode::Pcre2,

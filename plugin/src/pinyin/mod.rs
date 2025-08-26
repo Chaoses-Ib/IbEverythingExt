@@ -18,7 +18,7 @@ pub enum PinyinSearchMode {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PinyinSearchConfig {
-    pub enable: bool,
+    pub enable: Option<bool>,
 
     pub mode: PinyinSearchMode,
 
@@ -47,7 +47,7 @@ pub struct PinyinSearchConfig {
 impl Default for PinyinSearchConfig {
     fn default() -> Self {
         Self {
-            enable: true,
+            enable: None,
             mode: Default::default(),
             allow_partial_match: None,
             initial_letter: true,
@@ -64,6 +64,12 @@ impl Default for PinyinSearchConfig {
 }
 
 impl PinyinSearchConfig {
+    /// Locale-dependent default config
+    pub fn enable(&self) -> bool {
+        self.enable
+            .unwrap_or_else(|| rust_i18n::locale().starts_with("zh-"))
+    }
+
     pub fn notations(&self) -> PinyinNotation {
         let mut notations = PinyinNotation::empty();
         if self.initial_letter {
