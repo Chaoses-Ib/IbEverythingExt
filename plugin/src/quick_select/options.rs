@@ -51,57 +51,57 @@ impl Component for MainModel {
 
         // 基本设置
         let mut enabled = Child::<CheckBox>::init(&window);
-        enabled.set_text("启用快速选择");
+        enabled.set_text(t!("quick.enabled"));
 
         let mut description = Child::<TextBox>::init(&window);
         description.set_text(t!("quick.description"));
 
         let mut close_everything = Child::<ToolTip<CheckBox>>::init(&window);
-        close_everything.set_text("打开或定位文件后关闭窗口 ⓘ");
+        close_everything.set_text(t!("quick.close_everything"));
         close_everything.set_tooltip(t!("quick.close_everything.tooltip"));
 
         let mut search_edit_label = Child::<Label>::init(&window);
-        search_edit_label.set_text("搜索编辑框：");
+        search_edit_label.set_text(t!("quick.search_edit"));
 
         let mut search_edit_alt_label = Child::<ToolTip<Label>>::init(&window);
-        search_edit_alt_label.set_text("Alt 组合键范围：ⓘ");
+        search_edit_alt_label.set_text(t!("quick.alt"));
         search_edit_alt_label.set_tooltip(t!("quick.alt.tooltip"));
         let mut search_edit_alt = Child::<ComboBox>::init(&window);
-        search_edit_alt.insert(0, "禁用");
+        search_edit_alt.insert(0, t!("disabled"));
         search_edit_alt.insert(1, "Alt+0~9");
         search_edit_alt.insert(2, "Alt+[0-9A-Z]");
 
         let mut result_list_label = Child::<Label>::init(&window);
-        result_list_label.set_text("结果列表：");
+        result_list_label.set_text(t!("quick.result_list"));
 
         let mut result_list_alt_label = Child::<ToolTip<Label>>::init(&window);
-        result_list_alt_label.set_text("Alt 组合键范围：ⓘ");
+        result_list_alt_label.set_text(t!("quick.alt"));
         result_list_alt_label.set_tooltip(t!("quick.alt.tooltip"));
         let mut result_list_alt = Child::<ComboBox>::init(&window);
-        result_list_alt.insert(0, "禁用");
+        result_list_alt.insert(0, t!("disabled"));
         result_list_alt.insert(1, "Alt+0~9");
         result_list_alt.insert(2, "Alt+[0-9A-Z]");
 
         let mut result_list_select = Child::<CheckBox>::init(&window);
-        result_list_select.set_text("[0-9A-Z] 选中项目");
+        result_list_select.set_text(t!("quick.result_list_select"));
 
         let mut terminal_kind_label = Child::<ToolTip<Label>>::init(&window);
-        terminal_kind_label.set_text("终端：ⓘ");
+        terminal_kind_label.set_text(t!("quick.terminal"));
         terminal_kind_label.set_tooltip(t!("quick.terminal.tooltip"));
         let mut terminal_kind = Child::<ComboBox>::init(&window);
-        terminal_kind.insert(0, "禁用");
+        terminal_kind.insert(0, t!("disabled"));
         terminal_kind.insert(1, "Windows Terminal (wt -d ${fileDirname})");
         terminal_kind.insert(2, "Windows Console (conhost)");
-        terminal_kind.insert(3, "自定义");
+        terminal_kind.insert(3, t!("custom"));
 
         let mut terminal_label = Child::<Label>::init(&window);
-        terminal_label.set_text("自定义终端命令：");
+        terminal_label.set_text(t!("quick.terminal.command"));
         let mut terminal = Child::<Edit>::init(&window);
 
         let mut input_mode_label = Child::<Label>::init(&window);
-        input_mode_label.set_text("输入模拟模式：");
+        input_mode_label.set_text(t!("quick.input_mode"));
         let mut input_mode = Child::<ComboBox>::init(&window);
-        input_mode.insert(0, "自动");
+        input_mode.insert(0, t!("auto"));
         input_mode.insert(1, "WmKey");
         input_mode.insert(2, "SendInput");
 

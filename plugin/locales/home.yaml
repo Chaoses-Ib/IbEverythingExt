@@ -1,4 +1,11 @@
 _version: 2
+update.check:
+  en: Check for updates
+  zh: 启用自动检查更新
+update.prerelease:
+  en: Check for pre-releases
+  zh: 包括预览版
+
 search.syntax:
   en: |-
     Lowercase letters can match Chinese pinyin, Japanese romaji, or English letters, while uppercase letters match only English letters by default.
@@ -45,7 +52,11 @@ search.syntax:
 
 wildcard_complement_separator_as_star:
   en: |-
+    / matches path characters to the start of a child (equivalent to **\)
+  zh: |-
     / 通配路径到文件名开头（等效于 **\）
 wildcard_two_separator_as_star:
   en: |-
+    // and \\ matches path characters to a child (equivalent to *\**)
+  zh: |-
     // 或 \\ 通配路径（等效于 *\**）

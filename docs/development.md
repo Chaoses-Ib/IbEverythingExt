@@ -1,5 +1,5 @@
-# 开发
-## 构建
+# Development (开发)
+## Build (构建)
 [Rust](https://rustup.rs/)
 
 [vcpkg](https://github.com/microsoft/vcpkg)：

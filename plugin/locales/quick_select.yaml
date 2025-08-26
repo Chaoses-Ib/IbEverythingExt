@@ -1,6 +1,37 @@
 _version: 2
+quick.enabled:
+  en: Enable quick select
+  zh: 启用快速选择
 quick.description:
   en: |-
+    Quick select inserts a key list displaying 0~9 and A~Z at the left side of Everything's result list, and allows you to quickly open corresponding files via hotkeys in both the search editor and result list.
+
+    Search editor hotkeys:
+    Hotkey	Function
+    ---	---
+    Alt+0~9     	Open the file (Enter) and close the window
+    Alt+Ctrl+0~9	Locate the file (Ctrl+Enter) and close the window
+    Alt+Shift+0~9	Show the context menu
+    Alt+Shift+0~9, R	Show file properties
+    Tab / Enter	Focus on the result list*
+    Esc / Ctrl+W	Close the window*
+
+    Result list hotkeys:
+    Hotkey        	Function
+    ---         	---
+    [0-9A-Z]    	Select the item
+    Enter       	Open the file*
+    Ctrl+Enter  	Locate the file*
+    Shift+F10 / Menu	Show the context menu*
+    Alt+Enter   	Show file properties*
+    Esc / Ctrl+W	Close the window*
+    $ (Shift+4) 	Copy the filename and launch terminal from the parent folder of the file
+    # (Shift+3) 	Copy the filename and launch terminal as Administrator from the parent folder of the file
+
+    Note:
+    * Whether to close the window after the operation can be controlled in Options.
+    * Hotkeys marked with * are Everything's built-in hotkeys. They are listed here for completeness.
+  zh: |-
     在 Everything 结果列表的左侧插入一个显示 0~9、A~Z 的键列表，并允许在搜索编辑框和结果列表中通过热键快速打开对应文件。
 
     搜索编辑框热键：
@@ -28,18 +59,55 @@ quick.description:
     注：
     * 操作之后是否关闭窗口可以通过配置进行控制。
     * 标 * 的热键为 Everything 默认热键，不是扩展增加的，在这里列出是为了完整性。
+quick.alt:
+  en: "Alt key combination range: ⓘ"
+  zh: Alt 组合键范围：ⓘ
 quick.alt.tooltip:
   en: |-
+    When using Alt+[0-9A-Z]:
+    - The original Alt+A~Z menu access functionality can be achieved by first clicking the Alt key and then pressing A~Z.
+    - The default Alt+1~4 window sizing, Alt+P preview, and Alt+D search editor focus functions
+      will no longer work. These can be reassigned to other hotkeys in Everything Options
+      (where Alt+D can also be replaced with Ctrl+F or F3 for equivalent functionality).
+  zh: |-
     使用 Alt+[0-9A-Z] 时：
     - 原本的 Alt+A~Z 访问菜单功能可以通过先单击 Alt 键再按 A~Z 实现。
     - 默认的 Alt+1~4 调整窗口大小、Alt+P 预览和 Alt+D 聚焦搜索编辑框则
       无法使用，可以通过更改 Everything 选项来绑定到其它热键上（其中
       Alt+D 也可使用相同功能的 Ctrl+F 和 F3 来代替）。
+quick.search_edit:
+  en: "Search editor:"
+  zh: 搜索编辑框：
+quick.result_list:
+  en: "Result list:"
+  zh: 结果列表：
+quick.result_list_select:
+  en: "[0-9A-Z] to select item"
+  zh: "[0-9A-Z] 选中项目"
+quick.terminal:
+  en: "Terminal: ⓘ"
+  zh: 终端：ⓘ
 quick.terminal.tooltip:
   en: |-
+    Windows Console (conhost) doesn't support launch as Administrator
+  zh: |-
     Windows Console (conhost) 不支持以管理员身份启动
+quick.terminal.command:
+  # Space to fix Winio
+  en: "Custom terminal command :"
+  zh: 自定义终端命令：
+quick.close_everything:
+  en: Close the window after opening or locating a file ⓘ
+  zh: 打开或定位文件后关闭窗口 ⓘ
 quick.close_everything.tooltip:
   en: |-
+    This does not affect Everything's default hotkeys.
+    If you want the default Enter key to close the window as well, you can bind
+    “Open Selection and Close Everything” to Enter in the Keyboard page of Options.
+  zh: |-
     不对 Everything 默认热键生效。
     如果想要默认 Enter 热键也关闭窗口，可在 Everything 快捷键选项中将
     “打开选中对象，并退出 Everything”设置为 Enter。
+quick.input_mode:
+  en: "Input mode:"
+  zh: 输入模拟模式

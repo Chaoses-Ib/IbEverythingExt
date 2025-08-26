@@ -1,8 +1,8 @@
 _version: 2
 description:
-  en: Chinese pinyin search, Japanese romaji search, quick select
-  zh: 拼音搜索、日语罗马字搜索、快速选择
-  ja: 中国語拼音検索、ローマ字検索、クイック選択
+  en: Wildcard, Japanese romaji search, Chinese pinyin search, quick select
+  zh: 拼音搜索、日语罗马字搜索、通配符、快速选择
+  ja: ローマ字検索、中国語拼音検索、ワイルドカード、クイック選択
 pinyin-search:
   en: Chinese pinyin search
   zh: 拼音搜索
@@ -15,3 +15,13 @@ quick-select:
   en: Quick select
   zh: 快速选择
   ja: クイック選択
+
+disabled:
+  en: Disabled
+  zh: 禁用
+custom:
+  en: Custom
+  zh: 自定义
+auto:
+  en: Auto
+  zh: 自动

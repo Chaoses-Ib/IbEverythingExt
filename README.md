@@ -1,4 +1,6 @@
 # IbEverythingExt
+🌐Languages: [English](README.en.md), [简体中文](README.md)
+
 [Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、通配符、快速选择扩展。 
 
 ![](docs/preview.png)
@@ -310,7 +312,7 @@ update:
 - [Telegram 文件管理交流群](https://t.me/IbDirectoryOpusGroup)
 
 库：
-- [ib-matcher: A multilingual, flexible and fast string and regex matcher, supports 拼音匹配 and ローマ字検索](https://github.com/Chaoses-Ib/ib-matcher)
+- [ib-matcher: A multilingual, flexible and fast string, glob and regex matcher. Support 拼音匹配 and ローマ字検索.](https://github.com/Chaoses-Ib/ib-matcher)
 - [IbEverythingLib: Rust/C++ bindings for voidtool's Everything](https://github.com/Chaoses-Ib/IbEverythingLib)
 - [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
 

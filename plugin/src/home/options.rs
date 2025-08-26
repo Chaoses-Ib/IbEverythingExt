@@ -43,10 +43,10 @@ impl Component for MainModel {
 
         // 更新设置
         let mut check = Child::<CheckBox>::init(&window);
-        check.set_text("启用自动检查更新");
+        check.set_text(t!("update.check"));
 
         let mut prerelease = Child::<CheckBox>::init(&window);
-        prerelease.set_text("包括预览版");
+        prerelease.set_text(t!("update.prerelease"));
 
         let mut search_mix_lang = Child::<CheckBox>::init(&window);
         search_mix_lang.set_text("允许混合匹配拼音和ローマ字（开启简拼时误匹配率较高）");

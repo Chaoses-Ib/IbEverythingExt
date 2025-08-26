@@ -58,7 +58,7 @@ impl Component for MainModel {
         let mut mode_label = Child::<Label>::init(&window);
         mode_label.set_text("模式：");
         let mut mode = Child::<ComboBox>::init(&window);
-        mode.insert(0, "自动");
+        mode.insert(0, t!("auto"));
         mode.insert(1, "PCRE 2（默认）");
         mode.insert(2, "PCRE");
         mode.insert(3, "Edit（兼容）");
