@@ -23,10 +23,10 @@ serde_yaml_ng = "0.10"
 sig.workspace = true
 
 [dependencies.everything-plugin]
-version = "0.2"
+version = "0.3"
 features = ["rust-i18n"]
 git = "https://github.com/Chaoses-Ib/IbEverythingLib"
-rev = "e6b6b5dfe65ca8ee3e405144cc57ffed9548632d"
+rev = "47fd0620ab1773f29821ac08173070b4fd35e380"
 
 [dependencies.ib-matcher]
 version = "0.4"
