@@ -638,7 +638,7 @@ dependencies = [
 [[package]]
 name = "everything-ipc"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=47fd0620ab1773f29821ac08173070b4fd35e380#47fd0620ab1773f29821ac08173070b4fd35e380"
+source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=d796af677240a0646b0d9a7d62cd53638a91fcb3#d796af677240a0646b0d9a7d62cd53638a91fcb3"
 dependencies = [
  "tracing",
  "widestring",
@@ -647,8 +647,8 @@ dependencies = [
 
 [[package]]
 name = "everything-plugin"
-version = "0.3.0"
-source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=47fd0620ab1773f29821ac08173070b4fd35e380#47fd0620ab1773f29821ac08173070b4fd35e380"
+version = "0.3.1"
+source = "git+https://github.com/Chaoses-Ib/IbEverythingLib?rev=d796af677240a0646b0d9a7d62cd53638a91fcb3#d796af677240a0646b0d9a7d62cd53638a91fcb3"
 dependencies = [
  "anstream",
  "bon",
@@ -1383,7 +1383,7 @@ checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
 name = "plugin"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "bitflags 2.9.1",
  "everything-plugin",
