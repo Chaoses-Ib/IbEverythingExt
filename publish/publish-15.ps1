@@ -1,5 +1,5 @@
 ﻿# https://www.voidtools.com/forum/viewtopic.php?t=9787
-$version = "1.5.0.1396a"
+$version = "1.5.0.1397a"
 # https://www.voidtools.com/forum/viewtopic.php?f=12&t=9799
 $httpVersion = "1.0.3.4"
 $etpVersion = "1.0.1.4"
@@ -26,5 +26,6 @@ $zip = "Everything.v${version}_IbEverythingExt_v$v.zip"
 zip -r $zip Everything
 
 "- [Everything v1.5 便携整合包](https://github.com/Chaoses-Ib/IbEverythingExt/releases/download/v$v/$zip)（[国内加速](https://gh-proxy.com/github.com/Chaoses-Ib/IbEverythingExt/releases/download/v$v/$zip)）" >> release.md
+"  - 初次使用时请在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）" >> release.md
 
 popd

@@ -39,7 +39,7 @@ std::string truncate_lines(std::string s, size_t lines) {
 
 bool check_for_update(bool prerelease, bool quiet, bool silent_error) {
     try {
-        GitHubUpdater updater{ "Chaoses-Ib", "IbEverythingExt", "v0.9.1" };
+        GitHubUpdater updater{ "Chaoses-Ib", "IbEverythingExt", "v0.9.2" };
         YAML::Node release = updater.check_for_new_release(prerelease);
         if (release.IsNull()) {
             if (!quiet)

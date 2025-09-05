@@ -26,7 +26,7 @@ sig.workspace = true
 version = "0.3"
 features = ["rust-i18n"]
 git = "https://github.com/Chaoses-Ib/IbEverythingLib"
-rev = "d796af677240a0646b0d9a7d62cd53638a91fcb3"
+rev = "f3b986e883fb8b8d1e3da8047cd2f6391d5b4a16"
 
 [dependencies.ib-matcher]
 version = "0.4"

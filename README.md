@@ -49,7 +49,7 @@
 4. 重启 Everything
 5. Everything v1.5 用户：在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
 
-Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases)（`KexSetup_Release_*.exe`），并在 `Everything64.exe` / `Everything.exe` 文件属性中启用 VxKex。详见 [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889)。
+Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases)（`KexSetup_Release_*.exe`），并在 `Everything.exe`（或 `Everything64.exe`）文件属性中启用 VxKex。详见 [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889)。
 
 ## 搜索增强
 ### 拼音搜索
@@ -193,6 +193,8 @@ Everything v1.4 用户需要手动编辑 `Plugins/IbEverythingExt/config.yaml` �
 
 支持 Everything v1.5a 深色模式：  
 ![](docs/quick_select_dark_mode.png)
+
+Everything v1.5 便携版（或 v1.5.0.1397 以下版本）以非最小化启动时，初次显示搜索窗口不会显示键列表，不影响后续使用。
 
 ### 配置
 Everything v1.5 用户可在选项中调整配置：

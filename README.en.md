@@ -42,7 +42,7 @@ Manual installation:
 4. Restart Everything
 5. For Everything v1.5 users: Select IbEverythingExt in the Plug-ins page of Options and check "Enable plug-in".
 
-For Windows 7 users, you need to firstly install [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases) (`KexSetup_Release_*.exe`), and enable VxKex in the Properties of `Everything64.exe` / `Everything.exe`. See [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889) for details.
+For Windows 7 users, you need to firstly install [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases) (`KexSetup_Release_*.exe`), and enable VxKex in the Properties of `Everything.exe` (or `Everything64.exe`). See [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889) for details.
 
 ## Search enhancement
 ### Wildcard search
@@ -186,6 +186,8 @@ Key list supports high DPI, but only supports zooming (hotkey `Ctrl+=` and `Ctrl
 
 Everything v1.5a dark mode is supported:  
 ![](docs/quick_select_dark_mode.png)
+
+For Everything v1.5 Portable edition (or versions below v1.5.0.1397), when launched without being minimized, the first display of the search window will not show the key list. This does not affect subsequent displays.
 
 ### Config
 Everything v1.5 users can configure this in Options:
