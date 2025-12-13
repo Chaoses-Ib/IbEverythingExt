@@ -1,11 +1,14 @@
 ﻿# https://www.voidtools.com/forum/viewtopic.php?t=9787
-$version = "1.5.0.1397a"
+$version = "1.5.0.1403a"
 # https://www.voidtools.com/forum/viewtopic.php?f=12&t=9799
 $httpVersion = "1.0.3.4"
 $etpVersion = "1.0.1.4"
 $everythingServerVersion = "1.0.1.2"
 
 pushd target/publish
+
+# v1.4 includes Everything.lng lately
+Expand-Archive Everything.lng.zip -Force -DestinationPath Everything
 
 wget -O Everything.zip http://www.voidtools.com/Everything-$version.x64.zip
 Expand-Archive Everything.zip -DestinationPath Everything
