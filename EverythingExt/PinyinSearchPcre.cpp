@@ -23,6 +23,7 @@
 
 #pragma region regcomp_p3
 
+constexpr bool regcomp_p3_enabled = false;
 //bool global_regex;
 
 void regcomp_p3_common(char* search, char* filter) {
@@ -1021,7 +1022,11 @@ PinyinSearchPcre::PinyinSearchPcre() {
     regcomp_real = offsets.regcomp ? Everything + offsets.regcomp : nullptr;
     regexec_real = offsets.regexec ? Everything + offsets.regexec : nullptr;
 
-    bool support = regcomp_p3_14_real && regcomp_p2_14_real && regcomp_real && regexec_real;
+#pragma warning(suppress : 6235)
+    bool support = (!regcomp_p3_enabled || regcomp_p3_14_real)
+        && regcomp_p2_14_real
+        && regcomp_real
+        && regexec_real;
     if constexpr (debug)
         DebugOStream() << "support: " << support;
 
@@ -1072,6 +1077,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
             support = try_match_signatures(4);
 
         if (support) {
+            if constexpr (regcomp_p3_enabled)
             IbDetourAttach(&regcomp_p3_14_real, regcomp_p3_14_detour);
             IbDetourAttach(&regcomp_p2_14_real, regcomp_p2_14_detour);
 
@@ -1119,6 +1125,7 @@ PinyinSearchPcre::PinyinSearchPcre() {
             //else {
             //    IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_0_1318_detour);
             //}
+            if constexpr (regcomp_p3_enabled)
             IbDetourAttach(&regcomp_p3_15_real, regcomp_p3_15_detour);
             
             IbDetourAttach(&regcomp_p2_15_real, regcomp_p2_15_detour);
@@ -1152,12 +1159,14 @@ PinyinSearchPcre::~PinyinSearchPcre() {
     IbDetourDetach(&regcomp_real, regcomp_detour);
     if (ipc_version.major == 1 && ipc_version.minor == 4) {
         IbDetourDetach(&regcomp_p2_14_real, regcomp_p2_14_detour);
+        if constexpr (regcomp_p3_enabled)
         IbDetourDetach(&regcomp_p3_14_real, regcomp_p3_14_detour);
 
         IbDetourAttach(&regexec_real, regexec_15_0_1359_detour);
     }
     else if (ipc_version.major == 1 && ipc_version.minor >= 5) {
         IbDetourDetach(&regcomp_p2_15_real, regcomp_p2_15_detour);
+        if constexpr (regcomp_p3_enabled)
         IbDetourDetach(&regcomp_p3_15_real, regcomp_p3_15_detour);
 
         if (ipc_version.minor == 5 && ipc_version.revision == 0 && ipc_version.build <= 1359) {

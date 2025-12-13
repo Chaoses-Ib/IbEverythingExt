@@ -23,6 +23,26 @@ impl<'a> EverythingExe<'a> {
         Ok(Self { pe })
     }
 
+    fn exception(
+        &'a self,
+    ) -> Option<pelite::pe64::exception::Exception<'a, pelite::pe64::PeFile<'a>>> {
+        let e = self.pe.exception().ok()?;
+        match e {
+            pelite::Wrap::T32(_) => unimplemented!(),
+            pelite::Wrap::T64(e) => Some(e),
+        }
+    }
+
+    fn exception_next(&self, f: Rva) -> Option<Rva> {
+        let e = self.exception()?;
+        // TODO
+        // let i = e.index_of(f).ok()?;
+        let i = e
+            .functions()
+            .position(|fun| fun.image().BeginAddress == f)?;
+        Some(e.functions().nth(i + 1).unwrap().image().BeginAddress)
+    }
+
     fn filter_one(rvas: Vec<Rva>) -> Option<Rva> {
         if rvas.len() == 1 {
             Some(rvas[0])
@@ -40,6 +60,9 @@ impl<'a> EverythingExe<'a> {
         save: &mut [u32],
         range: Option<Range<Rva>>,
     ) -> Option<Rva> {
+        if false {
+            dbg!(self.match_many_with_save(pattern).save(save).call());
+        }
         let mut matches = self.pe.scanner().matches(
             pattern,
             range.unwrap_or_else(|| self.pe.headers().code_range()),
@@ -326,12 +349,17 @@ impl<'a> EverythingExe<'a> {
             // 4C 8B 8F 00 01 00 00  mov     r9, [rdi+256]
             // 4C 8D 87 28 01 00 00  lea     r8, [rdi+296]
             // 48 8D 15 22 B5 41 00  lea     rdx, aTermtextT ; "termtext %t\n"
+            // v1.5.0.1403_x64 (LTCG)
+            // 4C 8B 8E 00 01 00 00  mov     r9, [rsi+256]
+            // 4C 8D 86 28 01 00 00  lea     r8, [rsi+296]
             Byte(0x4C),
             Byte(0x8B),
+            Fuzzy(0xF0),
             Byte(0x8F),
             ReadU32(0),
             Byte(0x4C),
             Byte(0x8D),
+            Fuzzy(0xF0),
             Byte(0x87),
             ReadU32(1),
             Byte(0x48),
@@ -376,6 +404,35 @@ impl<'a> EverythingExe<'a> {
     }
 
     pub fn regexec(&self) -> Option<Rva> {
+        // v1.5.0.1403+ (LTCG)
+        if let Some(regcomp) = self.regcomp() {
+            if let Some(regexec) = self.exception_next(regcomp) {
+                return Some(regexec);
+            }
+
+            /*
+            let mut save = [0];
+            if let Some(regexec) = self
+                .match_first_with_save(&[
+                    Aligned(2),
+                    Save(0),
+                    // TODO
+                    // 48 89 5C 24 18  mov     [rsp+arg_10], rbx
+                    Byte(0x48),
+                    Byte(0x89),
+                    Byte(0x5C),
+                    Byte(0x24),
+                    Byte(0x18),
+                ])
+                .save(&mut save)
+                .range(regcomp..regcomp + 256)
+                .call()
+            {
+                return Some(regexec);
+            }
+            */
+        }
+
         self.match_one(&[
             Aligned(2),
             Save(0),
@@ -648,6 +705,10 @@ mod tests {
             everything_exe("v1.5.0.1391_x64").regcomp_p2_termtext(),
             Some((256, 296))
         );
+        assert_eq!(
+            everything_exe("v1.5.0.1403_x64").regcomp_p2_termtext(),
+            Some((256, 296))
+        );
     }
 
     #[test]
@@ -677,6 +738,7 @@ mod tests {
         assert_eq!(everything_exe("v1.5.0.1305_x64").regcomp(), Some(0x336880));
         assert_eq!(everything_exe("v1.5.0.1315_x64").regcomp(), Some(0x348820));
         assert_eq!(everything_exe("v1.5.0.1318_x64").regcomp(), Some(0x35AA30));
+        assert_eq!(everything_exe("v1.5.0.1403_x64").regcomp(), Some(0x3AB3F0));
     }
 
     #[test]
@@ -693,5 +755,6 @@ mod tests {
         assert_eq!(everything_exe("v1.5.0.1346_x64").regexec(), Some(0x3A1310));
         assert_eq!(everything_exe("v1.5.0.1367_x64").regexec(), Some(0x3D3590));
         assert_eq!(everything_exe("v1.5.0.1384_x64").regexec(), Some(0x42AB70));
+        assert_eq!(everything_exe("v1.5.0.1403_x64").regexec(), Some(0x3AB4D0));
     }
 }
