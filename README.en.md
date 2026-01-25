@@ -298,6 +298,7 @@ See [development](docs/development.md).
 Date | Sponsor | Comment
 --- | --- | ---
 2025-07-22 | [@ligq](https://github.com/ligq) |
+2026-01-25 | *曦 | 未知项目
 2023-04-28 | Xudong.He@CN |
 2024-07-09 | 田昊 \| JLL仲量联行 |
 2025-08-20 | **宇 |
