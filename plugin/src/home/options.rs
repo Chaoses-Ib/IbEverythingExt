@@ -1,10 +1,11 @@
+#![allow(unused_must_use)]
 use everything_plugin::{log::debug, ui::winio::prelude::*};
 
 use super::UpdateConfig;
 use crate::{App, HANDLER, search::config::SearchConfig};
 
 pub struct MainModel {
-    window: Child<Window>,
+    window: Child<View>,
 
     // 更新设置
     check: Child<CheckBox>,
@@ -20,8 +21,6 @@ pub struct MainModel {
 #[derive(Debug)]
 pub enum MainMessage {
     Noop,
-    Close,
-    Redraw,
     CheckClick,
     OptionsPage(OptionsPageMessage<App>),
 }
@@ -36,28 +35,29 @@ impl Component for MainModel {
     type Event = ();
     type Init<'a> = OptionsPageInit<'a, App>;
     type Message = MainMessage;
+    type Error = Error;
 
-    fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Self {
-        let mut window = init.window(sender);
+    async fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Result<Self, Error> {
+        let mut window = init.window(sender).await?;
         // window.set_size(Size::new(400.0, 200.0));
 
         // 更新设置
-        let mut check = Child::<CheckBox>::init(&window);
+        let mut check = Child::<CheckBox>::init(&window).await?;
         check.set_text(t!("update.check"));
 
-        let mut prerelease = Child::<CheckBox>::init(&window);
+        let mut prerelease = Child::<CheckBox>::init(&window).await?;
         prerelease.set_text(t!("update.prerelease"));
 
-        let mut search_mix_lang = Child::<CheckBox>::init(&window);
+        let mut search_mix_lang = Child::<CheckBox>::init(&window).await?;
         search_mix_lang.set_text("允许混合匹配拼音和ローマ字（开启简拼时误匹配率较高）");
 
-        let mut wildcard_complement_separator_as_star = Child::<CheckBox>::init(&window);
+        let mut wildcard_complement_separator_as_star = Child::<CheckBox>::init(&window).await?;
         wildcard_complement_separator_as_star.set_text(t!("wildcard_complement_separator_as_star"));
 
-        let mut wildcard_two_separator_as_star = Child::<CheckBox>::init(&window);
+        let mut wildcard_two_separator_as_star = Child::<CheckBox>::init(&window).await?;
         wildcard_two_separator_as_star.set_text(t!("wildcard_two_separator_as_star"));
 
-        let mut search_syntax = Child::<TextBox>::init(&window);
+        let mut search_syntax = Child::<TextBox>::init(&window).await?;
         search_syntax.set_text(t!("search.syntax"));
         // TODO: Readonly
 
@@ -79,7 +79,7 @@ impl Component for MainModel {
 
         window.show();
 
-        Self {
+        Ok(Self {
             window,
             check,
             prerelease,
@@ -87,16 +87,12 @@ impl Component for MainModel {
             wildcard_complement_separator_as_star,
             wildcard_two_separator_as_star,
             search_syntax,
-        }
+        })
     }
 
     async fn start(&mut self, sender: &ComponentSender<Self>) -> ! {
         start! {
             sender, default: MainMessage::Noop,
-            self.window => {
-                WindowEvent::Close => MainMessage::Close,
-                WindowEvent::Resize => MainMessage::Redraw,
-            },
             self.check => {
                 CheckBoxEvent::Click => MainMessage::CheckClick
             },
@@ -107,17 +103,16 @@ impl Component for MainModel {
         }
     }
 
-    async fn update(&mut self, message: Self::Message, sender: &ComponentSender<Self>) -> bool {
+    async fn update(
+        &mut self,
+        message: Self::Message,
+        sender: &ComponentSender<Self>,
+    ) -> Result<bool, Self::Error> {
         self.window.update().await;
-        match message {
+        Ok(match message {
             MainMessage::Noop => false,
-            MainMessage::Close => {
-                sender.output(());
-                false
-            }
-            MainMessage::Redraw => true,
             MainMessage::CheckClick => {
-                let is_enabled = self.check.is_checked();
+                let is_enabled = self.check.is_checked()?;
 
                 // 启用/禁用预览版选项
                 self.prerelease
@@ -128,37 +123,42 @@ impl Component for MainModel {
             MainMessage::OptionsPage(m) => {
                 debug!(?m, "Options page message");
                 match m {
+                    OptionsPageMessage::Redraw => true,
+                    OptionsPageMessage::Close => {
+                        sender.output(());
+                        false
+                    }
                     OptionsPageMessage::Save(config, tx) => {
                         // 保存更新配置
                         config.update = UpdateConfig {
-                            check: self.check.is_checked(),
-                            prerelease: if self.check.is_checked() {
-                                Some(self.prerelease.is_checked())
+                            check: self.check.is_checked()?,
+                            prerelease: if self.check.is_checked()? {
+                                Some(self.prerelease.is_checked()?)
                             } else {
                                 None
                             },
                         };
                         config.search = SearchConfig {
-                            mix_lang: self.search_mix_lang.is_checked(),
+                            mix_lang: self.search_mix_lang.is_checked()?,
                             wildcard_complement_separator_as_star: Some(
-                                self.wildcard_complement_separator_as_star.is_checked(),
+                                self.wildcard_complement_separator_as_star.is_checked()?,
                             ),
                             wildcard_two_separator_as_star: Some(
-                                self.wildcard_two_separator_as_star.is_checked(),
+                                self.wildcard_two_separator_as_star.is_checked()?,
                             ),
                         };
-                        tx.send(config).unwrap()
+                        tx.send(config).unwrap();
+                        false
                     }
                 }
-                false
             }
-        }
+        })
     }
 
-    fn render(&mut self, _sender: &ComponentSender<Self>) {
+    fn render(&mut self, _sender: &ComponentSender<Self>) -> Result<(), Self::Error> {
         self.window.render();
 
-        let csize = self.window.client_size();
+        let csize = self.window.size()?;
         let m = Margin::new(4., 0., 4., 0.);
 
         let mut search_layout = layout! {
@@ -178,5 +178,6 @@ impl Component for MainModel {
         };
 
         root_layout.set_size(csize);
+        Ok(())
     }
 }

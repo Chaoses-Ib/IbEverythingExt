@@ -1,10 +1,11 @@
+#![allow(unused_must_use)]
 use everything_plugin::{log::debug, ui::winio::prelude::*};
 
 use super::{PinyinSearchConfig, PinyinSearchMode};
 use crate::{App, HANDLER};
 
 pub struct MainModel {
-    window: Child<Window>,
+    window: Child<View>,
 
     // 基本设置
     enabled: Child<CheckBox>,
@@ -30,8 +31,6 @@ pub struct MainModel {
 #[derive(Debug)]
 pub enum MainMessage {
     Noop,
-    Close,
-    Redraw,
     EnabledClick,
     OptionsPage(OptionsPageMessage<App>),
 }
@@ -46,55 +45,56 @@ impl Component for MainModel {
     type Event = ();
     type Init<'a> = OptionsPageInit<'a, App>;
     type Message = MainMessage;
+    type Error = Error;
 
-    fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Self {
-        let mut window = init.window(sender);
+    async fn init(mut init: Self::Init<'_>, sender: &ComponentSender<Self>) -> Result<Self, Error> {
+        let mut window = init.window(sender).await?;
         // window.set_size(Size::new(500.0, 600.0));
 
         // 基本设置
-        let mut enabled = Child::<CheckBox>::init(&window);
+        let mut enabled = Child::<CheckBox>::init(&window).await?;
         enabled.set_text("启用拼音搜索");
 
-        let mut mode_label = Child::<Label>::init(&window);
+        let mut mode_label = Child::<Label>::init(&window).await?;
         mode_label.set_text("模式：");
-        let mut mode = Child::<ComboBox>::init(&window);
+        let mut mode = Child::<ComboBox>::init(&window).await?;
         mode.insert(0, t!("auto"));
         mode.insert(1, "PCRE 2（默认）");
         mode.insert(2, "PCRE");
         mode.insert(3, "Edit（兼容）");
 
-        let mut allow_partial_match = Child::<CheckBox>::init(&window);
+        let mut allow_partial_match = Child::<CheckBox>::init(&window).await?;
         allow_partial_match.set_text("允许关键词末尾拼音部分匹配");
 
         // 拼音模式选项标签
-        let mut options_label = Child::<Label>::init(&window);
+        let mut options_label = Child::<Label>::init(&window).await?;
         options_label.set_text("拼音编码：");
 
-        let mut initial_letter = Child::<CheckBox>::init(&window);
+        let mut initial_letter = Child::<CheckBox>::init(&window).await?;
         initial_letter.set_text("简拼");
 
-        let mut pinyin_ascii = Child::<CheckBox>::init(&window);
+        let mut pinyin_ascii = Child::<CheckBox>::init(&window).await?;
         pinyin_ascii.set_text("全拼");
 
-        let mut pinyin_ascii_digit = Child::<CheckBox>::init(&window);
+        let mut pinyin_ascii_digit = Child::<CheckBox>::init(&window).await?;
         pinyin_ascii_digit.set_text("带声调全拼");
 
-        let mut double_pinyin_abc = Child::<CheckBox>::init(&window);
+        let mut double_pinyin_abc = Child::<CheckBox>::init(&window).await?;
         double_pinyin_abc.set_text("智能 ABC 双拼");
 
-        let mut double_pinyin_jiajia = Child::<CheckBox>::init(&window);
+        let mut double_pinyin_jiajia = Child::<CheckBox>::init(&window).await?;
         double_pinyin_jiajia.set_text("拼音加加双拼");
 
-        let mut double_pinyin_microsoft = Child::<CheckBox>::init(&window);
+        let mut double_pinyin_microsoft = Child::<CheckBox>::init(&window).await?;
         double_pinyin_microsoft.set_text("微软双拼");
 
-        let mut double_pinyin_thunisoft = Child::<CheckBox>::init(&window);
+        let mut double_pinyin_thunisoft = Child::<CheckBox>::init(&window).await?;
         double_pinyin_thunisoft.set_text("华宇双拼（紫光双拼）");
 
-        let mut double_pinyin_xiaohe = Child::<CheckBox>::init(&window);
+        let mut double_pinyin_xiaohe = Child::<CheckBox>::init(&window).await?;
         double_pinyin_xiaohe.set_text("小鹤双拼");
 
-        let mut double_pinyin_zrm = Child::<CheckBox>::init(&window);
+        let mut double_pinyin_zrm = Child::<CheckBox>::init(&window).await?;
         double_pinyin_zrm.set_text("自然码双拼");
 
         // 加载当前配置
@@ -103,12 +103,12 @@ impl Component for MainModel {
 
             enabled.set_checked(config.enable());
 
-            mode.set_selection(Some(match config.mode {
+            mode.set_selection(match config.mode {
                 PinyinSearchMode::Auto => 0,
                 PinyinSearchMode::Pcre2 => 1,
                 PinyinSearchMode::Pcre => 2,
                 PinyinSearchMode::Edit => 3,
-            }));
+            });
 
             allow_partial_match.set_checked(config.allow_partial_match.unwrap_or(false));
 
@@ -127,7 +127,7 @@ impl Component for MainModel {
 
         window.show();
 
-        Self {
+        Ok(Self {
             window,
             enabled,
             mode_label,
@@ -143,16 +143,12 @@ impl Component for MainModel {
             double_pinyin_thunisoft,
             double_pinyin_xiaohe,
             double_pinyin_zrm,
-        }
+        })
     }
 
     async fn start(&mut self, sender: &ComponentSender<Self>) -> ! {
         start! {
             sender, default: MainMessage::Noop,
-            self.window => {
-                WindowEvent::Close => MainMessage::Close,
-                WindowEvent::Resize => MainMessage::Redraw,
-            },
             self.enabled => {
                 CheckBoxEvent::Click => MainMessage::EnabledClick
             },
@@ -169,17 +165,16 @@ impl Component for MainModel {
         }
     }
 
-    async fn update(&mut self, message: Self::Message, sender: &ComponentSender<Self>) -> bool {
+    async fn update(
+        &mut self,
+        message: Self::Message,
+        sender: &ComponentSender<Self>,
+    ) -> Result<bool, Self::Error> {
         self.window.update().await;
-        match message {
+        Ok(match message {
             MainMessage::Noop => false,
-            MainMessage::Close => {
-                sender.output(());
-                false
-            }
-            MainMessage::Redraw => true,
             MainMessage::EnabledClick => {
-                let is_enabled = self.enabled.is_checked();
+                let is_enabled = self.enabled.is_checked()?;
 
                 // 启用/禁用所有子控件
                 self.mode.set_enabled(is_enabled);
@@ -199,40 +194,45 @@ impl Component for MainModel {
             MainMessage::OptionsPage(m) => {
                 debug!(?m, "Options page message");
                 match m {
+                    OptionsPageMessage::Redraw => true,
+                    OptionsPageMessage::Close => {
+                        sender.output(());
+                        false
+                    }
                     OptionsPageMessage::Save(config, tx) => {
                         // 保存拼音搜索配置
                         config.pinyin_search = PinyinSearchConfig {
-                            enable: Some(self.enabled.is_checked()),
-                            mode: match self.mode.selection() {
+                            enable: Some(self.enabled.is_checked()?),
+                            mode: match self.mode.selection()? {
                                 Some(0) => PinyinSearchMode::Auto,
                                 Some(1) => PinyinSearchMode::Pcre2,
                                 Some(2) => PinyinSearchMode::Pcre,
                                 Some(3) => PinyinSearchMode::Edit,
                                 _ => Default::default(),
                             },
-                            allow_partial_match: Some(self.allow_partial_match.is_checked()),
-                            initial_letter: self.initial_letter.is_checked(),
-                            pinyin_ascii: self.pinyin_ascii.is_checked(),
-                            pinyin_ascii_digit: self.pinyin_ascii_digit.is_checked(),
-                            double_pinyin_abc: self.double_pinyin_abc.is_checked(),
-                            double_pinyin_jiajia: self.double_pinyin_jiajia.is_checked(),
-                            double_pinyin_microsoft: self.double_pinyin_microsoft.is_checked(),
-                            double_pinyin_thunisoft: self.double_pinyin_thunisoft.is_checked(),
-                            double_pinyin_xiaohe: self.double_pinyin_xiaohe.is_checked(),
-                            double_pinyin_zrm: self.double_pinyin_zrm.is_checked(),
+                            allow_partial_match: Some(self.allow_partial_match.is_checked()?),
+                            initial_letter: self.initial_letter.is_checked()?,
+                            pinyin_ascii: self.pinyin_ascii.is_checked()?,
+                            pinyin_ascii_digit: self.pinyin_ascii_digit.is_checked()?,
+                            double_pinyin_abc: self.double_pinyin_abc.is_checked()?,
+                            double_pinyin_jiajia: self.double_pinyin_jiajia.is_checked()?,
+                            double_pinyin_microsoft: self.double_pinyin_microsoft.is_checked()?,
+                            double_pinyin_thunisoft: self.double_pinyin_thunisoft.is_checked()?,
+                            double_pinyin_xiaohe: self.double_pinyin_xiaohe.is_checked()?,
+                            double_pinyin_zrm: self.double_pinyin_zrm.is_checked()?,
                         };
-                        tx.send(config).unwrap()
+                        tx.send(config).unwrap();
+                        false
                     }
                 }
-                false
             }
-        }
+        })
     }
 
-    fn render(&mut self, _sender: &ComponentSender<Self>) {
+    fn render(&mut self, _sender: &ComponentSender<Self>) -> Result<(), Self::Error> {
         self.window.render();
 
-        let csize = self.window.client_size();
+        let csize = self.window.size()?;
         let m = Margin::new(4., 0., 4., 0.);
         let m_label = Margin::new(0., 4., 0., 0.);
 
@@ -263,5 +263,6 @@ impl Component for MainModel {
         };
 
         root_layout.set_size(csize);
+        Ok(())
     }
 }
