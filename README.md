@@ -1,7 +1,7 @@
 # IbEverythingExt
 🌐Languages: [English](README.en.md), [简体中文](README.md)
 
-[Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、通配符、快速选择扩展。 
+[Everything](https://www.voidtools.com/) 拼音搜索、ローマ字検索、通配符、快速选择、Shell 扩展。 
 
 ![](docs/preview.png)
 
@@ -17,6 +17,7 @@
 - [快速选择](#快速选择)
   - [热键](#热键)
   - [键列表](#键列表)
+- [Shell](#shell)
 - [其它](#其它)
   - [快速启动器](#快速启动器)
   - [硬盘占用分析](#硬盘占用分析)
@@ -248,6 +249,13 @@ quick_select:
   input_mode: Auto
 ```
 </details>
+
+## Shell
+功能：
+- 打开 Git 仓库中的文件时，使用 VS Code 打开整个仓库并跳转到相应文件。
+  默认关闭。
+
+这些功能也可作为独立程序调用：[ib-shell](https://github.com/Chaoses-Ib/ib-shell)。
 
 ## 其它
 ### 快速启动器

@@ -1,7 +1,7 @@
 # IbEverythingExt
 🌐Languages: [English](README.en.md), [简体中文](README.md)
 
-[Everything](https://www.voidtools.com/) wildcard, Japanese romaji search, Chinese pinyin search, quick select extension. 
+[Everything](https://www.voidtools.com/) wildcard, Japanese romaji search, Chinese pinyin search, quick select, Shell extension. 
 
 ![](docs/images/romaji.png)
 
@@ -17,6 +17,7 @@
 - [Quick select](#quick-select)
   - [Hotkeys](#hotkeys)
   - [Key list](#key-list)
+- [Shell](#shell)
 - [Others](#others)
   - [Quick launcher](#quick-launcher)
   - [Disk usage analysis](#disk-usage-analysis)
@@ -242,6 +243,13 @@ quick_select:
   input_mode: Auto
 ```
 </details>
+
+## Shell
+Features:
+- When opening a file in Git repository, use VS Code to open the entire repository and navigate to the file.
+  Disabled by default.
+
+These features can also be used independently: [ib-shell](https://github.com/Chaoses-Ib/ib-shell).
 
 ## Others
 ### Quick launcher
