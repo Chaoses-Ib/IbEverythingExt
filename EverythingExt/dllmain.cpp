@@ -174,12 +174,23 @@ HWND WINAPI CreateWindowExW_detour(
                 created = true;
             }
         } else if (class_name == L"Edit"sv) {
+            /*
             if (config.pinyin_search.enable) {
+            {
                 wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
                 if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
                     if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
                         pinyin_search->edit_created(wnd);
                     }
+                }
+            }
+            */
+            wchar_t buf[std::size(L"EVERYTHING_TOOLBAR")];
+            if (int len = GetClassNameW(hWndParent, buf, std::size(buf))) {
+                if (std::wstring_view(buf, len) == L"EVERYTHING_TOOLBAR"sv) {
+                    on_search_edit_created(wnd);
+                    if (config.pinyin_search.enable)
+                        pinyin_search->edit_created(wnd);
                 }
             }
         } else if (class_name == L"SysListView32"sv) {

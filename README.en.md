@@ -45,6 +45,9 @@ Manual installation:
 For Windows 7 users, you need to firstly install [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases) (`KexSetup_Release_*.exe`), and enable VxKex in the Properties of `Everything.exe` (or `Everything64.exe`). See [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889) for details.
 
 ## Search enhancement
+- Support disable IME by default for the search editor.
+  Disabled by default on non-Japanese/Chinese systems.
+
 ### Wildcard search
 Wildcard | Semantics
 --- | ---

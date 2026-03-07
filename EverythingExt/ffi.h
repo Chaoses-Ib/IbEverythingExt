@@ -53,6 +53,8 @@ void on_ipc_window_created();
 
 EverythingExeOffsets get_everything_exe_offsets();
 
+void on_search_edit_created(void *hwnd);
+
 const void *search_compile(const char *pattern, PcreFlags cflags, Modifiers modifiers);
 
 int32_t search_exec(const void *matcher,

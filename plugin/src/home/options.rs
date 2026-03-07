@@ -11,6 +11,7 @@ pub struct MainModel {
     check: Child<CheckBox>,
     prerelease: Child<CheckBox>,
 
+    ime_default_off: Child<CheckBox>,
     search_mix_lang: Child<CheckBox>,
     wildcard_complement_separator_as_star: Child<CheckBox>,
     wildcard_two_separator_as_star: Child<CheckBox>,
@@ -48,6 +49,9 @@ impl Component for MainModel {
         let mut prerelease = Child::<CheckBox>::init(&window).await?;
         prerelease.set_text(t!("update.prerelease"));
 
+        let mut ime_default_off = Child::<CheckBox>::init(&window).await?;
+        ime_default_off.set_text(t!("search.ime_default_off"));
+
         let mut search_mix_lang = Child::<CheckBox>::init(&window).await?;
         search_mix_lang.set_text("允许混合匹配拼音和ローマ字（开启简拼时误匹配率较高）");
 
@@ -69,6 +73,7 @@ impl Component for MainModel {
             prerelease.set_checked(config.prerelease.unwrap_or(false));
 
             let config = &a.config().search;
+            ime_default_off.set_checked(config.ime_default_off());
             search_mix_lang.set_checked(config.mix_lang);
             wildcard_complement_separator_as_star
                 .set_checked(config.wildcard_complement_separator_as_star());
@@ -83,6 +88,7 @@ impl Component for MainModel {
             window,
             check,
             prerelease,
+            ime_default_off,
             search_mix_lang,
             wildcard_complement_separator_as_star,
             wildcard_two_separator_as_star,
@@ -100,6 +106,7 @@ impl Component for MainModel {
             self.search_mix_lang => {},
             self.wildcard_complement_separator_as_star => {},
             self.wildcard_two_separator_as_star => {},
+            self.ime_default_off => {},
         }
     }
 
@@ -139,6 +146,7 @@ impl Component for MainModel {
                             },
                         };
                         config.search = SearchConfig {
+                            ime_default_off: self.ime_default_off.is_checked()?.into(),
                             mix_lang: self.search_mix_lang.is_checked()?,
                             wildcard_complement_separator_as_star: Some(
                                 self.wildcard_complement_separator_as_star.is_checked()?,
@@ -162,11 +170,12 @@ impl Component for MainModel {
         let m = Margin::new(4., 0., 4., 0.);
 
         let mut search_layout = layout! {
-            Grid::from_str("1*", "auto,auto,auto,1*").unwrap(),
-            self.search_mix_lang => { column: 0, row: 0, margin: m },
-            self.wildcard_complement_separator_as_star => { column: 0, row: 1, margin: m },
-            self.wildcard_two_separator_as_star => { column: 0, row: 2, margin: m },
-            self.search_syntax => { column: 0, row: 3, margin: m },
+            Grid::from_str("1*", "auto,auto,auto,auto,1*").unwrap(),
+            self.ime_default_off => { column: 0, row: 0, margin: m },
+            self.search_mix_lang => { column: 0, row: 1, margin: m },
+            self.wildcard_complement_separator_as_star => { column: 0, row: 2, margin: m },
+            self.wildcard_two_separator_as_star => { column: 0, row: 3, margin: m },
+            self.search_syntax => { column: 0, row: 4, margin: m },
         };
 
         // 主布局

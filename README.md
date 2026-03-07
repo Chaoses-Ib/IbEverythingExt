@@ -52,6 +52,8 @@
 Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases)（`KexSetup_Release_*.exe`），并在 `Everything.exe`（或 `Everything64.exe`）文件属性中启用 VxKex。详见 [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889)。
 
 ## 搜索增强
+- 支持让搜索编辑框默认关闭输入法，中文/日文系统默认开启。
+
 ### 拼音搜索
 允许用拼音在 Everything 中搜索文件。中文系统默认开启。
 

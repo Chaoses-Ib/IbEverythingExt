@@ -6,6 +6,10 @@ update.prerelease:
   en: Check for pre-releases
   zh: 包括预览版
 
+search.ime_default_off:
+  en: Disable IME by default for search editor
+  zh: 搜索编辑框默认关闭输入法
+  ja: 検索エディタでデフォルトでIMEを無効にする
 search.syntax:
   en: |-
     Lowercase letters can match Chinese pinyin, Japanese romaji, or English letters, while uppercase letters match only English letters by default.

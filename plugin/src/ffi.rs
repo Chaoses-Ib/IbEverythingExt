@@ -147,3 +147,12 @@ extern "C" fn get_everything_exe_offsets() -> EverythingExeOffsets {
     // }
     HANDLER.with_app(|a| a.offsets.as_ref().into())
 }
+
+#[unsafe(no_mangle)]
+extern "C" fn on_search_edit_created(hwnd: *mut c_void) {
+    HANDLER.with_app(|a| {
+        if a.config.search.ime_default_off() {
+            ib_ime::hook::ImeHookConfig::default_off().hook_window(hwnd);
+        }
+    })
+}

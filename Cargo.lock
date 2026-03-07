@@ -684,6 +684,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
+name = "ib-ime"
+version = "0.1.0"
+source = "git+https://github.com/Chaoses-Ib/ib-shell#2d2ec4ead1dd45a093f3e32f2a18d83b6db32e25"
+dependencies = [
+ "bitflags 2.9.1",
+ "bon",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "ib-matcher"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -717,7 +727,7 @@ dependencies = [
 [[package]]
 name = "ib-shell-verb"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-shell#0c9ebcc0e6b012776f2a7f4da387726f9a1c67dc"
+source = "git+https://github.com/Chaoses-Ib/ib-shell#2d2ec4ead1dd45a093f3e32f2a18d83b6db32e25"
 dependencies = [
  "anyhow",
  "bon",
@@ -1264,6 +1274,7 @@ version = "0.10.0-alpha"
 dependencies = [
  "bitflags 2.9.1",
  "everything-plugin",
+ "ib-ime",
  "ib-matcher",
  "ib-shell-verb",
  "rust-i18n",
