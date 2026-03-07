@@ -468,6 +468,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dunce"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
+
+[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -486,6 +492,12 @@ dependencies = [
  "vswhom",
  "winreg",
 ]
+
+[[package]]
+name = "env_home"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7f84e12ccf0a7ddc17a6c41c93326024c42920d7ee630d04950e6926645c0fe"
 
 [[package]]
 name = "equivalent"
@@ -703,6 +715,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ib-shell-verb"
+version = "0.1.0"
+source = "git+https://github.com/Chaoses-Ib/ib-shell#0c9ebcc0e6b012776f2a7f4da387726f9a1c67dc"
+dependencies = [
+ "anyhow",
+ "bon",
+ "open",
+ "slim-detours-sys",
+ "tracing",
+ "which",
+ "widestring",
+ "windows",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "ib-unicode"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -786,6 +814,25 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "is-docker"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "928bae27f42bc99b60d9ac7334e3a21d10ad8f1835a4e12ec3ec0464765ed1b3"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
+name = "is-wsl"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "173609498df190136aa7dea1a91db051746d339e18476eed5ca40521f02d7aa5"
+dependencies = [
+ "is-docker",
+ "once_cell",
 ]
 
 [[package]]
@@ -1145,6 +1192,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
 
 [[package]]
+name = "open"
+version = "5.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43bb73a7fa3799b198970490a51174027ba0d4ec504b03cd08caf513d40024bc"
+dependencies = [
+ "dunce",
+ "is-wsl",
+ "libc",
+ "pathdiff",
+]
+
+[[package]]
 name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1155,6 +1214,12 @@ name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+
+[[package]]
+name = "pathdiff"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "pelite"
@@ -1200,6 +1265,7 @@ dependencies = [
  "bitflags 2.9.1",
  "everything-plugin",
  "ib-matcher",
+ "ib-shell-verb",
  "rust-i18n",
  "serde",
  "serde_json",
@@ -1546,6 +1612,15 @@ name = "slab"
 version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04dc19736151f35336d325007ac991178d504a119863a2fcb3758cdb5e52c50d"
+
+[[package]]
+name = "slim-detours-sys"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19a519e4f3dc47c5f55a3c1d87b6ba499a11bd81c3a3ca2ed0c835f5e120fd32"
+dependencies = [
+ "windows-sys 0.61.2",
+]
 
 [[package]]
 name = "slotmap"
@@ -1940,6 +2015,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "which"
+version = "8.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a824aeba0fbb27264f815ada4cff43d65b1741b7a4ed7629ff9089148c4a4e0"
+dependencies = [
+ "env_home",
+ "rustix",
+ "winsafe",
+]
+
+[[package]]
 name = "widestring"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2244,7 +2330,7 @@ checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
 [[package]]
 name = "winio"
 version = "0.10.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "cfg-if",
  "cfg_aliases",
@@ -2266,12 +2352,12 @@ dependencies = [
 [[package]]
 name = "winio-callback"
 version = "0.1.2"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 
 [[package]]
 name = "winio-elm"
 version = "0.4.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "async-stream",
  "futures-util",
@@ -2286,7 +2372,7 @@ dependencies = [
 [[package]]
 name = "winio-handle"
 version = "0.5.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "cfg-if",
  "objc2",
@@ -2298,7 +2384,7 @@ dependencies = [
 [[package]]
 name = "winio-layout"
 version = "0.2.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "paste",
  "taffy",
@@ -2309,7 +2395,7 @@ dependencies = [
 [[package]]
 name = "winio-pollable"
 version = "0.3.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "compio",
  "rustix",
@@ -2318,7 +2404,7 @@ dependencies = [
 [[package]]
 name = "winio-primitive"
 version = "0.2.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "bitflags 2.9.1",
  "euclid",
@@ -2328,7 +2414,7 @@ dependencies = [
 [[package]]
 name = "winio-ui-app-kit"
 version = "0.4.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "block2",
  "compio",
@@ -2354,7 +2440,7 @@ dependencies = [
 [[package]]
 name = "winio-ui-win32"
 version = "0.4.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "compio",
  "compio-log",
@@ -2375,7 +2461,7 @@ dependencies = [
 [[package]]
 name = "winio-ui-windows-common"
 version = "0.5.0"
-source = "git+https://github.com/Chaoses-Ib/winio#ee09820dcaa15d68c3a620d60430361f2a8fd4c5"
+source = "git+https://github.com/Chaoses-Ib/winio#69508446ef343ced917987f8f1bef8e4867684b5"
 dependencies = [
  "cfg-if",
  "compio",
@@ -2428,6 +2514,12 @@ checksum = "b68db261ef59e9e52806f688020631e987592bd83619edccda9c47d42cde4f6c"
 dependencies = [
  "toml 0.5.11",
 ]
+
+[[package]]
+name = "winsafe"
+version = "0.0.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
 
 [[package]]
 name = "wit-bindgen-rt"

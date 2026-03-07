@@ -14,7 +14,7 @@ use ib_matcher::matcher::{PinyinMatchConfig, RomajiMatchConfig};
 
 use crate::{
     home::UpdateConfig, pinyin::PinyinSearchConfig, quick_select::QuickSelectConfig,
-    romaji::RomajiSearchConfig,
+    romaji::RomajiSearchConfig, shell::ShellConfig,
 };
 
 #[macro_use]
@@ -28,6 +28,7 @@ mod pinyin;
 mod quick_select;
 pub mod romaji;
 pub mod search;
+pub mod shell;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
@@ -39,6 +40,8 @@ pub struct Config {
     pub romaji_search: RomajiSearchConfig,
     /// 快速选择
     pub quick_select: QuickSelectConfig,
+    #[serde(default)]
+    pub shell: ShellConfig,
     /// 更新
     pub update: UpdateConfig,
 }
@@ -148,6 +151,8 @@ impl PluginApp for App {
             instance_name: instance_name.as_ptr(),
         };
         unsafe { ffi::start(&args) };
+
+        self.config.shell.start();
     }
 
     fn config(&self) -> &Self::Config {
@@ -170,6 +175,7 @@ impl App {
 
 impl Drop for App {
     fn drop(&mut self) {
+        self.config.shell.stop();
         unsafe { ffi::stop() };
     }
 }
@@ -197,6 +203,10 @@ plugin_main!(App, {
             OptionsPage::builder()
                 .name(t!("quick-select"))
                 .load(spawn::<quick_select::options::MainModel>)
+                .build(),
+            OptionsPage::builder()
+                .name("Shell")
+                .load(spawn::<shell::options::MainModel>)
                 .build(),
         ])
         .build()

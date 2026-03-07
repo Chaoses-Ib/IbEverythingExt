@@ -34,6 +34,11 @@ features = ["pinyin", "romaji", "syntax", "regex"]
 # git = "https://github.com/Chaoses-Ib/ib-matcher"
 # rev = "2fc6298be0fce2ca4f11233c7a929c8e0ba1e2e7"
 
+[dependencies.ib-shell-verb]
+version = "0.1"
+features = ["hook"]
+git = "https://github.com/Chaoses-Ib/ib-shell"
+
 [build-dependencies]
 vcpkg = "0.2.15"
 winres = "0.1"
