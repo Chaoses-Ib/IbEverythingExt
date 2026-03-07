@@ -34,7 +34,10 @@ pinyin_search:
 romaji_search:
   enable: null
 
+  # キーワード単語部分一致検索
   allow_partial_match: true
+  # キーワード仮名部分一致検索
+  partial_kana: false
 
 # 快速选择
 quick_select:

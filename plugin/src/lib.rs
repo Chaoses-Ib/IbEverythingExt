@@ -91,6 +91,7 @@ impl PluginApp for App {
         let romaji = if romaji.enable() {
             Some(
                 RomajiMatchConfig::builder()
+                    .partial_word(romaji.partial_word)
                     .allow_partial_pattern(romaji.allow_partial_match)
                     .build(),
             )

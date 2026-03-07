@@ -5,6 +5,10 @@ pub mod options;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RomajiSearchConfig {
     pub enable: Option<bool>,
+    /// Historical shit
+    #[serde(rename = "allow_partial_match")]
+    pub partial_word: bool,
+    #[serde(rename = "partial_kana", default)]
     pub allow_partial_match: bool,
 }
 
@@ -12,7 +16,8 @@ impl Default for RomajiSearchConfig {
     fn default() -> Self {
         Self {
             enable: None,
-            allow_partial_match: true,
+            partial_word: true,
+            allow_partial_match: false,
         }
     }
 }

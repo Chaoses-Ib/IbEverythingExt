@@ -9,6 +9,7 @@ pub struct MainModel {
 
     enabled: Child<CheckBox>,
 
+    partial_word: Child<CheckBox>,
     allow_partial_match: Child<CheckBox>,
 
     system_label: Child<Label>,
@@ -41,8 +42,10 @@ impl Component for MainModel {
         let mut enabled = Child::<CheckBox>::init(&window).await?;
         enabled.set_text("ローマ字検索を有効にする");
 
+        let mut partial_word = Child::<CheckBox>::init(&window).await?;
+        partial_word.set_text("キーワード単語部分一致検索");
         let mut allow_partial_match = Child::<CheckBox>::init(&window).await?;
-        allow_partial_match.set_text("キーワード部分一致検索");
+        allow_partial_match.set_text("キーワード仮名部分一致検索");
 
         let mut options_label = Child::<Label>::init(&window).await?;
         options_label.set_text("ローマ字の種別：");
@@ -59,6 +62,7 @@ impl Component for MainModel {
 
             enabled.set_checked(config.enable());
 
+            partial_word.set_checked(config.partial_word);
             allow_partial_match.set_checked(config.allow_partial_match);
         });
 
@@ -69,6 +73,7 @@ impl Component for MainModel {
         Ok(Self {
             window,
             enabled,
+            partial_word,
             allow_partial_match,
             system_label: options_label,
             system_hepburn,
@@ -81,6 +86,7 @@ impl Component for MainModel {
             self.enabled => {
                 CheckBoxEvent::Click => MainMessage::EnabledClick
             },
+            self.partial_word => {},
             self.allow_partial_match => {},
             self.system_hepburn => {},
         }
@@ -114,6 +120,7 @@ impl Component for MainModel {
                         // 保存拼音搜索配置
                         config.romaji_search = RomajiSearchConfig {
                             enable: Some(self.enabled.is_checked()?),
+                            partial_word: self.partial_word.is_checked()?,
                             allow_partial_match: self.allow_partial_match.is_checked()?,
                         };
                         tx.send(config).unwrap();
@@ -132,11 +139,12 @@ impl Component for MainModel {
 
         // 主布局
         let mut root_layout = layout! {
-            Grid::from_str("1*", "auto,auto,auto,auto,1*").unwrap(),
+            Grid::from_str("1*", "auto,auto,auto,auto,auto,1*").unwrap(),
             self.enabled => { column: 0, row: 0, margin: m },
-            self.allow_partial_match => { column: 0, row: 1, margin: m },
-            self.system_label => { column: 0, row: 2, margin: m },
-            self.system_hepburn => { column: 0, row: 3, margin: m },
+            self.partial_word => { column: 0, row: 1, margin: m },
+            self.allow_partial_match => { column: 0, row: 2, margin: m },
+            self.system_label => { column: 0, row: 3, margin: m },
+            self.system_hepburn => { column: 0, row: 4, margin: m },
         };
 
         root_layout.set_size(csize);
