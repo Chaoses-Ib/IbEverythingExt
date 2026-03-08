@@ -21,10 +21,13 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
+        // See plugin_stop()
+        /*
         if (module) {
             auto stop = (void (*)())GetProcAddress(module, "plugin_stop");
             stop();
         }
+        */
         break;
     }
     return TRUE;

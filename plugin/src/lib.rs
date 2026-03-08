@@ -175,6 +175,7 @@ impl App {
 }
 
 impl Drop for App {
+    /// Mostly detach hooks.
     fn drop(&mut self) {
         self.config.shell.stop();
         unsafe { ffi::stop() };
