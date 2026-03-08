@@ -252,7 +252,7 @@ quick_select:
 
 ## Shell
 功能：
-- 打开 Git 仓库中的文件时，使用 VS Code 打开整个仓库并跳转到相应文件。
+- 支持打开 Git 仓库中的文件时，使用 VS Code 打开整个仓库并跳转到相应文件。
   默认关闭。
 
 这些功能也可作为独立程序调用：[ib-shell](https://github.com/Chaoses-Ib/ib-shell)。
@@ -326,6 +326,7 @@ update:
 
 库：
 - [ib-matcher: A multilingual, flexible and fast string, glob and regex matcher. Support 拼音匹配 and ローマ字検索.](https://github.com/Chaoses-Ib/ib-matcher)
+- [ib-shell: Some desktop environment libraries, mainly for Windows Shell (Windows' built-in desktop environment).](https://github.com/Chaoses-Ib/ib-shell)
 - [IbEverythingLib: Rust/C++ bindings for voidtool's Everything](https://github.com/Chaoses-Ib/IbEverythingLib)
 - [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
 

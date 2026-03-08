@@ -246,7 +246,7 @@ quick_select:
 
 ## Shell
 Features:
-- When opening a file in Git repository, use VS Code to open the entire repository and navigate to the file.
+- Support when opening a file in Git repository, using VS Code to open the entire repository and navigate to the file.
   Disabled by default.
 
 These features can also be used independently: [ib-shell](https://github.com/Chaoses-Ib/ib-shell).
@@ -320,6 +320,7 @@ Groups:
 
 Libraries:
 - [ib-matcher: A multilingual, flexible and fast string, glob and regex matcher. Support 拼音匹配 and ローマ字検索.](https://github.com/Chaoses-Ib/ib-matcher)
+- [ib-shell: Some desktop environment libraries, mainly for Windows Shell (Windows' built-in desktop environment).](https://github.com/Chaoses-Ib/ib-shell)
 - [IbEverythingLib: Rust/C++ bindings for voidtool's Everything](https://github.com/Chaoses-Ib/IbEverythingLib)
 - [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
 
