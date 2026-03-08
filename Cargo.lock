@@ -686,7 +686,7 @@ checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 [[package]]
 name = "ib-ime"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-shell#2d2ec4ead1dd45a093f3e32f2a18d83b6db32e25"
+source = "git+https://github.com/Chaoses-Ib/ib-shell#06bf37fd305765478af2220b21e4b2a89396a9b4"
 dependencies = [
  "bitflags 2.9.1",
  "bon",
@@ -725,12 +725,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ib-shell-item"
+version = "0.1.0"
+source = "git+https://github.com/Chaoses-Ib/ib-shell#06bf37fd305765478af2220b21e4b2a89396a9b4"
+dependencies = [
+ "widestring",
+ "windows",
+]
+
+[[package]]
 name = "ib-shell-verb"
 version = "0.1.0"
-source = "git+https://github.com/Chaoses-Ib/ib-shell#2d2ec4ead1dd45a093f3e32f2a18d83b6db32e25"
+source = "git+https://github.com/Chaoses-Ib/ib-shell#06bf37fd305765478af2220b21e4b2a89396a9b4"
 dependencies = [
  "anyhow",
  "bon",
+ "ib-shell-item",
  "open",
  "slim-detours-sys",
  "tracing",
