@@ -14,7 +14,9 @@ name = "IbEverythingExt"
 crate-type = ["cdylib"]
 
 [dependencies]
+anyhow = "1"
 bitflags = "2"
+ib-hook = { version = "0.1", git = "https://github.com/Chaoses-Ib/ib-hook" }
 rust-i18n = "3"
 serde = "1"
 serde_json = "1"
@@ -36,6 +38,16 @@ features = ["pinyin", "romaji", "syntax", "regex"]
 
 [dependencies.ib-ime]
 version = "0.1"
+git = "https://github.com/Chaoses-Ib/ib-shell"
+
+[dependencies.ib-shell]
+version = "0.1"
+features = [
+    "item",
+    "hook",
+    "hook-dll",
+    "everything",
+]
 git = "https://github.com/Chaoses-Ib/ib-shell"
 
 [dependencies.ib-shell-verb]

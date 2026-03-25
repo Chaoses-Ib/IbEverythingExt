@@ -16,6 +16,8 @@ keywords = ["everything", "voidtools", "plugin", "pinyin", "cjk"]
 sig = { path = "sig" }
 
 [patch.crates-io]
+everything-ipc = { git = "https://github.com/Chaoses-Ib/IbEverythingLib" }
+ib-hook = { git = "https://github.com/Chaoses-Ib/ib-hook" }
 winio = { git = "https://github.com/Chaoses-Ib/winio" }
 
 [profile.release]

@@ -52,6 +52,8 @@ pub struct App {
     offsets: Option<sig::EverythingExeOffsets>,
     pinyin: Option<PinyinMatchConfig<'static>>,
     romaji: Option<RomajiMatchConfig<'static>>,
+
+    shell: Option<ib_shell::hook::inject::ShellInjector>,
 }
 
 impl PluginApp for App {
@@ -99,6 +101,8 @@ impl PluginApp for App {
             None
         };
 
+        let shell = config.shell.injector();
+
         Self {
             ipc,
             pinyin,
@@ -114,6 +118,7 @@ impl PluginApp for App {
                     None
                 }
             },
+            shell,
         }
     }
 

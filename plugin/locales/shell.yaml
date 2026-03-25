@@ -2,6 +2,12 @@ _version: 2
 shell.open_file_in_workspace_vscode:
   en: When opening a file in Git repository, use VS Code to open the entire repository and navigate to the file
   zh: 打开 Git 仓库中的文件时，使用 VS Code 打开整个仓库并跳转到相应文件
+shell.inject:
+  en: Enable file manager folder size integration
+  zh: 开启文件管理器文件夹大小集成
+shell.inject_explorer:
+  en: Explorer
+  zh: 资源管理器
 shell.link:
   en: "Features on this page can also be used independently: ib-shell"
   zh: 本页功能也可作为独立程序调用：ib-shell
