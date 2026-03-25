@@ -668,9 +668,9 @@ dependencies = [
 
 [[package]]
 name = "everything-plugin"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e721f828fa9d0fbe31c296f659f591d9d0f06cc593ab3d650a82459d999d0ca"
+checksum = "efeadc33058dfb23dbb9e60f8525276aeee319ef161127863560f7f2d428e792"
 dependencies = [
  "anstream",
  "bon",
