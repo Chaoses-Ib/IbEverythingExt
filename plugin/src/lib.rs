@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::sync::OnceLock;
+use std::{ffi::CString, sync::OnceLock};
 
 use everything_plugin::{
     PluginApp, PluginHandler, PluginHost,
@@ -137,6 +137,9 @@ impl PluginApp for App {
             .terminal_command()
             .into();
         let config = serde_json::to_string(&config).unwrap();
+        // 配置文件读取错误:
+        // yaml-cpp: error at line 1, column 631: end of map not found
+        let config = CString::new(config).unwrap();
 
         let instance_name = HANDLER
             .instance_name()
