@@ -185,6 +185,10 @@ impl App {
 impl Drop for App {
     /// Mostly detach hooks.
     fn drop(&mut self) {
+        // TODO
+        if let Some(shell) = self.shell.take() {
+            shell.eject();
+        }
         self.config.shell.stop();
         unsafe { ffi::stop() };
     }
