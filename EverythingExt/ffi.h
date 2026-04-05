@@ -41,6 +41,8 @@ struct regmatch_t {
 
 extern "C" {
 
+extern const Modifiers Modifiers_RegExMask;
+
 void plugin_start();
 
 void plugin_stop();

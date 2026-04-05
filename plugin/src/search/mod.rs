@@ -60,6 +60,8 @@ bitflags! {
         const v5_EndWith = 0x80;
 
         /// `wholefilename:` or `wfn:`
+        ///
+        /// `whole:`
         const WholeFilename = 0x200;
 
         /// "Enable Regex" or `regex:`
@@ -78,8 +80,30 @@ bitflags! {
         ///
         /// If `Prefix` and `Suffix` are both used, only `WholeWord` will be set.
         const Suffix = 0x40000;
+
+        /// `ignorepunc:`
+        const IgnorePunctuation = 0x80000;
+
+        /// `ignorews:`
+        const IgnoreWhitespace = 0x100000;
     }
 }
+
+#[allow(non_upper_case_globals)]
+impl Modifiers {
+    const RegExMask: Self = Self::Diacritics
+        .union(Self::WholeWord)
+        .union(Self::WholeFilename)
+        .union(Self::v5_StartWith)
+        .union(Self::v5_EndWith)
+        .union(Self::Prefix)
+        .union(Self::Suffix)
+        .union(Self::IgnorePunctuation)
+        .union(Self::IgnoreWhitespace);
+}
+
+#[unsafe(no_mangle)]
+pub static Modifiers_RegExMask: Modifiers = Modifiers::RegExMask;
 
 impl Debug for Modifiers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -132,6 +156,12 @@ extern "C" fn search_compile(
     if app.version() < Version::new(1, 5, 0, 0) {
         modifiers.remove(Modifiers::v5_StartWith | Modifiers::v5_EndWith);
     }
+    /*
+    if modifiers.contains(Modifiers::RegExMask) {
+        modifiers ^= Modifiers::Case;
+    }
+    */
+
     // #[cfg_attr(rustfmt, rustfmt_skip)]
     // let matcher = IbMatcher::builder(
     //     Pattern::parse_ev(&pattern)

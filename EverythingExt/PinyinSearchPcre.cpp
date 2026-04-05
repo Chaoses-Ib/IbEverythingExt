@@ -122,6 +122,9 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     if (modifiers & Modifier::WildcardEx || modifiers & Modifier::WholeWord)
         return;
 
+    // if (modifiers & Modifier::WholeFilename)
+    //     return;
+
     // //#TODO: wildcards are not supported
     // if (!(modifiers & Modifier::Alphanumeric) && pattern.find_first_of(u8"*?") != pattern.npos)
     //    return;
@@ -159,6 +162,12 @@ void regcomp_p2_common(Modifier::Value* modifiers_p, char8_t* termtext, size_t* 
     // $: invalid when termtext is a single char
     termtext[0] = u8'.';
     //#TODO: or nofastregex: (v1.5.0.1291)
+
+    // https://github.com/Chaoses-Ib/IbEverythingExt/issues/105
+    if (modifiers & Modifiers_RegExMask) {
+        // termtext[0] = u8'$';
+        *modifiers_p ^= Modifier::Case;
+    }
 }
 
 #pragma pack(push, 1)
