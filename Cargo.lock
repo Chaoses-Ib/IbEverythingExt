@@ -882,9 +882,9 @@ dependencies = [
 
 [[package]]
 name = "ib-matcher"
-version = "0.4.3"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cede1f26d9f9af576cf2a7fb7ea5be62b188742dcf8ce06e3e8d0be7be4a346"
+checksum = "264a29219aaa7f548067da1342a3513a71eccede16eed340650b4bf0839696fe"
 dependencies = [
  "aho-corasick",
  "arraystring",
@@ -1779,9 +1779,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.9"
+version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "809e8dc61f6de73b46c85f4c96486310fe304c434cfa43669d7b40f711150908"
+checksum = "6e1dd4122fc1595e8162618945476892eefca7b88c52820e74af6262213cae8f"
 dependencies = [
  "aho-corasick",
  "memchr",
