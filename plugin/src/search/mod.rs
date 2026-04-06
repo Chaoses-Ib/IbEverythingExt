@@ -161,6 +161,8 @@ extern "C" fn search_compile(
         modifiers ^= Modifiers::Case;
     }
     */
+    // cflags.contains(PcreFlags::REG_ICASE)
+    let case_insensitive = !modifiers.contains(Modifiers::Case);
 
     // #[cfg_attr(rustfmt, rustfmt_skip)]
     // let matcher = IbMatcher::builder(
@@ -182,7 +184,7 @@ extern "C" fn search_compile(
     //     .build();
     let matcher = Regex::builder()
         .ib(MatchConfig::builder()
-            .case_insensitive(cflags.contains(PcreFlags::REG_ICASE))
+            .case_insensitive(case_insensitive)
             .starts_with(modifiers.intersects(Modifiers::v5_StartWith | Modifiers::WholeFilename))
             .ends_with(modifiers.intersects(Modifiers::v5_EndWith | Modifiers::WholeFilename))
             // TODO
