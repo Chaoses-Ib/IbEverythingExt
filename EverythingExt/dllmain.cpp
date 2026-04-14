@@ -126,12 +126,19 @@ HWND WINAPI CreateWindowExW_detour(
     // ComboBox
     // EVERYTHING_PREVIEW
 
+    if (start_on_create) {
+        plugin_start();
+    }
+
     HWND wnd = CreateWindowExW_real(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
     if ((uintptr_t)lpClassName > 0xFFFF) {
         std::wstring_view class_name(lpClassName);
         if constexpr (debug)
             DebugOStream() << class_name << L", parent: " << hWndParent << L'\n';
+
+        if (!config.enable)
+            return wnd;
 
         // named instances
         if (class_name.ends_with(L')') && instance_name.empty()) {
@@ -238,6 +245,13 @@ BOOL CALLBACK enum_window_proc(
 }
 */
 
+extern "C" void wait_start() {
+    if constexpr (debug)
+        DebugOStream() << L"wait_start\n";
+    start_on_create = true;
+    IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
+}
+
 extern "C" bool start(const StartArgs* args) {
     if (args) {
         if (!config_init(args->config))
@@ -255,6 +269,7 @@ extern "C" bool start(const StartArgs* args) {
             return false;
     }
 
+    if (CreateWindowExW_real == CreateWindowExW)
     IbDetourAttach(&CreateWindowExW_real, CreateWindowExW_detour);
     if (config.quick_select.enable)
         IbDetourAttach(&SetWindowLongPtrW_real, SetWindowLongPtrW_detour);

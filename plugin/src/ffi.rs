@@ -53,8 +53,20 @@ pub fn read_config(default_if_nonexist: bool) -> Option<Config> {
     }
 }
 
+/// Everything v1.5 will load `WindowsCodecs.dll` even for sub instances (`load image lists`).
+/// We use `wait_start()` to avoid load `WindowsCodecs.dll` unnecessarily.
 #[unsafe(no_mangle)]
 extern "C" fn plugin_start() {
+    if !unsafe { start_on_create } {
+        unsafe { wait_start() };
+    } else {
+        // plugin_start_inner() will trigger CreateWindowExW
+        unsafe { start_on_create = false };
+        plugin_start_inner();
+    }
+}
+
+fn plugin_start_inner() {
     match read_config(false) {
         Some(config) => HANDLER.init_start_with_config(config),
         None => {
@@ -137,6 +149,9 @@ pub struct StartArgs {
 }
 
 unsafe extern "C" {
+    pub fn wait_start();
+    static mut start_on_create: bool;
+
     pub fn start(args: *const StartArgs) -> bool;
     pub fn stop();
 }

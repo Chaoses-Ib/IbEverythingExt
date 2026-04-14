@@ -2,6 +2,8 @@
 #include "PinyinSearch.hpp"
 #include "quick_select.hpp"
 
+extern "C" inline bool start_on_create = false;
+
 struct Config {
     // set to false when config_init fails
     bool enable;
