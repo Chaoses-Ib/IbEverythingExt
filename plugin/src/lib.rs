@@ -46,6 +46,35 @@ pub struct Config {
     pub update: UpdateConfig,
 }
 
+impl Config {
+    pub fn early_config() -> Self {
+        Self {
+            search: Default::default(),
+            pinyin_search: PinyinSearchConfig {
+                enable: Some(false),
+                ..Default::default()
+            },
+            romaji_search: RomajiSearchConfig {
+                enable: Some(false),
+                ..Default::default()
+            },
+            quick_select: QuickSelectConfig {
+                enable: true,
+                ..Default::default()
+            },
+            shell: ShellConfig {
+                open_file_in_workspace_vscode: false,
+                inject: Some(false),
+                inject_explorer: Some(false),
+            },
+            update: UpdateConfig {
+                check: true,
+                prerelease: Some(false),
+            },
+        }
+    }
+}
+
 pub struct App {
     config: Config,
     ipc: OnceLock<(IpcWindow, Version)>,
@@ -156,7 +185,7 @@ impl PluginApp for App {
         let args = ffi::StartArgs {
             host,
             config: config.as_ptr() as _,
-            ipc_window: self.ipc.get().map(|w| w.0.hwnd()).unwrap_or_default(),
+            ipc_window: self.ipc.get().map(|w| w.0.hwnd().0).unwrap_or_default(),
             instance_name: instance_name.as_ptr(),
         };
         unsafe { ffi::start(&args) };

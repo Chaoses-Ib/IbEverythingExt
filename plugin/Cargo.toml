@@ -16,6 +16,7 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1"
 bitflags = "2"
+everything-ipc = { version = "0.1", features = ["pe"] }
 ib-hook = { version = "0.1", git = "https://github.com/Chaoses-Ib/ib-hook" }
 rust-i18n = "3"
 serde = "1"

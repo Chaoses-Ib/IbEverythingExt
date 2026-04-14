@@ -78,6 +78,15 @@ quick_select:
   # SendInput
   input_mode: Auto
 
+shell:
+  # 打开 Git 仓库中的文件时，使用 VS Code 打开整个仓库并跳转到相应文件
+  open_file_in_workspace_vscode: false
+
+  # 开启文件管理器文件夹大小集成
+  inject: true
+  # 资源管理器
+  inject_explorer: true
+
 # 更新
 update:
   # 检查更新

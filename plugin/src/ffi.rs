@@ -67,6 +67,15 @@ extern "C" fn plugin_start() {
 }
 
 fn plugin_start_inner() {
+    // v1.5: Use early config before plugin init.
+    // Using full config is wasteful and may cause problems related to injecting.
+    if let Ok(version) = everything_ipc::Version::from_current_exe()
+        && version.ge_15()
+    {
+        HANDLER.init_start_with_config(Config::early_config());
+        return;
+    }
+
     match read_config(false) {
         Some(config) => HANDLER.init_start_with_config(config),
         None => {
