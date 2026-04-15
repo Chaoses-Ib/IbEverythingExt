@@ -560,6 +560,10 @@ LRESULT CALLBACK everything_window_proc(
 
         HWND quick_list = (HWND)GetPropW(hwnd, everything_prop_quick_list);  // measure->CtlID == 0?
         QuickListData* data = (QuickListData*)GetPropW(quick_list, quick_list_prop);
+        if (!data) {
+            DebugOStream() << L"everything quick_list prop is null\n";
+            break;
+        }
         measure->itemHeight = data->item_height ? data->item_height : data->default_item_height;
 
         return true;
@@ -676,6 +680,10 @@ LRESULT CALLBACK quick_header_window_proc(
     switch (uMsg) {
     case HDM_LAYOUT: /* adjust the height of the header */ {
         QuickListData* data = (QuickListData*)GetPropW(GetParent(hwnd), quick_list_prop);
+        if (!data) {
+            DebugOStream() << L"quick_header prop is null\n";
+            break;
+        }
         if (!data->list_header) data->try_get_header();
 
         // doesn't work as expected
@@ -707,6 +715,10 @@ LRESULT CALLBACK quick_list_window_proc(
     switch (uMsg) {
     case quick_list_msg_update: {
         QuickListData* data = (QuickListData*)GetPropW(hwnd, quick_list_prop);
+        if (!data) {
+            DebugOStream() << L"quick_list prop is null\n";
+            break;
+        }
 
         // adjust the height and width of items and the height of the header
         RECT item_rect;
@@ -808,6 +820,10 @@ LRESULT CALLBACK quick_list_window_proc(
     }
     case WM_DRAWITEM: /* draw header item */ {
         QuickListData* data = (QuickListData*)GetPropW(hwnd, quick_list_prop);
+        if (!data) {
+            DebugOStream() << L"quick_list prop is null\n";
+            break;
+        }
 
         DRAWITEMSTRUCT* draw = (DRAWITEMSTRUCT*)lParam;
         HDC dc = draw->hDC;
@@ -829,6 +845,10 @@ LRESULT CALLBACK quick_list_window_proc(
         // there is no need to restore GWLP_WNDPROC
 
         QuickListData* data = (QuickListData*)GetPropW(hwnd, quick_list_prop);
+        if (!data) {
+            DebugOStream() << L"quick_list prop is null\n";
+            break;
+        }
         DeleteObject(data->background_brush);
         delete data;
 
@@ -857,6 +877,10 @@ HWND quick::create_quick_list(HWND everything, HWND list, HWND edit, HINSTANCE i
     //ListView_SetTextBkColor(quick_list, data->background_color);  // not work
     SetPropW(quick_list, quick_list_prop, data);
     quick_list_window_proc_prev = (WNDPROC)SetWindowLongPtrW_real(quick_list, GWLP_WNDPROC, (LONG_PTR)quick_list_window_proc);
+    /*
+    // We forget SetPropW for header for several years. Why it didn't crash before?
+    SetPropW(data->header, quick_list_prop, data);
+    */
     quick_header_window_proc_prev = (WNDPROC)SetWindowLongPtrW_real(data->header, GWLP_WNDPROC, (LONG_PTR)quick_header_window_proc);
 
     SetPropW(everything, everything_prop_quick_list, quick_list);
