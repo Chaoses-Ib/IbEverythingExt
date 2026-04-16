@@ -66,6 +66,7 @@ impl Config {
                 open_file_in_workspace_vscode: false,
                 inject: Some(false),
                 inject_explorer: Some(false),
+                ..Default::default()
             },
             update: UpdateConfig {
                 check: true,
