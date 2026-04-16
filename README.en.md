@@ -3,9 +3,11 @@
 
 [Everything](https://www.voidtools.com/) wildcard, Japanese romaji search, Chinese pinyin search, quick select, Shell extension. 
 
-![](docs/images/romaji.png)
-
-![](docs/preview.png)
+Japanese romaji search | File manager folder size integration
+--- | ---
+<img src="docs/images/romaji.png" height="300" width="450"/> | <img src="docs/images/shell-size.png" height="300"/>
+Chinese pinyin search | Quick select
+<img src="docs/preview.png" height="250" width="450"/> | <img src="docs/quick_select_dark_mode.png" height="250"/>
 
 ## Table of contents
 - [Installation](#installation)
@@ -246,6 +248,11 @@ quick_select:
 
 ## Shell
 Features:
+- Support file manager folder size integration.
+  Enabled by default for Explorer.
+
+  ![](docs/images/shell-size.png)
+
 - Support when opening a file in Git repository, using VS Code to open the entire repository and navigate to the file.
   Disabled by default.
 
@@ -320,9 +327,9 @@ Groups:
 
 Libraries:
 - [ib-matcher: A multilingual, flexible and fast string, glob and regex matcher. Support 拼音匹配 and ローマ字検索.](https://github.com/Chaoses-Ib/ib-matcher)
+- [ib-everything: Rust/C++ port of voidtools' Everything's IPC/plugin SDK.](https://github.com/Chaoses-Ib/ib-everything)
 - [ib-shell: Some desktop environment libraries, mainly for Windows Shell (Windows' built-in desktop environment).](https://github.com/Chaoses-Ib/ib-shell)
-- [IbEverythingLib: Rust/C++ bindings for voidtool's Everything](https://github.com/Chaoses-Ib/IbEverythingLib)
-- [IbDllHijackLib: A C library for Windows DLL hijacking.](https://github.com/Chaoses-Ib/IbDllHijackLib)
+- [ib-hook: Windows binary and system hooking Rust/C libraries](https://github.com/Chaoses-Ib/ib-hook)
 
 Projects:
 - [DirectoryOpus: 一款上手简单、系统集成度高、功能强大的 Windows 文件管理器](https://github.com/Chaoses-Ib/DirectoryOpus)
