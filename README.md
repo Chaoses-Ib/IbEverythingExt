@@ -32,17 +32,24 @@
 [便携整合包](https://github.com/Chaoses-Ib/IbEverythingExt/releases)：
 - Everything v1.5 便携整合包
   - 除了 IbEverythingExt，还内置了 HTTP 服务器、ETP/FTP 服务器、Everything 服务器插件
-  - 内置语言包，不过界面中仍有部分英文未汉化
-  - 初次使用时请在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
+  - 内置语言包<!--，不过界面中仍有部分英文未汉化-->
+  - 初次使用时请在选项的插件（Plug-ins）页中选中 IbEverythingExt，勾选启用插件（Enable plug-in）
   - 默认关闭[命名实例](https://github.com/Chaoses-Ib/IbEverythingExt/issues/5)，便于[第三方程序调用](#第三方程序支持)，如有需要可删除 `No_Alpha_Instance` 文件来还原
 - Everything v1.4 便携整合包
+  <!--
   - 完整汉化
+  -->
   - 不含插件配置界面，需要手动编辑 `Plugins/IbEverythingExt/config.yaml` 配置文件
 
 手动安装：
+<!--
 1. 安装 [Everything](https://www.voidtools.com/zh-cn/downloads/) x64 安装版或便携版（不支持其它架构和精简版）  
+-->
+1. 安装 [Everything](https://www.voidtools.com/forum/viewtopic.php?f=12&t=9787#download) x64 安装版或便携版（不支持其它架构和精简版）  
    - v1.4 最高支持 [v1.4.1.1026](https://www.voidtools.com/forum/viewtopic.php?p=75414&sid=e7002e29f531b7c2fbecfa44c817eb0a#p75414)，v1.4.1.1027 及以上屏蔽了 DLL 劫持，无法加载扩展。
+  <!--
    - 如果你能接受英文界面，也可以选择安装 [Everything 1.5 预览版](https://www.voidtools.com/forum/viewtopic.php?f=12&t=9787#download)。
+  -->
 <!--
 2. 安装 [VC++ 2022 x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)  
    （[PowerToys](https://github.com/microsoft/PowerToys) 在安装时会同时安装 VC++ 2022 运行库，如果你安装了 PowerToys 就可以跳过这一步）
@@ -50,7 +57,7 @@
 2. 从 [Releases](https://github.com/Chaoses-Ib/IbEverythingExt/releases) 单独下载 IbEverythingExt 压缩包
 3. 解压压缩包，将文件放入 Everything 安装目录（ `C:\Program Files\Everything` ）
 4. 重启 Everything
-5. Everything v1.5 用户：在选项的 Plug-ins（插件）页中选中 IbEverythingExt，勾选 Enable plug-in（开启插件）
+5. Everything v1.5 用户：在选项的插件（Plug-ins）页中选中 IbEverythingExt，勾选启用插件（Enable plug-in）
 
 Windows 7 用户需先安装 [VxKex](https://github.com/YuZhouRen86/VxKex-NEXT/releases)（`KexSetup_Release_*.exe`），并在 `Everything.exe`（或 `Everything64.exe`）文件属性中启用 VxKex。详见 [#87](https://github.com/Chaoses-Ib/IbEverythingExt/issues/87#issuecomment-3036778889)。
 
